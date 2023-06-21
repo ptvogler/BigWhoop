@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://code.hlrs.de/hpcpvogl/BigWhoop">
-    <img alt="BigWhoop" src="https://code.hlrs.de/hpcpvogl/BigWhoop/raw/branch/main/docs/img/Logo.png"/>
+    <img alt="BigWhoop" src="https://code.hlrs.de/hpcpvogl/BigWhoop/raw/branch/main/docs/img/Logo.svg"/>
   </a>
 </p>
 <h1 align="center">Compression library for numerical datasets</h1>
