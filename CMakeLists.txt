@@ -109,6 +109,13 @@ if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 endif()
 
 #*--------------------------------------------------------*#
+# Set the target installation directory of the config-file #
+# packaging configuration files.                           #
+#*--------------------------------------------------------*#
+set(CMAKE_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/bwc
+    CACHE PATH "Installation directory for config-file package cmake files")
+
+#*--------------------------------------------------------*#
 # Suggest the C standard (C99) used by the compiler.       #
 #*--------------------------------------------------------*#
 if(NOT CMAKE_C_STANDARD)
@@ -182,3 +189,20 @@ add_subdirectory(src/library)
 if(${TOOL})
   add_subdirectory(src/tools)
 endif()
+
+#*--------------------------------------------------------*#
+# Config-file packaging                                    #
+#*--------------------------------------------------------*#
+export(TARGETS bwclib NAMESPACE bwc:: FILE "bwc-targets.cmake")
+configure_file(${PROJECT_SOURCE_DIR}/bwc-config.cmake.in
+              "${PROJECT_BINARY_DIR}/bwc-config.cmake" @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/bwc-config-version.cmake.in
+              "${PROJECT_BINARY_DIR}/bwc-config-version.cmake" @ONLY)
+  
+install(      FILES "${PROJECT_BINARY_DIR}/bwc-config.cmake"
+                    "${PROJECT_BINARY_DIR}/bwc-config-version.cmake"
+        DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
+
+install(     EXPORT bwc-targets
+          NAMESPACE bwc::
+        DESTINATION ${CMAKE_INSTALL_CMAKEDIR})

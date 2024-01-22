@@ -107,7 +107,9 @@ set_target_properties(bwclib PROPERTIES VERSION ${BWC_VERSION}
 #*--------------------------------------------------------*#
 # Setup up the include directory for the BigWhoop library. #
 #*--------------------------------------------------------*#
-target_include_directories(bwclib PRIVATE ${CMAKE_SOURCE_DIR}/include/library/private)
+target_include_directories(bwclib PRIVATE ${CMAKE_SOURCE_DIR}/include/library/private
+                                   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/library/public>
+                                          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 #*--------------------------------------------------------*#
 # Link the BigWhoop library to the math.h library.         #
@@ -115,9 +117,11 @@ target_include_directories(bwclib PRIVATE ${CMAKE_SOURCE_DIR}/include/library/pr
 target_link_libraries(bwclib PRIVATE m)
 
 #*--------------------------------------------------------*#
-# Setup the install directories.                           #
+# Setup the install directories and target exporting for   #
+# config-file packaging.                                   #
 #*--------------------------------------------------------*#
 install(      TARGETS bwclib
+               EXPORT bwc-targets
               LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
