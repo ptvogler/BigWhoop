@@ -117,8 +117,9 @@ target_link_libraries(bwclib PRIVATE m)
 #*--------------------------------------------------------*#
 # Setup the install directories.                           #
 #*--------------------------------------------------------*#
-install(FILES ${CMAKE_SOURCE_DIR}/include/library/public/bwc.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(TARGETS bwclib DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(      TARGETS bwclib
+              LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 #*--------------------------------------------------------*#
 # Define the output name for the BigWhoop library.         #
