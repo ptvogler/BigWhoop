@@ -2396,7 +2396,7 @@ write_file(bwc_cmdl_arg_node  *const  args,
       \*--------------------------------------------------------*/
       else
         {
-          ext_hash     = hash(strrchr(temp->lit_opt[0], '.'));
+          ext_hash     = hash(strrchr(temp->lit_opt[0], '.') + 1);
           if(ext_hash != hash(data->info.f_ext))
             {
               fprintf(stderr, "o##########################################################o\n"\
@@ -3183,9 +3183,9 @@ main(int    argc,
       if(temp != NULL)
         {
           printf("==============================================================\n");
-          printf("Decompression Time:            %*.2f s\n", 24, field->meter.time.ttl);
-          printf("     - Wavelet transformation: %*.2f s\n", 24, field->meter.time.wav);
-          printf("     - Entropy encoding:       %*.2f s\n", 24, field->meter.time.ent);
+          printf("  Decompression Time:            %*.2f s\n", 24, field->meter.time.ttl);
+          printf("       - Wavelet transformation: %*.2f s\n", 24, field->meter.time.wav);
+          printf("       - Entropy encoding:       %*.2f s\n", 24, field->meter.time.ent);
           printf("==============================================================\n");
         }
     }
