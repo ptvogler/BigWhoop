@@ -282,6 +282,10 @@ public_header.write("\n" + ubox + tab + "||" + lspaces * " " + "___  _  _ ___  _
                                   tab + "||" + lspaces * " " + "|    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]" + rspaces * " " + "||\n" + 
                                   tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
 
+public_header.write("\n" + tab + "#ifdef __cplusplus\n" +
+                                  tab + "extern \"C\" {\n" +
+                                  tab + "#endif\n\n")
+
 files = os.listdir("include/library/private")
 printFlg = False
 ltab     = 0
@@ -327,5 +331,10 @@ for file in files:
         public_header.write(buff)
       buff = line
   f.close
+
+public_header.write("\n" + tab + "#ifdef __cplusplus\n" +
+                                  tab + "}\n" +
+                                  tab + "#endif\n\n")
+
 public_header.write("#endif")
 public_header.close
