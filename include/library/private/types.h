@@ -435,26 +435,21 @@
    !                                                                                                            !
    !   DESCRIPTION:                                                                                             !
    !   ------------                                                                                             !
-   !                This structure defines a linked list which stores a parameters name, its index, bit preci-  !
-   !                sion, sampling factor and the dimension for which the sampling is active.                   !
+   !                This structure defines a linked list which stores a parameters name, its index and bit      !
+   !                precision.                                                                                  !
    !                                                                                                            !
    !   PARAMETERS:                                                                                              !
    !   -----------                                                                                              !
    !                Variable                    Type                    Description                             !
    !                --------                    ----                    -----------                             !
-   !                size                        unsigned int(64 bit)  - Size of parameter after sub-sampling.   !
+   !                size                        unsigned int(64 bit)  - Size of parameter.                      !
    !                                                                                                            !
    !                id                          unsigned int(8 bit)   - Index of the parameter.                 !
    !                                                                                                            !
    !                precision                   unsigned int(8 bit)   - Defines the precision of a compressed   !
    !                                                                    dataset.                                !
    !                                                                                                            !
-   !                sample                      unsigned int(8 bit)   - Sampling factor for parameter(id).      !
-   !                                                                                                            !
    !                name                        char                  - Defines the name of parameter(id).      !
-   !                                                                                                            !
-   !                dim                         unsigned char         - Dimension(s) for which the sampling     !
-   !                                                                    factor is active.                       !
    !                                                                                                            !
    !   DEPENDENCIES:                                                                                            !
    !   -------------                                                                                            !
@@ -478,8 +473,6 @@
       uint64                size;
       uint8                 id;
       uint8                 precision;
-      uint8                 sample;
-      uchar                 dim;
       char                  name[24];
       struct opt           *next;
       struct opt           *root;
@@ -519,8 +512,7 @@
    !                Variable                    Type                    Description                             !
    !                --------                    ----                    -----------                             !
    !                parameter                   bwc_cmd_opts_ll*      - Linked list storing the parameter names,!
-   !                                                                    indices, sampling factors and active    !
-   !                                                                    dimensions.                             !
+   !                                                                    indices, size and precision.            !
    !                                                                                                            !
    !   DEVELOPMENT HISTORY:                                                                                     !
    !   --------------------                                                                                     !
@@ -1319,11 +1311,6 @@
    !                number_of_codeblocks        unsigned int(64 bit)  - Defines the number of codeblocks for    !
    !                                                                    the current tile parameter.             !
    !                                                                                                            !
-   !                sampX, sampY, sampZ         unsigned int(8 bit)   - Variables defining the spatial sub-     !
-   !                                                                    sampling value.                         !
-   !                                                                                                            !
-   !                sampT                       unsigned int(8 bit)   - Defines the temporal subsampling value. !
-   !                                                                                                            !
    !                alpha, beta                 bwc_float             - Parameters used to normalized the cur-  !
    !                                                                    rent tile parameter.                    !
    !                                                                                                            !
@@ -1344,8 +1331,6 @@
    typedef struct
    { 
       uint64               number_of_codeblocks;
-      uint8                sampX, sampY, sampZ;
-      uint8                sampTS;
       bwc_float            alpha, beta;
    } bwc_param_ctrl;
 

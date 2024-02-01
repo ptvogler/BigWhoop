@@ -473,7 +473,7 @@ read_eas3_header(bwc_data *const data)
             return 1;
          }
 
-         bwc_add_param(data, param_name, 0, (DIM_X | DIM_Y | DIM_Z), precision);
+         bwc_add_param(data, param_name, precision);
 
          /*--------------------------------------------------------*\
          ! Read the parameter name from the file stream and add all !

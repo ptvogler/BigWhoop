@@ -867,7 +867,7 @@ assemble_main_header(bwc_field *const field)
 
    parameter     = &tile->parameter[0];
    
-   Linf = 40 + info->nPar * 29;
+   Linf = 40 + info->nPar * 25;
    Lctr = 50 + control->nLayers * 4;
 
    size = 6 + Linf + Lctr;
@@ -893,10 +893,6 @@ assemble_main_header(bwc_field *const field)
    for(p = 0; p < info->nPar; ++p)
    {
       bwc_emit_chunck(stream, (uchar*)parameter[p].info.name,             24);
-      bwc_emit_symbol(stream, parameter[p].control.sampX,                  1);
-      bwc_emit_symbol(stream, parameter[p].control.sampY,                  1);
-      bwc_emit_symbol(stream, parameter[p].control.sampZ,                  1);
-      bwc_emit_symbol(stream, parameter[p].control.sampTS,                 1);
       bwc_emit_symbol(stream, parameter[p].info.precision,                 1);
    }
 
@@ -1089,25 +1085,9 @@ bwc_parse_main_header(bwc_data *const data,bwc_stream *const stream)
             for(p = 0; p < nPar; ++p)
             {
                buffer_char = (char*)bwc_get_chunck(stream, 24);
-
-               samp        = (uint8)bwc_get_symbol(stream,  1);
-               dim         = DIM_X;
-
-               buff_long   = bwc_get_symbol(stream,  1);
-               samp        = (buff_long > samp) ? (uint8)buff_long : samp;
-               dim         = (buff_long > samp) ? DIM_Y            : (buff_long == samp) ? dim | DIM_Y : dim;
-
-               buff_long   = bwc_get_symbol(stream,  1);
-               samp        = (buff_long > samp) ? (uint8)buff_long : samp;
-               dim         = (buff_long > samp) ? DIM_Z            : (buff_long == samp) ? dim | DIM_Z : dim;
-
-               buff_long   = bwc_get_symbol(stream,  1);
-               samp        = (buff_long > samp) ? (uint8)buff_long : samp;
-               dim         = (buff_long > samp) ? DIM_TS           : (buff_long == samp) ? dim | DIM_TS : dim;
-
                precision   = (uint8)bwc_get_symbol(stream, 1);
 
-               bwc_add_param(data, buffer_char, samp, dim, precision);
+               bwc_add_param(data, buffer_char, precision);
 
                free(buffer_char);
             }

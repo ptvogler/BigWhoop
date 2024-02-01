@@ -1838,17 +1838,10 @@ output_info(bwc_cmdl_arg_node *const args,
       printf("|    Name:            %55s    |\n"\
              "|    Minimum value:   %55.2e    |\n"\
              "|    Maximum value:   %55.2e    |\n"\
-             "|                                                                                |\n"\
-             "|                                                        1.D | 2.D | 3.D | TS    |\n"\
-             "|    Sampling factor:                                     %2d |  %2d |  %2d | %2d    |\n"\
              "|    ........................................................................    |\n"
              "|%80s|\n",  param_info->name, 
                           minVal,
-                          maxVal,
-                          param_ctrl->sampX, 
-                          param_ctrl->sampY, 
-                          param_ctrl->sampZ, 
-                          param_ctrl->sampTS, " ");
+                          maxVal, " ");
     }
 
   /*--------------------------------------------------------*\

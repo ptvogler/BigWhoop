@@ -912,10 +912,8 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64   width, height, depth, dt;
-   uint64   sampX, sampY, sampZ;
    uint64   param_offset;
-   uint64   w, x, y, z;
-   uint16   sampTS;
+   uint64   x, y, z;
    uint16   t;
 
    /*-----------------------*\
@@ -993,11 +991,6 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    depth  = param_info->Z1 - param_info->Z0;
    dt     = param_info->TS1 - param_info->TS0;
 
-   sampX  = 1 << param_control->sampX;
-   sampY  = 1 << param_control->sampY;
-   sampZ  = 1 << param_control->sampZ;
-   sampTS = 1 << param_control->sampTS;
-
    /*--------------------------------------------------------*\
    ! Check if the parameter is single or double precision and !
    ! handle the field accordingly.                            !
@@ -1014,7 +1007,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
       ! Walk through the tile parameter working buffer.          !
       \*--------------------------------------------------------*/
       #if defined(_OPENMP)
-         #pragma omp parallel for collapse(3) private(dest, src_d, w, x) reduction(max:max) reduction(min:min)
+         #pragma omp parallel for collapse(3) private(dest, src_d, x) reduction(max:max) reduction(min:min)
       #endif
       for(t = 0; t < dt; ++t)
       {
@@ -1028,24 +1021,23 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
                ! arrays.                                                  !
                \*--------------------------------------------------------*/
                src_d = &tmp_d[param_offset + tile_info->X0 + info->nX * 
-                                            (tile_info->Y0 + y * sampY + info->nY * 
-                                            (tile_info->Z0 + z * sampZ + info->nZ * 
-                                                             t * sampTS))];
+                                            (tile_info->Y0 + y + info->nY * 
+                                            (tile_info->Z0 + z + info->nZ * t))];
 
                dest = &working_buffer[(uint64) width * (y + height * (z + depth * t))];
 
-               for(w = 0, x = 0; w < width; ++w, x += sampX)
+               for(x = 0; x < width; ++x)
                {
                   /*--------------------------------------------------------*\
                   ! Copy the data sample to the working buffer.              !
                   \*--------------------------------------------------------*/
-                  dest[w].f = (bwc_float)src_d[x];
+                  dest[x].f = (bwc_float)src_d[x];
 
                   /*--------------------------------------------------------*\
                   ! Update the maximum and minimum parameter value.          !
                   \*--------------------------------------------------------*/
-                  max  = MAX(max, dest[w].f);
-                  min  = MIN(min, dest[w].f);
+                  max  = MAX(max, dest[x].f);
+                  min  = MIN(min, dest[x].f);
                }
             }
          }
@@ -1063,7 +1055,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
       ! Walk through the tile parameter working buffer.          !
       \*--------------------------------------------------------*/
       #if defined(_OPENMP)
-         #pragma omp parallel for collapse(3) private(dest, src_f, w, x) reduction(max:max) reduction(min:min)
+         #pragma omp parallel for collapse(3) private(dest, src_f, x) reduction(max:max) reduction(min:min)
       #endif
       for(t = 0; t < dt; ++t)
       {
@@ -1077,24 +1069,23 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
                ! arrays.                                                  !
                \*--------------------------------------------------------*/
                src_f = &tmp_f[param_offset + tile_info->X0 + info->nX * 
-                                            (tile_info->Y0 + y * sampY + info->nY * 
-                                            (tile_info->Z0 + z * sampZ + info->nZ * 
-                                                             t * sampTS))];
+                                            (tile_info->Y0 + y + info->nY * 
+                                            (tile_info->Z0 + z + info->nZ * t))];
 
                dest = &working_buffer[(uint64) width * (y + height * (z + depth * t))];
 
-               for(w = 0, x = 0; w < width; ++w, x += sampX)
+               for(x = 0; x < width; ++x)
                {
                   /*--------------------------------------------------------*\
                   ! Copy the data sample to the working buffer.              !
                   \*--------------------------------------------------------*/
-                  dest[w].f = (bwc_float)src_f[x];
+                  dest[x].f = (bwc_float)src_f[x];
 
                   /*--------------------------------------------------------*\
                   ! Update the maximum and minimum parameter value.          !
                   \*--------------------------------------------------------*/
-                  max  = MAX(max, dest[w].f);
-                  min  = MIN(min, dest[w].f);
+                  max  = MAX(max, dest[x].f);
+                  min  = MIN(min, dest[x].f);
                }
             }
          }
@@ -1212,6 +1203,10 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    param_control = &parameter->control;
    param_info    = &parameter->info;
 
+   nX            = info->nX;
+   nY            = info->nY;
+   nZ            = info->nZ;
+
    /*--------------------------------------------------------*\
    ! Calculate the offset of the current parameter in the da- !
    ! ta array.                                                !
@@ -1227,14 +1222,6 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
       }
       param = param -> next;
    }
-
-   /*--------------------------------------------------------*\
-   ! Calculate the number of data points in all spatial dimen-!
-   ! sions after subsampling.                                 !
-   \*--------------------------------------------------------*/
-   nX  = info->nX  >> param_control->sampX ;
-   nY  = info->nY  >> param_control->sampY ;
-   nZ  = info->nZ  >> param_control->sampZ ;
 
    /*--------------------------------------------------------*\
    ! Calculate the width, height, depth and dt of the current !
@@ -1700,7 +1687,7 @@ bwc_initialize_data(double* field, uint64 const nX, uint64 const nY, uint64 cons
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_add_param(bwc_data* data, char *name, uint16 sample, uchar dim, uint8 precision)
+bwc_add_param(bwc_data* data, char *name, uint8 precision)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -1761,23 +1748,17 @@ bwc_add_param(bwc_data* data, char *name, uint16 sample, uchar dim, uint8 precis
    }
 
    /*--------------------------------------------------------*\
-   ! Save the name of the new parameter, its sampling value,  !
-   ! the dimension for which the sampling is active and the   !
-   ! the parameters index in the structure of the new node.   !
+   ! Save the name of the new parameter its precision in the  !
+   ! structure of the new node.                               !
    \*--------------------------------------------------------*/
    strcpy(info->parameter->name, name ? name : "undefined");
-   info->parameter->sample    = (sample < 64) ? sample    : 0;
-   info->parameter->dim       = dim           ? dim       : (DIM_X | DIM_Y | DIM_Z);
    info->parameter->precision = precision     ? precision : PREC_BYTE;
 
    /*--------------------------------------------------------*\
-   ! Evaluate the parameter size after sub-sampling and safe  !
-   ! the information in the linked list.                      !
+   ! Evaluate the parameter size the information in the       !
+   ! linked list.                                             !
    \*--------------------------------------------------------*/
-   info->parameter->size = (info->nX  >> ((dim & DIM_X)  ? sample : 0)) *
-                           (info->nY  >> ((dim & DIM_Y)  ? sample : 0)) *
-                           (info->nZ  >> ((dim & DIM_Z)  ? sample : 0)) *
-                           (info->nTS >> ((dim & DIM_TS) ? sample : 0));
+   info->parameter->size = (info->nX * info->nY * info->nZ * info->nTS);
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -2119,11 +2100,6 @@ create_field(bwc_field *const field)
                   param_info->name      = param->name;
                   param_info->precision = param->precision;
 
-                  param_control->sampX  = (param->dim & 1) ? param->sample : 0;
-                  param_control->sampY  = (param->dim & 2) ? param->sample : 0;
-                  param_control->sampZ  = (param->dim & 4) ? param->sample : 0;
-                  param_control->sampTS = (param->dim & 8) ? param->sample : 0;
-
                   /*--------------------------------------------------------*\
                   ! Initialize the number of codeblocks for the current      !
                   ! parameter.                                               !
@@ -2139,18 +2115,17 @@ create_field(bwc_field *const field)
                   param_info->parameter_min  =  FLT_MAX;
 
                   /*--------------------------------------------------------*\
-                  ! Calculate the boundaries for the current parmeter ac-    !
-                  ! cording to equation (11.4) from JPEG2000 by David S.     !
-                  ! Taubman and Michael W. Marcellin (p.454).                !
+                  ! Safe the boundaries of the current tile in the parameter !
+                  ! info structure.
                   \*--------------------------------------------------------*/
-                  param_info->X0  = (uint64)ceil((float)tile->info.X0 / (1 << parameter->control.sampX));
-                  param_info->Y0  = (uint64)ceil((float)tile->info.Y0 / (1 << parameter->control.sampY));
-                  param_info->Z0  = (uint64)ceil((float)tile->info.Z0 / (1 << parameter->control.sampZ));
-                  param_info->TS0 = (uint16)ceil((float)tile->info.TS0/ (1 << parameter->control.sampTS));
-                  param_info->X1  = (uint64)ceil((float)tile->info.X1 / (1 << parameter->control.sampX));
-                  param_info->Y1  = (uint64)ceil((float)tile->info.Y1 / (1 << parameter->control.sampY));
-                  param_info->Z1  = (uint64)ceil((float)tile->info.Z1 / (1 << parameter->control.sampZ));
-                  param_info->TS1 = (uint16)ceil((float)tile->info.TS1/ (1 << parameter->control.sampTS));
+                  param_info->X0  = tile->info.X0;
+                  param_info->Y0  = tile->info.Y0;
+                  param_info->Z0  = tile->info.Z0;
+                  param_info->TS0 = tile->info.TS0;
+                  param_info->X1  = tile->info.X1;
+                  param_info->Y1  = tile->info.Y1;
+                  param_info->Z1  = tile->info.Z1;
+                  param_info->TS1 = tile->info.TS1;
                   
                   /*--------------------------------------------------------*\
                   ! Allocate, walk through and setup the resolution struc-   !

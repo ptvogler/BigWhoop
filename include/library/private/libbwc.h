@@ -114,7 +114,7 @@
    !                                                                                                            !
    \*----------------------------------------------------------------------------------------------------------*/
    void
-   bwc_add_param(bwc_data* data, char *name, uint16 sample, uchar dim, uint8 precision);
+   bwc_add_param(bwc_data* data, char *name, uint8 precision);
 
    /*----------------------------------------------------------------------------------------------------------*\
    !   FUNCTION NAME: bwc_field *bwc_initialize_data(...)                                                       !
