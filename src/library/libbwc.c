@@ -2593,7 +2593,10 @@ bwc_initialize_field(bwc_data *const data)
    ! run.                                                     !
    \*--------------------------------------------------------*/
    #ifdef _OPENMP
-      control->nThreads           = 1;
+   #pragma omp parallel
+   {
+      control->nThreads           = omp_get_num_threads();
+   }
    #endif
 
    /*--------------------------------------------------------*\
