@@ -389,7 +389,7 @@ initialize_tagtree(const uint64 leafsX, const uint64 leafsY, const uint64 leafsZ
             {
                if(b >> 1)
                {
-                  parent_y += nlY[n + 1];
+                  parent_y += nlX[n+1];
                   b = 0;
                }
                for(i = 0, a = 0, parent_x  = parent_y; i < nlX[n]; ++i, ++a)
