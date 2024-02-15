@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://code.hlrs.de/hpcpvogl/BigWhoop">
+  <a href="https://code.hlrs.de/TOPIO/BigWhoop">
     <img alt="BigWhoop" src="https://code.hlrs.de/TOPIO/BigWhoop/raw/branch/main/docs/img/Logo.svg"/>
   </a>
 </p>
