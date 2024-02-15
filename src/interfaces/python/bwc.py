@@ -31,7 +31,6 @@
 #|                 - bwc_set_quantization_style                                                                        |#
 #|                 - bwc_set_qm                                                                                        |#
 #|                 - bwc_set_quantization_step_size                                                                    |#
-#|                 - bwc_set_nThreads                                                                                  |#
 #|                 - bwc_set_memory_limit                                                                              |#
 #|                 - bwc_compress                                                                                      |#
 #|                 - bwc_decompress                                                                                    |#
@@ -159,12 +158,6 @@ def initialize_field(data):
   fun.restype  = ctypes.c_void_p
   fun.argtypes = [ctypes.c_void_p]
   return ctypes.c_void_p(fun(data))
-#=======================================================================================================================#
-def set_nThreads(field, nThreads):
-  fun = libbwc.bwc_set_nThreads
-  fun.restype  = None
-  fun.argtypes = [ctypes.c_void_p, ctypes.c_int8]
-  fun(field, nThreads)
 #=======================================================================================================================#
 def set_codeblocks(field, cbX, cbY, cbZ, cbTS):
   fun = libbwc.bwc_set_codeblocks

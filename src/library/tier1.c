@@ -2904,7 +2904,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    ! pression run.                                            !
    \*--------------------------------------------------------*/
    #if defined (_OPENMP)
-      nThreads = control->nThreads;
+      nThreads = omp_get_max_threads();
    #else
       nThreads = 1;
    #endif
@@ -3197,7 +3197,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    ! compression run.                                         !
    \*--------------------------------------------------------*/
    #if defined (_OPENMP)
-      nThreads = control->nThreads;
+      nThreads = omp_get_max_threads();
    #else
       nThreads = 1;
    #endif

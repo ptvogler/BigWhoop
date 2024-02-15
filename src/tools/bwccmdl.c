@@ -2893,7 +2893,7 @@ main(int    argc,
         temp = retrieve_arg(args, "number_of_threads");
         if((temp != NULL) && (temp->count == 1))
           {
-            bwc_set_nThreads(field, (uint8_t)temp->num_opt[0]);
+            omp_set_num_threads((uint8_t)temp->num_opt[0]);
           }
       #endif
 
@@ -3134,7 +3134,7 @@ main(int    argc,
         temp = retrieve_arg(args, "number_of_threads");
         if((temp != NULL) && (temp->count == 1))
           {
-            bwc_set_nThreads(field, (uint8_t)temp->num_opt[0]);
+            omp_set_num_threads((uint8_t)temp->num_opt[0]);
           }
       #endif
 

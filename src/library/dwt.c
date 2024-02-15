@@ -1735,7 +1735,7 @@ forward_discrete_wavelet_transform(bwc_field *const field, bwc_parameter *const 
    ! eter.                                                    !
    \*--------------------------------------------------------*/
    #if defined (_OPENMP)
-      nThreads = control->nThreads;
+      nThreads = omp_get_max_threads();
    #else
       nThreads = 1;
    #endif
@@ -2272,7 +2272,7 @@ inverse_discrete_wavelet_transform(bwc_field *const field, bwc_parameter *const 
    ! eter.                                                    !
    \*--------------------------------------------------------*/
    #if defined (_OPENMP)
-      nThreads = control->nThreads;
+      nThreads = omp_get_max_threads();
    #else
       nThreads = 1;
    #endif

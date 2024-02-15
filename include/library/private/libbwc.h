@@ -321,20 +321,6 @@
    bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tilesZ, uint16 tilesTS, bwc_tile_instr instr);
 
    /*----------------------------------------------------------------------------------------------------------*\
-   !   FUNCTION NAME: void bwc_set_nThreads(bwc_field *const field, uint16 nThreads)                            !
-   !                                                                                                            !
-   !   DESCRIPTION:                                                                                             !
-   !   ------------                                                                                             !
-   !                This function is used to indicate the maximum number of threads used during                 !
-   !                (de)compression.                                                                            !
-   !                                                                                                            !
-   \*----------------------------------------------------------------------------------------------------------*/
-   #if defined(_OPENMP)
-      void
-      bwc_set_nThreads(bwc_field *const field, uint8 nThreads);
-   #endif
-
-   /*----------------------------------------------------------------------------------------------------------*\
    !   FUNCTION NAME: void bwc_create_compression(bwc_field *field, char *rate_control)                         !
    !   --------------                                                                                           !
    !                                                                                                            !

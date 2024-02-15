@@ -1718,9 +1718,6 @@
       bwc_packed_stream     header;
       bwc_prog_ord          progression;
       bwc_quant_st          quantization_style;
-      #ifdef _OPENMP
-         uint8                 nThreads;
-      #endif
    } bwc_gl_ctrl;
 
    /*----------------------------------------------------------------------------------------------------------*\

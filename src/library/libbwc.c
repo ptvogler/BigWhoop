@@ -2589,17 +2589,6 @@ bwc_initialize_field(bwc_data *const data)
    info->precision             = PREC_BYTE;
 
    /*--------------------------------------------------------*\
-   ! Initialize the number of threads used for the current    !
-   ! run.                                                     !
-   \*--------------------------------------------------------*/
-   #ifdef _OPENMP
-   #pragma omp parallel
-   {
-      control->nThreads           = omp_get_num_threads();
-   }
-   #endif
-
-   /*--------------------------------------------------------*\
    ! Calculate the possible decomposition levels for all      !
    ! spatial and temporal dimensions.                         !
    \*--------------------------------------------------------*/
@@ -3724,64 +3713,6 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_nThreads(bwc_field *const field, uint16 nThreads)                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to indicate the maximum number of threads used during                 !
-!                (de)compression.                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                nThreads                    unsigned int(8 bit)   - Number of OpenMP threads.               !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                07.08.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-#if defined(_OPENMP)
-   void
-   bwc_set_nThreads(bwc_field *const field, uint8 nThreads)
-   {
-      /*-----------------------*\
-      ! DEFINE STRUCTS:         !
-      \*-----------------------*/ 
-      bwc_gl_ctrl       *control;
-
-      /*-----------------------*\
-      ! DEFINE ASSERTIONS:      !
-      \*-----------------------*/
-      assert(field);
-
-      /*--------------------------------------------------------*\
-      ! Save the global control and to a temporary variable to   !
-      ! make the code more readable.                             !
-      \*--------------------------------------------------------*/
-      control = &field->control;
-
-      /*--------------------------------------------------------*\
-      ! Amend the number of OMP threads the bwc_field structure. !
-      \*--------------------------------------------------------*/
-      control->nThreads = nThreads;
-   }
-#endif
-
-/*----------------------------------------------------------------------------------------------------------*\
 !   FUNCTION NAME: void bwc_create_compression(bwc_field *field, char *rate_control)                         !
 !   --------------                                                                                           !
 !                                                                                                            !
@@ -4050,13 +3981,6 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    {
       return 1;
    }
-
-   /*--------------------------------------------------------*\
-   ! Set the number of Open MP threads for the current run.   !
-   \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      omp_set_num_threads(control->nThreads);
-   #endif
 
    /*--------------------------------------------------------*\
    ! Evaluate the working buffer size and allocate it accord- !
@@ -4390,13 +4314,6 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    \*--------------------------------------------------------*/
    control = &field->control;
    info    =  field->info;
-
-   /*--------------------------------------------------------*\
-   ! Set the number of Open MP threads for the current run.   !
-   \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      omp_set_num_threads(control->nThreads);
-   #endif
 
    /*--------------------------------------------------------*\
    ! Calculate the field size after subsampling and allocate  !

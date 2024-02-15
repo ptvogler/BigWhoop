@@ -312,22 +312,6 @@ module bwc
       INTEGER(KIND=C_INT),          VALUE   ::  instr
     end subroutine set_tiles_f
     !*============================================================================================*!
-    #ifdef _OPENMP
-      subroutine set_nThreads_f(field, nThreads) &
-                 BIND(C, NAME="bwc_set_nThreads")
-        IMPORT
-        !*-----------------------*!
-        ! DEFINE POINTERS:        !
-        !*-----------------------*!
-        TYPE(C_PTR),                VALUE   ::  field
-
-        !*-----------------------*!
-        ! DEFINE INT VARIABLES:   !
-        !*-----------------------*!
-        INTEGER(KIND=C_INT8_T),     VALUE   ::  nThreads
-      end subroutine set_nThreads_f
-    #endif
-    !*============================================================================================*!
     function create_compression_f(field, rate_control) result(error_flag) &
              BIND(C, NAME="bwc_create_compression")
       IMPORT
@@ -428,8 +412,7 @@ module bwc
               bwc_set_precincts,                &
               bwc_set_codeblocks,               &
               bwc_set_qm,                       &
-              bwc_set_tiles,                    &
-              bwc_set_nThreads
+              bwc_set_tiles,                    
 
   public ::   bwc_create_compression,           &
               bwc_compress,                     &
