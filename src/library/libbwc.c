@@ -612,7 +612,7 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_header_append_aux(bwc_field *const field, bwc_packed_stream *const aux)          !
+!   FUNCTION NAME: void bwc_header_append_aux(bwc_field *const field, bwc_stream *const aux)                 !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -647,7 +647,7 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-header_append_aux(bwc_field *const field, bwc_packed_stream *const aux)
+header_append_aux(bwc_field *const field, bwc_stream *const aux)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -714,7 +714,7 @@ header_append_aux(bwc_field *const field, bwc_packed_stream *const aux)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_header_append_com(bwc_field *const field, bwc_packed_stream *const com)          !
+!   FUNCTION NAME: void bwc_header_append_com(bwc_field *const field, bwc_stream *const com)                 !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -749,7 +749,7 @@ header_append_aux(bwc_field *const field, bwc_packed_stream *const aux)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-header_append_com(bwc_field *const field, bwc_packed_stream *const com)
+header_append_com(bwc_field *const field, bwc_stream *const com)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !

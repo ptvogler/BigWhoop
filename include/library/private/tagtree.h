@@ -59,6 +59,7 @@
   ||                                                                                              ||
   \************************************************************************************************/
   #include "types.h"
+  #include "bitstream.h"
 
   /************************************************************************************************\
   ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||
@@ -83,13 +84,13 @@
                                            uint16                const          value);
   //==========|==========================|======================|======|=======|====================
   void         encode_tagtree             (bwc_tagtree                  *const  tagtree,
-                                           bwc_stream                   *const  stream,
+                                           bitstream                    *const  stream,
                                            uint32                const          threshold, 
                                            uint32                const          leaf_index, 
                                            uchar                 const          estimate);
   //==========|==========================|======================|======|=======|====================
   uchar        decode_tagtree             (bwc_tagtree                  *const  tagtree,
-                                           bwc_stream                   *const  stream, 
+                                           bitstream                    *const  stream, 
                                            uint32                const          threshold, 
                                            uint32                const          leaf_index);
 #endif

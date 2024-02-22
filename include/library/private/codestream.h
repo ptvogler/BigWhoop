@@ -54,6 +54,7 @@
   ||                                                                                              ||
   \************************************************************************************************/
   #include "types.h"
+  #include "bitstream.h"
 
   /************************************************************************************************\
   ||                                _  _ ____ ____ ____ ____ ____                                 ||
@@ -67,7 +68,7 @@
   !   ------------                                                                                 !
   !                                                                                                !
   !         These macros define stream manipulation operations to rewind, forward, inquire         !
-  !         the availability and get access to the current memory position of a bwc_stream.        !
+  !         the availability and get access to the current memory position of a bitstrean.         !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
   #define rewind_stream(stream, delta)                                                          \
@@ -90,17 +91,13 @@
   \************************************************************************************************/
   uchar        assemble_main_header       (bwc_field                    *const  field);
   //==========|==========================|======================|======|======|=====================
-  bwc_field*   bwc_parse_main_header      (bwc_data                     *const  data,
-                                           bwc_stream                   *const  stream);
+  uchar        codestream_write_aux       (bwc_stream                   *const  header, 
+                                           bwc_stream                   *const  aux);
   //==========|==========================|======================|======|======|=====================
-  uchar        codestream_write_aux       (bwc_packed_stream            *const  header, 
-                                           bwc_packed_stream            *const  aux);
+  uchar        codestream_write_com       (bwc_stream                   *const  header,
+                                           bwc_stream                   *const  com);
   //==========|==========================|======================|======|======|=====================
-  uchar        codestream_write_com       (bwc_packed_stream            *const  header,
-                                           bwc_packed_stream            *const  com);
-  //==========|==========================|======================|======|======|=====================
-  bwc_packed_stream*  assemble_codestream (bwc_field                    *const  field);
-
+  bwc_stream*  assemble_codestream        (bwc_field                    *const  field);
   //==========|==========================|======================|======|======|=====================
   bwc_field*   parse_codestream           (bwc_data                     *const  data,
                                            uint8                         const  layer);

@@ -99,71 +99,71 @@
 {                                                           \
    if(delta_z == 1)                                         \
    {                                                        \
-      bwc_emit_bit(stream, 0);                              \
+      emit_bit(stream, 0);                                  \
    }                                                        \
    else if(delta_z == 2)                                    \
    {                                                        \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 0);                              \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 0);                                  \
    }                                                        \
    else if(delta_z < 6)                                     \
    {                                                        \
       delta_z -= 3;                                         \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 0x02 & delta_z);                 \
-      bwc_emit_bit(stream, 0x01 & delta_z);                 \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 0x02 & delta_z);                     \
+      emit_bit(stream, 0x01 & delta_z);                     \
    }                                                        \
    else if(delta_z < 37)                                    \
    {                                                        \
       delta_z -= 6;                                         \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 0x10 & delta_z);                 \
-      bwc_emit_bit(stream, 0x08 & delta_z);                 \
-      bwc_emit_bit(stream, 0x04 & delta_z);                 \
-      bwc_emit_bit(stream, 0x02 & delta_z);                 \
-      bwc_emit_bit(stream, 0x01 & delta_z);                 \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 0x10 & delta_z);                     \
+      emit_bit(stream, 0x08 & delta_z);                     \
+      emit_bit(stream, 0x04 & delta_z);                     \
+      emit_bit(stream, 0x02 & delta_z);                     \
+      emit_bit(stream, 0x01 & delta_z);                     \
    }                                                        \
    else if(delta_z < 293)                                   \
    {                                                        \
       delta_z -= 37;                                        \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 1);                              \
-      bwc_emit_bit(stream, 0x080 & delta_z);                \
-      bwc_emit_bit(stream, 0x040 & delta_z);                \
-      bwc_emit_bit(stream, 0x020 & delta_z);                \
-      bwc_emit_bit(stream, 0x010 & delta_z);                \
-      bwc_emit_bit(stream, 0x008 & delta_z);                \
-      bwc_emit_bit(stream, 0x004 & delta_z);                \
-      bwc_emit_bit(stream, 0x002 & delta_z);                \
-      bwc_emit_bit(stream, 0x001 & delta_z);                \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 1);                                  \
+      emit_bit(stream, 0x080 & delta_z);                    \
+      emit_bit(stream, 0x040 & delta_z);                    \
+      emit_bit(stream, 0x020 & delta_z);                    \
+      emit_bit(stream, 0x010 & delta_z);                    \
+      emit_bit(stream, 0x008 & delta_z);                    \
+      emit_bit(stream, 0x004 & delta_z);                    \
+      emit_bit(stream, 0x002 & delta_z);                    \
+      emit_bit(stream, 0x001 & delta_z);                    \
    }                                                        \
 }
 
 #define decode_delta_z(stream, delta_z)                     \
 {                                                           \
-   if(!bwc_get_bit(stream))                                 \
+   if(!get_bit(stream))                                     \
    {                                                        \
       delta_z = 1;                                          \
    }                                                        \
-   else if(!bwc_get_bit(stream))                            \
+   else if(!get_bit(stream))                                \
    {                                                        \
       delta_z = 2;                                          \
    }                                                        \
    else                                                     \
    {                                                        \
-      delta_z = (bwc_get_bit(stream) << 1) |                \
-                 bwc_get_bit(stream);                       \
+      delta_z = (get_bit(stream) << 1) |                    \
+                 get_bit(stream);                           \
                                                             \
       if(delta_z < 3)                                       \
       {                                                     \
@@ -171,11 +171,11 @@
       }                                                     \
       else                                                  \
       {                                                     \
-         delta_z = (bwc_get_bit(stream) << 4) |             \
-                   (bwc_get_bit(stream) << 3) |             \
-                   (bwc_get_bit(stream) << 2) |             \
-                   (bwc_get_bit(stream) << 1) |             \
-                    bwc_get_bit(stream);                    \
+         delta_z = (get_bit(stream) << 4) |                 \
+                   (get_bit(stream) << 3) |                 \
+                   (get_bit(stream) << 2) |                 \
+                   (get_bit(stream) << 1) |                 \
+                    get_bit(stream);                        \
                                                             \
          if(delta_z < 31)                                   \
          {                                                  \
@@ -183,14 +183,14 @@
          }                                                  \
          else                                               \
          {                                                  \
-            delta_z = (bwc_get_bit(stream) << 7) |          \
-                      (bwc_get_bit(stream) << 6) |          \
-                      (bwc_get_bit(stream) << 5) |          \
-                      (bwc_get_bit(stream) << 4) |          \
-                      (bwc_get_bit(stream) << 3) |          \
-                      (bwc_get_bit(stream) << 2) |          \
-                      (bwc_get_bit(stream) << 1) |          \
-                       bwc_get_bit(stream);                 \
+            delta_z = (get_bit(stream) << 7) |              \
+                      (get_bit(stream) << 6) |              \
+                      (get_bit(stream) << 5) |              \
+                      (get_bit(stream) << 4) |              \
+                      (get_bit(stream) << 3) |              \
+                      (get_bit(stream) << 2) |              \
+                      (get_bit(stream) << 1) |              \
+                       get_bit(stream);                     \
                                                             \
             delta_z += 37;                                  \
          }                                                  \
@@ -205,7 +205,7 @@
 ||                                                                                                          ||
 \************************************************************************************************************/
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void encode_length(bwc_stream *const header, bwc_codeblock *const codeblock,              !
+!   FUNCTION NAME: void encode_length(bitstream *const header, bwc_codeblock *const codeblock,               !
 !   --------------                                                   int8  const quality_layer,              !
 !                                                                    uchar const estimate)                   !
 !                                                                                                            !
@@ -236,9 +236,9 @@
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static void
-encode_length(bwc_stream *const header, bwc_codeblock *const codeblock, 
-                                             int8  const quality_layer,
-                                             uchar const estimate)
+encode_length(bitstream *const header, bwc_codeblock *const codeblock, 
+                                                int8  const quality_layer,
+                                                uchar const estimate)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -284,17 +284,17 @@ encode_length(bwc_stream *const header, bwc_codeblock *const codeblock,
 
    while(beta < max_beta)
    {
-      bwc_emit_bit(header, 1);
+      emit_bit(header, 1);
       beta++;
    }
 
-   bwc_emit_bit(header, 0);
+   emit_bit(header, 0);
 
    L_bits = 1 << (beta + cp_bits - 1);
 
    while(L_bits > 0)
    {
-      bwc_emit_bit(header, L & L_bits);
+      emit_bit(header, L & L_bits);
       L_bits >>= 1;
    }
 
@@ -339,7 +339,7 @@ encode_length(bwc_stream *const header, bwc_codeblock *const codeblock,
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static void
-decode_length(bwc_stream *const header, bwc_codeblock *const codeblock, int8 const quality_layer)
+decode_length(bitstream *const header, bwc_codeblock *const codeblock, int8 const quality_layer)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -363,7 +363,7 @@ decode_length(bwc_stream *const header, bwc_codeblock *const codeblock, int8 con
    cblk_ctrl   = &codeblock->control;
    cp_contr    =  cblk_ctrl->cp_contr;
 
-   while(bwc_get_bit(header))
+   while(get_bit(header))
    {
       cblk_ctrl->beta++;
    }
@@ -376,7 +376,7 @@ decode_length(bwc_stream *const header, bwc_codeblock *const codeblock, int8 con
    for(i = 0; L_bits > 0; --L_bits)
    {
       i <<= 1;
-      i  |= bwc_get_bit(header);
+      i  |= get_bit(header);
    }
 
    codeblock->encoded_block->L[z_curr] = ((z_prev >= 0) ? codeblock->encoded_block->L[z_prev] : 0) + i;
@@ -455,7 +455,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
    bwc_packet        *packet;
    bwc_precinct      *precinct;
    bwc_codeblock     *codeblock;
-   bwc_stream        *header;
+   bitstream         *header;
 
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -480,7 +480,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       ! Initialize the stream that is used to assemble the pack- !
       ! et header.                                               !
       \*--------------------------------------------------------*/
-      header = bwc_init_stream(NULL, PACKET_HEADER_SIZE, 'c');
+      header = init_stream(NULL, PACKET_HEADER_SIZE, 'c');
       if(!header)
       {
          // memory allocation error
@@ -496,7 +496,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       if(!est)
       {
          packet->body.access = 
-         packet->body.memory = calloc(packet->body.size, sizeof(bwc_packed_stream));
+         packet->body.memory = calloc(packet->body.size, sizeof(bwc_stream));
          if(!packet->body.memory)
          {
             // memory allocation error
@@ -509,7 +509,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       ! Emit the contribution bit to the packet header that sig- !
       ! nals a non-empty packet body.                            !
       \*--------------------------------------------------------*/
-      bwc_emit_bit(header, 1);
+      emit_bit(header, 1);
 
       /*--------------------------------------------------------*\
       ! Iterate over all codeblocks in all subbands to assemble  !
@@ -571,7 +571,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
                ! If a contribution has already been made, transmit a flag !
                ! to signal if new coding passes are to be contributed.    !
                \*--------------------------------------------------------*/
-               bwc_emit_bit(header, delta_z);
+               emit_bit(header, delta_z);
             }
 
             /*--------------------------------------------------------*\
@@ -642,7 +642,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
          }
 
          k = header->L;
-         bwc_terminate_stream(header, NULL);
+         terminate_stream(header, NULL);
          return k;
       }
       /*--------------------------------------------------------*\
@@ -653,7 +653,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       \*--------------------------------------------------------*/
       else
       {
-         if(bwc_terminate_stream(header, &packet->header))
+         if(terminate_stream(header, &packet->header))
          {
             // memory allocation error
             return -1;
@@ -1375,7 +1375,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
    bwc_precinct      *precinct;
    bwc_codeblock     *codeblock;
    bwc_encoded_cblk  *encoded_block;
-   bwc_stream        *header;
+   bitstream         *header;
 
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -1390,7 +1390,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
    ! Initialize the stream that is used to parse the packet   !
    ! codestream.                                              !
    \*--------------------------------------------------------*/
-   header = bwc_init_stream(packet->header.memory, body_size, 'd');
+   header = init_stream(packet->header.memory, body_size, 'd');
    if(!header)
    {
       // memory allocation error
@@ -1401,7 +1401,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
    ! Extract the codeblock contribution marker from the code- !
    ! stream.                                                  !
    \*--------------------------------------------------------*/
-   packet->e = bwc_get_bit(header);
+   packet->e = get_bit(header);
 
    /*--------------------------------------------------------*\
    ! Check if the current packet has any codeblock contribu-  !
@@ -1471,7 +1471,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
                ! flag from the codestream that signals if new coding pas- !
                ! ses are available.                                       !
                \*--------------------------------------------------------*/
-               delta_z = bwc_get_bit(header);
+               delta_z = get_bit(header);
             }
 
 

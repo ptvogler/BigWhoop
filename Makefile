@@ -18,7 +18,7 @@
 #|  DESCRIPTION:                                                                                                      |#
 #|  ------------                                                                                                      |#
 #|                Defines a wrapper for the Big Whoop cmake & make tools. This Makefile creates the                   |#
-#|								build dir if it does not exist, switches to it and executes cmake and make.                  				|#
+#|								build dir if it does not exist, switches to it and executes cmake and make.           |#
 #|                                                                                                                    |#
 #|  ----------------------------------------------------------------------------------------------------------------  |#
 #|                                                                                                                    |#
@@ -78,12 +78,12 @@ BUILD_EAS3="False"
 BUILD_NETCDF="False"
 
 #*--------------------------------------------------------*#
-# Define default target.     				          			       #
+# Define default target.     				               #
 #*--------------------------------------------------------*#
 default: 	| build_bwc display
 
 #*--------------------------------------------------------*#
-# Define helper target.     				           					   #
+# Define helper target.     		  					   #
 #*--------------------------------------------------------*#
 help:
 

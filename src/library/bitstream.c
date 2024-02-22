@@ -64,7 +64,7 @@
 ||                                                                                                          ||
 \************************************************************************************************************/
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uint32 bytes_used(bwc_stream *const stream)                                               !
+!   FUNCTION NAME: uint32 bytes_used(bitstream *const stream)                                                !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -76,7 +76,7 @@
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_stream*           - Structure that                          !
+!                stream                      bitstream*            - Structure that                          !
 !                                                                                                            !
 !   RETURN VALUE:                                                                                            !
 !   -------------                                                                                            !
@@ -94,20 +94,20 @@
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uint64 
-bytes_used(bwc_stream const *const stream)
+bytes_used(bitstream const *const stream)
 {
-   if(stream->T == 0xFF)
-   {
-      return stream->L + 1;
-   }
-   else
-   {
-      return stream->L;
-   }
+  if(stream->T == 0xFF)
+  {
+    return stream->L + 1;
+  }
+  else
+  {
+    return stream->L;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_stream* bwc_init_stream(uchar* memory, uint32 size, char instr)                       !
+!   FUNCTION NAME: bitstream* bwc_init_stream(uchar* memory, uint32 size, char instr)                        !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -115,7 +115,7 @@ bytes_used(bwc_stream const *const stream)
 !                This function is used to initialize a bwc bitstream. For encoding, a null pointer           !
 !                is passed as a memory handle and the function will allocate a memory block with the         !
 !                specified stream size. For decoding, a valid memory handle, passed by the function          !
-!                caller, will be stored in the bwc_stream structure. The byte buffer counter t,              !
+!                caller, will be stored in the bitstream structure. The byte buffer counter t,               !
 !                stream size Lmax and size increment are initialized with their appropriate values.          !
 !                                                                                                            !
 !   PARAMETERS:                                                                                              !
@@ -134,7 +134,7 @@ bytes_used(bwc_stream const *const stream)
 !   -------------                                                                                            !
 !                Type                        Description                                                     !
 !                ----                        -----------                                                     !
-!                bwc_stream*               - Memory handle for the initialized bwc stream.                   !
+!                bitstream*                - Memory handle for the initialized bwc stream.                   !
 !                                                                                                            !
 !   DEVELOPMENT HISTORY:                                                                                     !
 !   --------------------                                                                                     !
@@ -144,73 +144,73 @@ bytes_used(bwc_stream const *const stream)
 !                19.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-bwc_stream* 
-bwc_init_stream(uchar* memory, uint32 size, char instr)
+bitstream* 
+init_stream(uchar* memory, uint32 size, char instr)
 {
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-   bwc_stream *stream;
+  /*-----------------------*\
+  ! DEFINE STRUCTS:         !
+  \*-----------------------*/
+  bitstream *stream;
 
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(instr == 'c' || instr == 'd');
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(instr == 'c' || instr == 'd');
 
-   /*--------------------------------------------------------*\
-   ! Allocate the bwc stream structure.                       !
-   \*--------------------------------------------------------*/
-   stream = calloc(1, sizeof(bwc_stream));
-   if(!stream)
-   {
+  /*--------------------------------------------------------*\
+  ! Allocate the bwc stream structure.                       !
+  \*--------------------------------------------------------*/
+  stream = calloc(1, sizeof(bitstream));
+  if(!stream)
+  {
+    // memory allocation error
+    fprintf(stderr, MEMERROR);
+    return NULL;
+  }
+
+  /*--------------------------------------------------------*\
+  ! Evaluate if a valid memory handle has been passed by the !
+  ! function caller.                                         !
+  \*--------------------------------------------------------*/
+  if(!memory)
+  {
+    /*--------------------------------------------------------*\
+    ! If no valid memory handle has been passed, allocate a    !
+    ! memory block with the specifiec stream size.             !
+    \*--------------------------------------------------------*/
+    stream->memory = calloc(size, sizeof(uchar));
+    if(!stream->memory)
+    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
       return NULL;
-   }
+    }
+  }
+  else
+  {
+    /*--------------------------------------------------------*\
+    ! If a valid memory handle has been passed for decoding,   !
+    ! save the memory handle in the bwc stream structure.      !
+    \*--------------------------------------------------------*/
+    stream->memory = memory;
+  }
+  
+  /*--------------------------------------------------------*\
+  ! Initialize the byte buffer counter, stream size and size !
+  ! increment for the current stream.                        !
+  \*--------------------------------------------------------*/
+  stream->t         = (instr == 'c') ? 8 : 0;
+  stream->Lmax      = size;
+  stream->size_incr = (uint64)(size / 2);
 
-   /*--------------------------------------------------------*\
-   ! Evaluate if a valid memory handle has been passed by the !
-   ! function caller.                                         !
-   \*--------------------------------------------------------*/
-   if(!memory)
-   {
-      /*--------------------------------------------------------*\
-      ! If no valid memory handle has been passed, allocate a    !
-      ! memory block with the specifiec stream size.             !
-      \*--------------------------------------------------------*/
-      stream->memory = calloc(size, sizeof(uchar));
-      if(!stream->memory)
-      {
-         // memory allocation error
-         fprintf(stderr, MEMERROR);
-         return NULL;
-      }
-   }
-   else
-   {
-      /*--------------------------------------------------------*\
-      ! If a valid memory handle has been passed for decoding,   !
-      ! save the memory handle in the bwc stream structure.      !
-      \*--------------------------------------------------------*/
-      stream->memory = memory;
-   }
-   
-   /*--------------------------------------------------------*\
-   ! Initialize the byte buffer counter, stream size and size !
-   ! increment for the current stream.                        !
-   \*--------------------------------------------------------*/
-   stream->t         = (instr == 'c') ? 8 : 0;
-   stream->Lmax      = size;
-   stream->size_incr = (uint64)(size / 2);
-
-   /*--------------------------------------------------------*\
-   ! Return the stream memory handle.                         !
-   \*--------------------------------------------------------*/
-   return stream;
+  /*--------------------------------------------------------*\
+  ! Return the stream memory handle.                         !
+  \*--------------------------------------------------------*/
+  return stream;
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_emit_chunck(bwc_stream *const stream, const uchar* string, const uint64 length)  !
+!   FUNCTION NAME: void bwc_emit_chunck(bitstream *const stream, const uchar* string, const uint64 length)   !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -222,7 +222,7 @@ bwc_init_stream(uchar* memory, uint32 size, char instr)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_stream*           - Structure used to assemble a bwc bit-   !
+!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
 !                                                                    bitstream.                              !
 !                                                                                                            !
 !                chunck                      unsigned char*        - Memory handle for a data block that is  !
@@ -245,79 +245,79 @@ bwc_init_stream(uchar* memory, uint32 size, char instr)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_emit_chunck(bwc_stream *const stream, const uchar* chunck, const uint64 size)
+emit_chunck(bitstream *const stream, const uchar* chunck, const uint64 size)
 {
-   /*-----------------------*\
-   ! DEFINE INT VARIABLES:   !
-   \*-----------------------*/
-   uint64             Lreq; 
+  /*-----------------------*\
+  ! DEFINE INT VARIABLES:   !
+  \*-----------------------*/
+  uint64             Lreq; 
 
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
-   assert(chunck);
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
+  assert(chunck);
 
-   /*--------------------------------------------------------*\
-   ! Evaluate the memory block size if the current chunck of  !
-   ! data is written to the stream.                           !
-   \*--------------------------------------------------------*/
-   Lreq = (bytes_used(stream) + size);
+  /*--------------------------------------------------------*\
+  ! Evaluate the memory block size if the current chunck of  !
+  ! data is written to the stream.                           !
+  \*--------------------------------------------------------*/
+  Lreq = (bytes_used(stream) + size);
 
-   /*--------------------------------------------------------*\
-   ! Check if the enough memory has been allocated for the    !
-   ! stream to store the additional data chunck.              !
-   \*--------------------------------------------------------*/
-   if(Lreq > stream->Lmax)
-   {
+  /*--------------------------------------------------------*\
+  ! Check if the enough memory has been allocated for the    !
+  ! stream to store the additional data chunck.              !
+  \*--------------------------------------------------------*/
+  if(Lreq > stream->Lmax)
+  {
+    /*--------------------------------------------------------*\
+    ! If the stream is not large enough, check if this is due  !
+    ! to an error encountered in a previous writing operation  !
+    \*--------------------------------------------------------*/
+    if(!stream->error)
+    {
       /*--------------------------------------------------------*\
-      ! If the stream is not large enough, check if this is due  !
-      ! to an error encountered in a previous writing operation  !
+      ! If the error flag is not set, increase the stream size   !
+      ! until it is large enough to store the additional data    !
+      ! chunck.                                                  !
       \*--------------------------------------------------------*/
-      if(!stream->error)
+      while(Lreq > stream->Lmax)
       {
-         /*--------------------------------------------------------*\
-         ! If the error flag is not set, increase the stream size   !
-         ! until it is large enough to store the additional data    !
-         ! chunck.                                                  !
-         \*--------------------------------------------------------*/
-         while(Lreq > stream->Lmax)
-         {
-            stream->Lmax      += stream->size_incr + size;
-            stream->size_incr  = (uint64)(stream->Lmax / 2);
-         }
-
-         /*--------------------------------------------------------*\
-         ! Reallocate the stream data block.                        !
-         \*--------------------------------------------------------*/
-         stream->memory     = realloc(stream->memory, stream->Lmax);
-         if(!stream->memory)
-         {
-            // memory allocation error
-            stream->error |= 1;
-            stream->Lmax   = 0;
-            return;
-         }
+        stream->Lmax      += stream->size_incr + size;
+        stream->size_incr  = (uint64)(stream->Lmax / 2);
       }
-      else
+
+      /*--------------------------------------------------------*\
+      ! Reallocate the stream data block.                        !
+      \*--------------------------------------------------------*/
+      stream->memory     = realloc(stream->memory, stream->Lmax);
+      if(!stream->memory)
       {
-         /*--------------------------------------------------------*\
-         ! Exit to function caller if error flag has been set.      !
-         \*--------------------------------------------------------*/
-         return;
+        // memory allocation error
+        stream->error |= 1;
+        stream->Lmax   = 0;
+        return;
       }
-   }
+    }
+    else
+    {
+      /*--------------------------------------------------------*\
+      ! Exit to function caller if error flag has been set.      !
+      \*--------------------------------------------------------*/
+      return;
+    }
+  }
 
-   /*--------------------------------------------------------*\
-   ! Copy the additional data to the stream memory block.     !
-   \*--------------------------------------------------------*/
-   memcpy(stream->memory + stream->L, chunck, size);
+  /*--------------------------------------------------------*\
+  ! Copy the additional data to the stream memory block.     !
+  \*--------------------------------------------------------*/
+  memcpy(stream->memory + stream->L, chunck, size);
 
-   /*--------------------------------------------------------*\
-   ! Increment the number of bytes written to the stream with !
-   ! the size of the newly added data chunck.                 !
-   \*--------------------------------------------------------*/
-   stream->L += size;
+  /*--------------------------------------------------------*\
+  ! Increment the number of bytes written to the stream with !
+  ! the size of the newly added data chunck.                 !
+  \*--------------------------------------------------------*/
+  stream->L += size;
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -332,7 +332,7 @@ bwc_emit_chunck(bwc_stream *const stream, const uchar* chunck, const uint64 size
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_stream*           - Structure used to assemble a bwc bit-   !
+!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
 !                                                                    bitstream.                              !
 !                                                                                                            !
 !                symbol                      unsigned int(64 bit)  - Symbol that is to be written to the bwc !
@@ -356,73 +356,73 @@ bwc_emit_chunck(bwc_stream *const stream, const uchar* chunck, const uint64 size
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_emit_symbol(bwc_stream *const stream, const uint64 symbol, const uint8 size)
+emit_symbol(bitstream *const stream, const uint64 symbol, const uint8 size)
 {
-   /*-----------------------*\
-   ! DEFINE INT VARIABLES:   !
-   \*-----------------------*/
-   uint8              byte;
-   int8               i;
+  /*-----------------------*\
+  ! DEFINE INT VARIABLES:   !
+  \*-----------------------*/
+  uint8              byte;
+  int8               i;
 
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
-   
-   /*--------------------------------------------------------*\
-   ! Check if the enough memory has been allocated for the    !
-   ! stream to store the additional symbol.                   !
-   \*--------------------------------------------------------*/
-   if((bytes_used(stream) + size) > stream->Lmax)
-   {
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
+  
+  /*--------------------------------------------------------*\
+  ! Check if the enough memory has been allocated for the    !
+  ! stream to store the additional symbol.                   !
+  \*--------------------------------------------------------*/
+  if((bytes_used(stream) + size) > stream->Lmax)
+  {
+    /*--------------------------------------------------------*\
+    ! If the stream is not large enough, check if this is due  !
+    ! to an error encountered in a previous writing operation  !
+    \*--------------------------------------------------------*/
+    if(!stream->error)
+    {
       /*--------------------------------------------------------*\
-      ! If the stream is not large enough, check if this is due  !
-      ! to an error encountered in a previous writing operation  !
+      ! If the error flag is not set, increment the stream size  !
+      ! to store the additional symbol.                          !
       \*--------------------------------------------------------*/
-      if(!stream->error)
-      {
-         /*--------------------------------------------------------*\
-         ! If the error flag is not set, increment the stream size  !
-         ! to store the additional symbol.                          !
-         \*--------------------------------------------------------*/
-         stream->Lmax      += stream->size_incr;
-         stream->size_incr  = (uint64)(stream->Lmax / 2);
+      stream->Lmax      += stream->size_incr;
+      stream->size_incr  = (uint64)(stream->Lmax / 2);
 
-         /*--------------------------------------------------------*\
-         ! Reallocate the stream data block.                        !
-         \*--------------------------------------------------------*/
-         stream->memory     = realloc(stream->memory, stream->Lmax);
-         if(!stream->memory)
-         {
-            // memory allocation error
-            stream->error |= 1;
-            stream->Lmax   = 0;
-            return;
-         }
-      }
-      else
+      /*--------------------------------------------------------*\
+      ! Reallocate the stream data block.                        !
+      \*--------------------------------------------------------*/
+      stream->memory     = realloc(stream->memory, stream->Lmax);
+      if(!stream->memory)
       {
-         /*--------------------------------------------------------*\
-         ! Exit to function caller if error flag has been set.      !
-         \*--------------------------------------------------------*/
-         return;
+        // memory allocation error
+        stream->error |= 1;
+        stream->Lmax   = 0;
+        return;
       }
-   }
+    }
+    else
+    {
+      /*--------------------------------------------------------*\
+      ! Exit to function caller if error flag has been set.      !
+      \*--------------------------------------------------------*/
+      return;
+    }
+  }
 
-   /*--------------------------------------------------------*\
-   ! Copy the additional symbol to the stream memory block    !
-   ! one byte at a time and Increment the number of bytes     !
-   ! written to the stream.                                   !
-   \*--------------------------------------------------------*/
-   for(i = size; i --> 0;)
-   {
-      byte = (uint8)((symbol >> (8 * i)) & 0xFF);
-      stream->memory[stream->L++] = (uchar)byte;
-   }
+  /*--------------------------------------------------------*\
+  ! Copy the additional symbol to the stream memory block    !
+  ! one byte at a time and Increment the number of bytes     !
+  ! written to the stream.                                   !
+  \*--------------------------------------------------------*/
+  for(i = size; i --> 0;)
+  {
+    byte = (uint8)((symbol >> (8 * i)) & 0xFF);
+    stream->memory[stream->L++] = (uchar)byte;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_emit_bit(bwc_stream *const stream, const uint64 bit)                             !
+!   FUNCTION NAME: void bwc_emit_bit(bitstream *const stream, const uint64 bit)                              !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -433,7 +433,7 @@ bwc_emit_symbol(bwc_stream *const stream, const uint64 symbol, const uint8 size)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_stream*           - Structure used to assemble a bwc bit-   !
+!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
 !                                                                    bitstream.                              !
 !                                                                                                            !
 !                bit                         unsigned int(64 bit)  - Bit that is to be written to the bwc    !
@@ -454,99 +454,99 @@ bwc_emit_symbol(bwc_stream *const stream, const uint64 symbol, const uint8 size)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void 
-bwc_emit_bit(bwc_stream *const stream, const uint64 bit)
+emit_bit(bitstream *const stream, const uint64 bit)
 {
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
-   
-   /*--------------------------------------------------------*\
-   ! Decrement the bit buffer counter.                        !
-   \*--------------------------------------------------------*/
-   stream->t--;
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
+  
+  /*--------------------------------------------------------*\
+  ! Decrement the bit buffer counter.                        !
+  \*--------------------------------------------------------*/
+  stream->t--;
 
-   /*--------------------------------------------------------*\
-   ! If the bit is significant, store the information at the  !
-   ! appropriate position in the bit buffer.                  !
-   \*--------------------------------------------------------*/
-   if(bit)
-   {
-      stream->T |= (1 << stream->t);
-   }
+  /*--------------------------------------------------------*\
+  ! If the bit is significant, store the information at the  !
+  ! appropriate position in the bit buffer.                  !
+  \*--------------------------------------------------------*/
+  if(bit)
+  {
+    stream->T |= (1 << stream->t);
+  }
 
-   /*--------------------------------------------------------*\
-   ! Check the bit buffer counter to see if the bit buffer is !
-   ! full.                                                    !
-   \*--------------------------------------------------------*/
-   if(!stream->t)
-   {
+  /*--------------------------------------------------------*\
+  ! Check the bit buffer counter to see if the bit buffer is !
+  ! full.                                                    !
+  \*--------------------------------------------------------*/
+  if(!stream->t)
+  {
+    /*--------------------------------------------------------*\
+    ! Check if the enough memory has been allocated for the    !
+    ! stream to store the additional byte.                     !
+    \*--------------------------------------------------------*/
+    if(bytes_used(stream) + 1 > stream->Lmax)
+    {
       /*--------------------------------------------------------*\
-      ! Check if the enough memory has been allocated for the    !
-      ! stream to store the additional byte.                     !
+      ! If the stream is not large enough, check if this is due  !
+      ! to an error encountered in a previous writing operation  !
       \*--------------------------------------------------------*/
-      if(bytes_used(stream) + 1 > stream->Lmax)
+      if(!stream->error)
       {
-         /*--------------------------------------------------------*\
-         ! If the stream is not large enough, check if this is due  !
-         ! to an error encountered in a previous writing operation  !
-         \*--------------------------------------------------------*/
-         if(!stream->error)
-         {
-            /*--------------------------------------------------------*\
-            ! If the error flag is not set, increment the stream size  !
-            ! to store the additional byte.                            !
-            \*--------------------------------------------------------*/
-            stream->Lmax      += stream->size_incr;
-            stream->size_incr  = (uint64)(stream->Lmax / 2);
+        /*--------------------------------------------------------*\
+        ! If the error flag is not set, increment the stream size  !
+        ! to store the additional byte.                            !
+        \*--------------------------------------------------------*/
+        stream->Lmax      += stream->size_incr;
+        stream->size_incr  = (uint64)(stream->Lmax / 2);
 
-            /*--------------------------------------------------------*\
-            ! Reallocate the stream data block.                        !
-            \*--------------------------------------------------------*/
-            stream->memory     = realloc(stream->memory, stream->Lmax);
-            if(!stream->memory)
-            {
-               // memory allocation error
-               stream->error |= 1;
-               stream->Lmax   = 0;
-               return;
-            }
-         }
-         else
-         {
-            /*--------------------------------------------------------*\
-            ! Exit to function caller if error flag has been set.      !
-            \*--------------------------------------------------------*/
-            return;
-         }
-      }
-
-      /*--------------------------------------------------------*\
-      ! Copy the additional byte to the stream memory block and  !
-      ! increment the number of bytes written to the stream.     !
-      \*--------------------------------------------------------*/
-      stream->memory[stream->L++] = (uchar)stream->T;
-
-      /*--------------------------------------------------------*\
-      ! Reset the byte buffer counter. If the current buffer has !
-      ! a value of 255, limit the counter to 7 bits to ensure    !
-      ! that the range FFFF to FF80 is reserved for the code-    !
-      ! stream markers.                                          !
-      \*--------------------------------------------------------*/
-      if(stream->T == 0xFF)
-      {
-         stream->t = 7;
+        /*--------------------------------------------------------*\
+        ! Reallocate the stream data block.                        !
+        \*--------------------------------------------------------*/
+        stream->memory     = realloc(stream->memory, stream->Lmax);
+        if(!stream->memory)
+        {
+          // memory allocation error
+          stream->error |= 1;
+          stream->Lmax   = 0;
+          return;
+        }
       }
       else
       {
-         stream->t = 8;
+        /*--------------------------------------------------------*\
+        ! Exit to function caller if error flag has been set.      !
+        \*--------------------------------------------------------*/
+        return;
       }
+    }
 
-      /*--------------------------------------------------------*\
-      ! Reset the byte buffer.                                   !
-      \*--------------------------------------------------------*/
-      stream->T = 0;
-   }
+    /*--------------------------------------------------------*\
+    ! Copy the additional byte to the stream memory block and  !
+    ! increment the number of bytes written to the stream.     !
+    \*--------------------------------------------------------*/
+    stream->memory[stream->L++] = (uchar)stream->T;
+
+    /*--------------------------------------------------------*\
+    ! Reset the byte buffer counter. If the current buffer has !
+    ! a value of 255, limit the counter to 7 bits to ensure    !
+    ! that the range FFFF to FF80 is reserved for the code-    !
+    ! stream markers.                                          !
+    \*--------------------------------------------------------*/
+    if(stream->T == 0xFF)
+    {
+      stream->t = 7;
+    }
+    else
+    {
+      stream->t = 8;
+    }
+
+    /*--------------------------------------------------------*\
+    ! Reset the byte buffer.                                   !
+    \*--------------------------------------------------------*/
+    stream->T = 0;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -561,7 +561,7 @@ bwc_emit_bit(bwc_stream *const stream, const uint64 bit)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_stream*           - Structure used to assemble a bwc bit-   !
+!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
 !                                                                    bitstream.                              !
 !                                                                                                            !
 !                size                        unsigned int(64 bit)  - Size of the data block.                 !
@@ -581,63 +581,63 @@ bwc_emit_bit(bwc_stream *const stream, const uint64 bit)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar*
-bwc_get_chunck(bwc_stream *const stream, const uint64 size)
+get_chunck(bitstream *const stream, const uint64 size)
 {
-   /*-----------------------*\
-   ! DEFINE CHAR VARIABLES:  !
-   \*-----------------------*/
-   uchar             *tmp;
+  /*-----------------------*\
+  ! DEFINE CHAR VARIABLES:  !
+  \*-----------------------*/
+  uchar             *tmp;
 
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
 
-   /*--------------------------------------------------------*\
-   ! Check if the number of bytes to be read from the stream  !
-   ! does not exceed the number of bytes still present in its !
-   ! memory block.                                            !
-   \*--------------------------------------------------------*/
-   if(bytes_used(stream) + size <= stream->Lmax)
-   {
-      /*--------------------------------------------------------*\
-      ! Allocate a temporary array used to store the bytes that  !
-      ! are extracted from the stream.                           !
-      \*--------------------------------------------------------*/
-      tmp = calloc(size, sizeof(uchar));
-      if(!tmp)
-      {
-         // memory allocation error
-         fprintf(stderr, MEMERROR);
-         return NULL;
-      }
-
-      /*--------------------------------------------------------*\
-      ! Copy the bytes requested from the function caller from   !
-      ! the stream to the temporary data block.                  !
-      \*--------------------------------------------------------*/
-      memcpy(tmp, stream->memory + stream->L, size);
-
-      /*--------------------------------------------------------*\
-      ! Increment the number of bytes read from the bitstream.   !
-      \*--------------------------------------------------------*/
-      stream->L += size;
-
-      /*--------------------------------------------------------*\
-      ! Return the temporary data block to the function caller.  !
-      \*--------------------------------------------------------*/
-      return tmp;
-   }
-   else
-   {
-      /*--------------------------------------------------------*\
-      ! If the requested block size exceeds the information left !
-      ! in the bitstream, set the bitstream error flag and       !
-      ! return a NULL pointer.                                   !
-      \*--------------------------------------------------------*/
-      stream->error |= 1;
+  /*--------------------------------------------------------*\
+  ! Check if the number of bytes to be read from the stream  !
+  ! does not exceed the number of bytes still present in its !
+  ! memory block.                                            !
+  \*--------------------------------------------------------*/
+  if(bytes_used(stream) + size <= stream->Lmax)
+  {
+    /*--------------------------------------------------------*\
+    ! Allocate a temporary array used to store the bytes that  !
+    ! are extracted from the stream.                           !
+    \*--------------------------------------------------------*/
+    tmp = calloc(size, sizeof(uchar));
+    if(!tmp)
+    {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
       return NULL;
-   }
+    }
+
+    /*--------------------------------------------------------*\
+    ! Copy the bytes requested from the function caller from   !
+    ! the stream to the temporary data block.                  !
+    \*--------------------------------------------------------*/
+    memcpy(tmp, stream->memory + stream->L, size);
+
+    /*--------------------------------------------------------*\
+    ! Increment the number of bytes read from the bitstream.   !
+    \*--------------------------------------------------------*/
+    stream->L += size;
+
+    /*--------------------------------------------------------*\
+    ! Return the temporary data block to the function caller.  !
+    \*--------------------------------------------------------*/
+    return tmp;
+  }
+  else
+  {
+    /*--------------------------------------------------------*\
+    ! If the requested block size exceeds the information left !
+    ! in the bitstream, set the bitstream error flag and       !
+    ! return a NULL pointer.                                   !
+    \*--------------------------------------------------------*/
+    stream->error |= 1;
+    return NULL;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -652,7 +652,7 @@ bwc_get_chunck(bwc_stream *const stream, const uint64 size)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_stream*           - Structure used to assemble a bwc bit-   !
+!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
 !                                                                    bitstream.                              !
 !                                                                                                            !
 !                size                        unsigned int(8 bit)   - Number of significant bytes in the      !
@@ -673,53 +673,53 @@ bwc_get_chunck(bwc_stream *const stream, const uint64 size)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uint64
-bwc_get_symbol(bwc_stream *const stream, const uint8 size)
+get_symbol(bitstream *const stream, const uint8 size)
 {
-   /*-----------------------*\
-   ! DEFINE INT VARIABLES:   !
-   \*-----------------------*/
-   uint64             symbol;
-   uint8              byte;
-   int8               i;
+  /*-----------------------*\
+  ! DEFINE INT VARIABLES:   !
+  \*-----------------------*/
+  uint64             symbol;
+  uint8              byte;
+  int8               i;
 
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
-   
-   /*--------------------------------------------------------*\
-   ! Check if the number of bytes to be read from the stream  !
-   ! does not exceed the number of bytes still present in its !
-   ! memory block.                                            !
-   \*--------------------------------------------------------*/
-   if(bytes_used(stream) + size <= stream->Lmax)
-   {
-      /*--------------------------------------------------------*\
-      ! Extract the requested information from the bitstream one !
-      ! byte at a time. Adjust the number of bytes read from the !
-      ! stream accordingly.                                      !
-      \*--------------------------------------------------------*/
-      for(i = size, symbol = 0; i --> 0;)
-      {
-         byte    = (uint8)stream->memory[stream->L++];
-         symbol |= ((uint64)byte << (i * 8));
-      }
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
+  
+  /*--------------------------------------------------------*\
+  ! Check if the number of bytes to be read from the stream  !
+  ! does not exceed the number of bytes still present in its !
+  ! memory block.                                            !
+  \*--------------------------------------------------------*/
+  if(bytes_used(stream) + size <= stream->Lmax)
+  {
+    /*--------------------------------------------------------*\
+    ! Extract the requested information from the bitstream one !
+    ! byte at a time. Adjust the number of bytes read from the !
+    ! stream accordingly.                                      !
+    \*--------------------------------------------------------*/
+    for(i = size, symbol = 0; i --> 0;)
+    {
+      byte    = (uint8)stream->memory[stream->L++];
+      symbol |= ((uint64)byte << (i * 8));
+    }
 
-      /*--------------------------------------------------------*\
-      ! Return the symbol to the function caller.                !
-      \*--------------------------------------------------------*/
-      return symbol;
-   }
-   else
-   {
-      /*--------------------------------------------------------*\
-      ! If the requested block size exceeds the information left !
-      ! in the bitstream, set the bitstream error flag and       !
-      ! return zero.                                             !
-      \*--------------------------------------------------------*/
-      stream->error |= 1;
-      return 0;
-   }
+    /*--------------------------------------------------------*\
+    ! Return the symbol to the function caller.                !
+    \*--------------------------------------------------------*/
+    return symbol;
+  }
+  else
+  {
+    /*--------------------------------------------------------*\
+    ! If the requested block size exceeds the information left !
+    ! in the bitstream, set the bitstream error flag and       !
+    ! return zero.                                             !
+    \*--------------------------------------------------------*/
+    stream->error |= 1;
+    return 0;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -751,31 +751,31 @@ bwc_get_symbol(bwc_stream *const stream, const uint8 size)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar 
-bwc_get_bit(bwc_stream *const stream)
+get_bit(bitstream *const stream)
 {
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
 
-   if(!stream->t)
-   {
-      if(stream->L == stream->Lmax)
-      {
-         return 1;
-      }
-      if(stream->T == 0xFF)
-      {
-         stream->t = 7;
-      }
-      else
-      {
-         stream->t = 8;
-      }
-      stream->T = (uint16)stream->memory[stream->L++];
-   }
-   stream->t--;
-   return ((stream->T & (1 << stream->t)) >> stream->t);
+  if(!stream->t)
+  {
+    if(stream->L == stream->Lmax)
+    {
+      return 1;
+    }
+    if(stream->T == 0xFF)
+    {
+      stream->t = 7;
+    }
+    else
+    {
+      stream->t = 8;
+    }
+    stream->T = (uint16)stream->memory[stream->L++];
+  }
+  stream->t--;
+  return ((stream->T & (1 << stream->t)) >> stream->t);
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -807,64 +807,64 @@ bwc_get_bit(bwc_stream *const stream)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void 
-flush_stream(bwc_stream *const stream)
+flush_stream(bitstream *const stream)
 {
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
 
-   /*--------------------------------------------------------*\
-   ! Check the if the bit buffer contains information.        !
-   \*--------------------------------------------------------*/
-   if(stream->t != 8)
-   {
+  /*--------------------------------------------------------*\
+  ! Check the if the bit buffer contains information.        !
+  \*--------------------------------------------------------*/
+  if(stream->t != 8)
+  {
+    /*--------------------------------------------------------*\
+    ! Check if the enough memory has been allocated for the    !
+    ! stream to store the additional byte.                     !
+    \*--------------------------------------------------------*/
+    if((bytes_used(stream) + 1) > stream->Lmax)
+    {
       /*--------------------------------------------------------*\
-      ! Check if the enough memory has been allocated for the    !
-      ! stream to store the additional byte.                     !
+      ! If the stream is not large enough, check if this is due  !
+      ! to an error encountered in a previous writing operation  !
       \*--------------------------------------------------------*/
-      if((bytes_used(stream) + 1) > stream->Lmax)
+      if(!stream->error)
       {
-         /*--------------------------------------------------------*\
-         ! If the stream is not large enough, check if this is due  !
-         ! to an error encountered in a previous writing operation  !
-         \*--------------------------------------------------------*/
-         if(!stream->error)
-         {
-            /*--------------------------------------------------------*\
-            ! If the error flag is not set, increment the stream size  !
-            ! to store the additional byte.                            !
-            \*--------------------------------------------------------*/
-            stream->Lmax      += stream->size_incr;
-            stream->size_incr  = (uint64)(stream->Lmax / 2);
+        /*--------------------------------------------------------*\
+        ! If the error flag is not set, increment the stream size  !
+        ! to store the additional byte.                            !
+        \*--------------------------------------------------------*/
+        stream->Lmax      += stream->size_incr;
+        stream->size_incr  = (uint64)(stream->Lmax / 2);
 
-            /*--------------------------------------------------------*\
-            ! Reallocate the stream data block.                        !
-            \*--------------------------------------------------------*/
-            stream->memory     = realloc(stream->memory, stream->Lmax);
-            if(!stream->memory)
-            {
-               // memory allocation error
-               stream->error |= 1;
-               stream->Lmax   = 0;
-               return;
-            }
-         }
-         else
-         {
-            /*--------------------------------------------------------*\
-            ! Exit to function caller if error flag has been set.      !
-            \*--------------------------------------------------------*/
-            return;
-         }
+        /*--------------------------------------------------------*\
+        ! Reallocate the stream data block.                        !
+        \*--------------------------------------------------------*/
+        stream->memory     = realloc(stream->memory, stream->Lmax);
+        if(!stream->memory)
+        {
+          // memory allocation error
+          stream->error |= 1;
+          stream->Lmax   = 0;
+          return;
+        }
       }
+      else
+      {
+        /*--------------------------------------------------------*\
+        ! Exit to function caller if error flag has been set.      !
+        \*--------------------------------------------------------*/
+        return;
+      }
+    }
 
-      /*--------------------------------------------------------*\
-      ! Copy the additional byte to the stream memory block and  !
-      ! increment the number of bytes written to the stream.     !
-      \*--------------------------------------------------------*/
-      stream->memory[stream->L++] = (uchar)stream->T;
-   }
+    /*--------------------------------------------------------*\
+    ! Copy the additional byte to the stream memory block and  !
+    ! increment the number of bytes written to the stream.     !
+    \*--------------------------------------------------------*/
+    stream->memory[stream->L++] = (uchar)stream->T;
+  }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -896,48 +896,48 @@ flush_stream(bwc_stream *const stream)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-bwc_terminate_stream(bwc_stream *stream, bwc_packed_stream *const packed_stream)
+terminate_stream(bitstream *stream, bwc_stream *const packed_stream)
 {
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
 
-   if(packed_stream)
-   {
-      if(stream->error)
+  if(packed_stream)
+  {
+    if(stream->error)
+    {
+      return 1;
+    }
+    else if(stream->L != stream->Lmax)
+    {
+      stream->Lmax   = stream->L;
+      stream->memory = realloc(stream->memory, stream->Lmax);
+      if(!stream->memory)
       {
-         return 1;
+        // memory allocation error
+        fprintf(stderr, MEMERROR);
+        stream->Lmax = 0;
+        return 1;
       }
-      else if(stream->L != stream->Lmax)
-      {
-         stream->Lmax   = stream->L;
-         stream->memory = realloc(stream->memory, stream->Lmax);
-         if(!stream->memory)
-         {
-            // memory allocation error
-            fprintf(stderr, MEMERROR);
-            stream->Lmax = 0;
-            return 1;
-         }
-      }
+    }
 
-      packed_stream->memory   = stream->memory;
-      packed_stream->access   = stream->memory;
-      packed_stream->size     = stream->L;
-      packed_stream->position = 0;
-   }
-   else
-   {
-      free(stream->memory);
-   }
-   
-   free(stream);
-   return 0;
+    packed_stream->memory   = stream->memory;
+    packed_stream->access   = stream->memory;
+    packed_stream->size     = stream->L;
+    packed_stream->position = 0;
+  }
+  else
+  {
+    free(stream->memory);
+  }
+  
+  free(stream);
+  return 0;
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void release_packed_stream(bwc_packed_stream *stream)                                     !
+!   FUNCTION NAME: void release_packed_stream(bwc_stream *stream)                                            !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -949,7 +949,7 @@ bwc_terminate_stream(bwc_stream *stream, bwc_packed_stream *const packed_stream)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                stream                      bwc_packed_stream     - Packed bitstream used to store parts of !
+!                stream                      bwc_stream            - Packed bitstream used to store parts of !
 !                                                                    the bwc codestream.                     !
 !                                                                                                            !
 !   RETURN VALUE:                                                                                            !
@@ -967,22 +967,22 @@ bwc_terminate_stream(bwc_stream *stream, bwc_packed_stream *const packed_stream)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-release_packed_stream(bwc_packed_stream *stream)
+release_packed_stream(bwc_stream *stream)
 {
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(stream);
+  /*-----------------------*\
+  ! DEFINE ASSERTIONS:      !
+  \*-----------------------*/
+  assert(stream);
 
-   /*--------------------------------------------------------*\
-   ! Free the data block of the packed bitstream.             !
-   \*--------------------------------------------------------*/
-   free(stream->memory);
+  /*--------------------------------------------------------*\
+  ! Free the data block of the packed bitstream.             !
+  \*--------------------------------------------------------*/
+  free(stream->memory);
 
-   /*--------------------------------------------------------*\
-   ! Reset all the packed stream parameters.                  !
-   \*--------------------------------------------------------*/
-   stream->access    = NULL;
-   stream->position  = 0;
-   stream->size      = 0;
+  /*--------------------------------------------------------*\
+  ! Reset all the packed stream parameters.                  !
+  \*--------------------------------------------------------*/
+  stream->access    = NULL;
+  stream->position  = 0;
+  stream->size      = 0;
 }

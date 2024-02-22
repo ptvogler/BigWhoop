@@ -55,40 +55,70 @@
   #include "types.h"
 
   /************************************************************************************************\
+  ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
+  ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
+  ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
+  ||                                                                                              ||
+  \************************************************************************************************/
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         This structure is used to read/assemble a packed codestream during coding. The         !
+  !         byte buffer is flushed to the packed stream as soon as the a single byte has           !
+  !         been assembled.                                                                        !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  typedef struct
+  {
+    uchar                       error;                    // Error flag used during streaming.
+
+    uint64                      L;                        // Number of bytes written to/from stream.
+    uint64                      Lmax;                     // Size of packed stream.
+    uint64                      size_incr;                // Size incrmnt used for stream assembly.
+
+    uint8                       T;                        // Byte buffer.
+    int8                        t;                        // Byte buffer counter.
+
+    uchar                      *memory;                   // Memory handle for packed stream chunck.
+  } bitstream;
+
+  /************************************************************************************************\
   ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||
   ||            |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__             ||
   ||            |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]            ||
   ||                                                                                              ||
   \************************************************************************************************/
-  uint64       bytes_used                 (bwc_stream            const  *const  stream);
+  uint64       bytes_used                 (bitstream             const  *const  stream);
   //==========|==========================|======================|======|======|=====================
-  bwc_stream*  bwc_init_stream            (uchar                        *const  memory, 
+  bitstream*   init_stream                (uchar                        *const  memory, 
                                            uint32                const          size, 
                                            char                  const          instr);
   //==========|==========================|======================|======|======|=====================
-  void         bwc_emit_chunck            (bwc_stream                   *const  stream, 
+  void         emit_chunck                (bitstream                    *const  stream, 
                                            uchar                 const  *const  chunck, 
                                            uint64                const          size);
   //==========|==========================|======================|======|======|=====================
-  void         bwc_emit_symbol            (bwc_stream                   *const  stream, 
+  void         emit_symbol                (bitstream                    *const  stream, 
                                            uint64                const          symbol,
                                            uint8                 const          size);
   //==========|==========================|======================|======|======|=====================
-  void         bwc_emit_bit               (bwc_stream                   *const  stream, 
+  void         emit_bit                   (bitstream                    *const  stream, 
                                            uint64                const          bit);
   //==========|==========================|======================|======|======|=====================
-  void         flush_stream               (bwc_stream                   *const  stream);
+  void         flush_stream               (bitstream                    *const  stream);
   //==========|==========================|======================|======|======|=====================
-  uchar*       bwc_get_chunck             (bwc_stream                   *const  stream, 
+  uchar*       get_chunck                 (bitstream                    *const  stream, 
                                            uint64                const          length);
   //==========|==========================|======================|======|======|=====================
-  uint64       bwc_get_symbol             (bwc_stream                   *const  stream, 
+  uint64       get_symbol                 (bitstream                    *const  stream, 
                                            uint8                 const          length);
   //==========|==========================|======================|======|======|=====================
-  uchar        bwc_get_bit                (bwc_stream                   *const  stream);
+  uchar        get_bit                    (bitstream                    *const  stream);
   //==========|==========================|======================|======|======|=====================
-  uchar        bwc_terminate_stream       (bwc_stream                          *stream, 
-                                           bwc_packed_stream            *const  packed_stream);
+  uchar        terminate_stream           (bitstream                           *stream, 
+                                           bwc_stream                   *const  packed_stream);
   //==========|==========================|======================|======|======|=====================
-  void         release_packed_stream      (bwc_packed_stream            *const  stream);
+  void         release_packed_stream      (bwc_stream                   *const  stream);
 #endif

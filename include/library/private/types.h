@@ -99,32 +99,7 @@
 
     uchar                      *access;                   // Pointer used to parse packed stream.
     uchar                      *memory;                   // Memory handle for the packed stream.
-  } bwc_packed_stream;
-
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to read/assemble a packed codestream during coding. The         !
-  !         byte buffer is flushed to the packed stream as soon as the a single byte has           !
-  !         been assembled.                                                                        !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  typedef struct
-  {
-    uchar                       error;                    // Error flag used during streaming.
-
-    uint64                      L;                        // Number of bytes written to/from stream.
-    uint64                      Lmax;                     // Size of packed stream.
-    uint64                      size_incr;                // Size incrmnt used for stream assembly.
-
-    uint8                       T;                        // Byte buffer.
-    int8                        t;                        // Byte buffer counter.
-
-    uchar                      *memory;                   // Memory handle for packed stream chunck.
   } bwc_stream;
-
 
   /*----------------------------------------------------------------------------------------------*\
   !                                                                                                !
@@ -227,9 +202,9 @@
 
     struct codestream
     {
-      bwc_packed_stream        *data;                     // Data codestream block.
-      bwc_packed_stream        *aux;                      // Auxiliary info. codestream block.
-      bwc_packed_stream        *com;                      // Comment codestream block.
+      bwc_stream               *data;                     // Data codestream block.
+      bwc_stream               *aux;                      // Auxiliary info. codestream block.
+      bwc_stream               *com;                      // Comment codestream block.
     }codestream;
 
     struct field
@@ -445,8 +420,8 @@
   \*----------------------------------------------------------------------------------------------*/
   typedef struct
   {
-    bwc_packed_stream           header;                   // Packed stream header.
-    bwc_packed_stream           body;                     // Packed stream body.
+    bwc_stream                  header;                   // Packed stream header.
+    bwc_stream                  body;                     // Packed stream body.
     uint8                       e;                        // Indicator for packet cb. contributions.
 
     uint32                      size;                     // Codestream packet size.
@@ -714,7 +689,7 @@
 
     uint8                       guard_bits;               // Number of guard bits during quant.
 
-    bwc_packed_stream           header;                   // Main codestream header.
+    bwc_stream                  header;                   // Main codestream header.
 
     bwc_quant_st                quantization_style;       // Quantization style.
     bwc_prog_ord                progression;              // Packet progression order.

@@ -419,7 +419,7 @@ initialize_tagtree(const uint64 leafsX, const uint64 leafsY, const uint64 leafsZ
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void 
-encode_tagtree(bwc_tagtree *const tagtree, bwc_stream *const stream, const uint32 threshold, const uint32 leaf_index, const uchar estimate)
+encode_tagtree(bwc_tagtree *const tagtree, bitstream *const stream, const uint32 threshold, const uint32 leaf_index, const uchar estimate)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -461,11 +461,11 @@ encode_tagtree(bwc_tagtree *const tagtree, bwc_stream *const stream, const uint3
          threshold_tmp++;
          if(node->value >= threshold_tmp)
          {
-            bwc_emit_bit(stream, 0);
+            emit_bit(stream, 0);
          }
          else
          {
-            bwc_emit_bit(stream, 1);
+            emit_bit(stream, 1);
          }
       }
 
@@ -512,7 +512,7 @@ encode_tagtree(bwc_tagtree *const tagtree, bwc_stream *const stream, const uint3
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar 
-decode_tagtree(bwc_tagtree *const tagtree, bwc_stream *const stream, const uint32 threshold, const uint32 leaf_index)
+decode_tagtree(bwc_tagtree *const tagtree, bitstream *const stream, const uint32 threshold, const uint32 leaf_index)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -556,7 +556,7 @@ decode_tagtree(bwc_tagtree *const tagtree, bwc_stream *const stream, const uint3
       while((node->value == node->threshold) && (node->threshold < threshold))
       {
          node->threshold++;
-         if(!bwc_get_bit(stream))
+         if(!get_bit(stream))
          {
             node->value++;
          }

@@ -1507,8 +1507,7 @@ output_info(bwc_cmdl_arg_node *const args,
   bwc_param_inf      *param_info;
 
   bwc_cmdl_arg_node  *temp;
-  
-  bwc_stream         *stream;
+
   struct stat         buf;
 
   /*-----------------------*\
@@ -1672,7 +1671,7 @@ output_info(bwc_cmdl_arg_node *const args,
       return;
     }
 
-  data->codestream.data     = calloc(1, sizeof(bwc_packed_stream));
+  data->codestream.data     = calloc(1, sizeof(bwc_stream));
   if(data->codestream.data == NULL)
     {
       // memory allocation error
@@ -1713,32 +1712,15 @@ output_info(bwc_cmdl_arg_node *const args,
   ! Initialize the bitstream, parse the main header and set  !
   ! up the field structure for the current dataset.          !
   \*--------------------------------------------------------*/
-  stream     = calloc(1, sizeof(bwc_stream));
-  if(stream == NULL)
-    {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return;
-    }
-
-  stream->memory = data->codestream.data->memory;
-   
-  stream->t         = 0;
-  stream->Lmax      = data->codestream.data->size;
-  stream->size_incr = (uint64)(stream->Lmax / 2);
-
-  field     = bwc_parse_main_header(data, stream);
+  field     = bwc_create_decompression(data, 0);
   if(field == NULL)
     {
       bwc_free_data(data);
-      free(stream);
       fclose(fp);
       return;
     }
   control = &field->control;
   info    =  field->info;
-
-  free(stream);
 
   /*--------------------------------------------------------*\
   ! Write the help message to the standard output.           !
@@ -1755,16 +1737,15 @@ output_info(bwc_cmdl_arg_node *const args,
 	       "|                  .+++=--------=+++---=+++---=+++------------:                  |\n"\
 	       "|                   -=++++++++++++++++++++++++++++++++++++++++-                  |\n"\
          "|                                                                                |\n"\
-         "|-------------------------------General Information------------------------------|\n"\
+         "|------------------------------ General Information -----------------------------|\n"\
          "|                                                                                |\n");
   
   /*--------------------------------------------------------*\
   ! Print the original file size and format.                 !
   \*--------------------------------------------------------*/
-  fseek(fp, 0L, SEEK_END);
-  Ld   = ftell(fp);
-  buff = get_size(Ld);
-  fclose(fp);
+  data_points = (uint64)info->nX  * info->nY * info->nZ *
+                        info->nTS * info->nPar;
+  buff        = get_size(data_points * 8);
 
   printf("|    Original size:                %42s    |\n"\
          "|    Original file format:         %42s    |\n"\
@@ -1775,9 +1756,10 @@ output_info(bwc_cmdl_arg_node *const args,
   /*--------------------------------------------------------*\
   ! Print the file size and compression ratio.               !
   \*--------------------------------------------------------*/
-  data_points = (uint64)info->nX  * info->nY * info->nZ *
-                        info->nTS * info->nPar;
-  buff        = get_size(data_points * 8);
+  fseek(fp, 0L, SEEK_END);
+  Ld   = ftell(fp);
+  buff = get_size(Ld);
+  fclose(fp);
 
   printf("|    Size on Disk:                 %42s    |\n"\
          "|    Comp. Ratio:                  %42.2f    |\n"\
@@ -1814,7 +1796,7 @@ output_info(bwc_cmdl_arg_node *const args,
   /*--------------------------------------------------------*\
   ! Print the numerical Datapoints.                          !
   \*--------------------------------------------------------*/
-  printf("|------------------------------Numerical Parameters------------------------------|\n"\
+  printf("|----------------------------- Numerical Parameters -----------------------------|\n"\
          "|                                                                                |\n");
 
   for(p = 0; p < info->nPar; ++p)
@@ -1835,19 +1817,23 @@ output_info(bwc_cmdl_arg_node *const args,
       while(buff > param_info->name && isspace((unsigned char)*buff)) buff--;
       buff[1] = '\0';
 
+      if(p != 0)
+        {
+            printf("|    ........................................................................    |\n"
+                   "|%80s|\n"," ");
+        }
+
       printf("|    Name:            %55s    |\n"\
              "|    Minimum value:   %55.2e    |\n"\
-             "|    Maximum value:   %55.2e    |\n"\
-             "|    ........................................................................    |\n"
-             "|%80s|\n",  param_info->name, 
-                          minVal,
-                          maxVal, " ");
+             "|    Maximum value:   %55.2e    |\n",  param_info->name, 
+                                                      minVal,
+                                                      maxVal);
     }
-
+  printf("|%80s|\n"," ");
   /*--------------------------------------------------------*\
   ! Print the quality layers.                                !
   \*--------------------------------------------------------*/
-  printf("|---------------------------------Quality Layers---------------------------------|\n"\
+  printf("|-------------------------------- Quality Layers --------------------------------|\n"\
          "|                                                                                |\n");
 
   for(l = 0; l < control->nLayers; ++l)
@@ -1959,7 +1945,7 @@ read_bwc(char *const filename)
       return NULL;
     }
 
-  file->codestream.data     = calloc(1,  sizeof(bwc_packed_stream));
+  file->codestream.data     = calloc(1,  sizeof(bwc_stream));
   if(file->codestream.data == NULL)
     {
       // memory allocation error
