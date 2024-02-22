@@ -1,54 +1,53 @@
-#*====================================================================================================================*#
-#|                                                                                                                    |#
-#|                 /$$$$$$$  /$$                  /$$      /$$ /$$                                                    |#
-#|                | $$__  $$|__/                 | $$  /$ | $$| $$                                                    |#
-#|                | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                 |#
-#|                | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                |#
-#|                | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                |#
-#|                | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                |#
-#|                | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                |#
-#|                |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/                 |#
-#|                               /$$  \ $$                                                  | $$                      |#
-#|                              |  $$$$$$/                                                  | $$                      |#
-#|                               \______/                                                   |__/                      |#
-#|                                                                                                                    |#
-#|      DESCRIPTION:                                                                                                  |#
-#|      ------------                                                                                                  |#
-#|                   This file describes python script used to assemble the public header file for the                |#
-#|                   BigWhoop compression library.                                                                    |#
-#|                                                                                                                    |#
-#|      DEVELOPMENT HISTORY:                                                                                          |#
-#|      --------------------                                                                                          |#
-#|                                                                                                                    |#
-#|                   Date        Author             Change Id   Release     Description Of Change                     |#
-#|                   ----        ------             ---------   -------     ---------------------                     |#
-#|                   02.02.2020  Patrick Vogler     B87D120     V 0.1.0     script created                            |#
-#|                                                                                                                    |#
-#|                                                                                                                    |#
-#|       ------------------------------------------------------------------------------------------------------       |#
-#|                                                                                                                    |#
-#|       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                              |#
-#|                                                                                                                    |#
-#|       Redistribution and use in source and binary forms, with or without modification, are permitted               |#
-#|       provided that the following conditions are met:                                                              |#
-#|                                                                                                                    |#
-#|          (1)   Redistributions of source code must retain the above copyright notice, this list of                 |#
-#|                conditions and the following disclaimer.                                                            |#
-#|                                                                                                                    |#
-#|          (2)   Redistributions in binary form must reproduce the above copyright notice, this list                 |#
-#|                of conditions and the following disclaimer in the documentation and/or other materials              |#
-#|                provided with the distribution.                                                                     |#
-#|                                                                                                                    |#
-#|       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED       |#
-#|       WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A       |#
-#|       PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR       |#
-#|       ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT           |#
-#|       LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS          |#
-#|       INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR       |#
-#|       TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF         |#
-#|       ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                                   |#
-#|                                                                                                                    |#
-#\====================================================================================================================/#
+#*================================================================================================*#
+#|                                                                                                |#
+#|       /$$$$$$$  /$$                  /$$      /$$ /$$                                          |#
+#|      | $$__  $$|__/                 | $$  /$ | $$| $$                                          |#
+#|      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       |#
+#|      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      |#
+#|      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      |#
+#|      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      |#
+#|      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      |#
+#|      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       |#
+#|                     /$$  \ $$                                                  | $$            |#
+#|                    |  $$$$$$/                                                  | $$            |#
+#|                     \______/                                                   |__/            |#
+#|                                                                                                |#
+#|  DESCRIPTION:                                                                                  |#
+#|  ------------                                                                                  |#
+#|                                                                                                |#
+#|        This file describes python script used to assemble the public header file for           |#
+#|        the BigWhoop compression library.                                                       |#
+#|                                                                                                |#
+#|  --------------------------------------------------------------------------------------------  |#
+#|  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               |#
+#|                                                                                                |#
+#|  Redistribution and use in source and binary forms, with or without modification, are          |#
+#|  permitted provided that the following conditions are met:                                     |#
+#|                                                                                                |#
+#|     (1)   Redistributions of source code must retain the above copyright notice, this list of  |#
+#|           conditions and the following disclaimer.                                             |#
+#|                                                                                                |#
+#|     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  |#
+#|           of conditions and the following disclaimer in the documentation and/or other         |#
+#|           materials provided with the distribution.                                            |#
+#|                                                                                                |#
+#|  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   |#
+#|  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               |#
+#|  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    |#
+#|  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     |#
+#|  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            |#
+#|  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        |#
+#|  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      |#
+#|  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  |#
+#|  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            |#
+#|                                                                                                |#
+#*================================================================================================*#
+#**************************************************************************************************#
+#|                                   _ _  _ ___  ____ ____ ___                                    |#
+#|                                   | |\/| |__] |  | |__/  |                                     |#
+#|                                   | |  | |    |__| |  \  |                                     |#
+#|                                                                                                |#
+#**************************************************************************************************#
 from argparse import ArgumentParser
 from math     import ceil, floor
 from pathlib  import Path
@@ -57,6 +56,20 @@ import os
 import re
 import sys
 
+#-------------------------#
+# DEFINE CONSTANTS:       #
+#-------------------------#
+tab           = "  "
+text_width    = 100
+deliminator   = tab + "/*" + (text_width - 4 - len(tab)) * "=" + "*/\n"
+ubox          = tab + "/"  + (text_width - 2 - len(tab)) * "*" + "\\\n"
+lbox          = tab + "\\" + (text_width - 2 - len(tab)) * "*" + "/\n"
+sbox          = "||"
+
+#----------------------------------------------------------#
+# Setup the argument parser for the public header script   #
+# and parse for the user defined OpenMP and Precision arg. #
+#----------------------------------------------------------#
 parser = ArgumentParser(description='Public Header Assembly Script')
 parser.add_argument('-OMP', dest='OpenMP', action='store_const',
                     const=True, default=False,
@@ -67,220 +80,254 @@ parser.add_argument('-Single', dest='SinglePrecision', action='store_const',
 
 args = parser.parse_args()
 
+
+#----------------------------------------------------------#
+# Setup the paths to the source and destination.           #
+#----------------------------------------------------------#
 current_path  = Path().absolute()
 source        = current_path.joinpath('include/library/private')
-
-if os.path.isdir('include/library/public') == False:
-  os.mkdir('include/library/public')
 destination   = current_path.joinpath('include/library/public')
 
+if os.path.isdir(destination) == False:
+  os.mkdir(destination)
 
+header_files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
+header_files.remove('prim_types_double.h')
+header_files.remove('prim_types_single.h')
+print(header_files)
 
-with open(source.joinpath('libbwc.h')) as f:
-  regex   = re.compile("(?<=Version )(?:(\d+\.(?:\d+\.)*\d+))")
-  Version = ""
-  tab     = ""
-
-  for line in f:
-    if not Version:
-      Version = regex.findall(line)
-    if("#include" in line):
-      tab = line[0:len(line) - len(line.lstrip(' '))]
-    if tab:
-      if not Version:
-        sys.exit("No Version was specified")
-      else:
-        break
-f.close
-
-deliminator   = tab + "/*" + (116 - len(tab)) * "=" + "*/\n"
-ubox          = tab + "/"  + (118 - len(tab)) * "*" + "\\\n"
-lbox          = tab + "\\" + (118 - len(tab)) * "*" + "/\n"
-
+#----------------------------------------------------------#
+# Create the I/O stream and write the bwc file header.     #
+#----------------------------------------------------------#
 public_header = open(destination.joinpath('bwc.h'), 'w+')
-
-
-public_header.write("/*====================================================================================================================*\\\n"
-                    "||                                                                                                                    ||\n"
-                    "||                 /$$$$$$$  /$$                  /$$      /$$ /$$                                                    ||\n"
-                    "||                | $$__  $$|__/                 | $$  /$ | $$| $$                                                    ||\n"
-                    "||                | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                 ||\n"
-                    "||                | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                ||\n"
-                    "||                | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                ||\n"
-                    "||                | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                ||\n"
-                    "||                | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                ||\n"
-                    "||                |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/                 ||\n"
-                    "||                               /$$  \ $$                                                  | $$                      ||\n"
-                    "||                              |  $$$$$$/                                                  | $$                      ||\n"
-                    "||                               \______/                                                   |__/                      ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||                                                   Version "   + 
-                                                                          Version[-1] + "                                                    ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||       ------------------------------------------------------------------------------------------------------       ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                              ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||       Redistribution and use in source and binary forms, with or without modification, are permitted provided      ||\n"
-                    "||       that the following conditions are met:                                                                       ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||          (1)   Redistributions of source code must retain the above copyright notice, this list of                 ||\n"
-                    "||                conditions and the following disclaimer.                                                            ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list                 ||\n"
-                    "||                of conditions and the following disclaimer in the documentation and/or other materials              ||\n"
-                    "||                provided with the distribution.                                                                     ||\n"
-                    "||                                                                                                                    ||\n"
-                    "||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED       ||\n"
-                    "||       WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A       ||\n"
-                    "||       PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR       ||\n"
-                    "||       ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT           ||\n"
-                    "||       LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS          ||\n"
-                    "||       INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR       ||\n"
-                    "||       TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF         ||\n"
-                    "||       ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                                   ||\n"
-                    "||                                                                                                                    ||\n"
-                    "\*====================================================================================================================*/\n"
+public_header.write("/*================================================================================================*\\\n"
+                    "||                                                                                                ||\n"
+                    "||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||\n"
+                    "||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||\n"
+                    "||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||\n"
+                    "||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||\n"
+                    "||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||\n"
+                    "||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||\n"
+                    "||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||\n"
+                    "||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||\n"
+                    "||                     /$$  \ $$                                                  | $$            ||\n"
+                    "||                    |  $$$$$$/                                                  | $$            ||\n"
+                    "||                     \______/                                                   |__/            ||\n"
+                    "||                                                                                                ||\n"
+                    "||  --------------------------------------------------------------------------------------------  ||\n"
+                    "||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||\n"
+                    "||                                                                                                ||\n"
+                    "||  Redistribution and use in source and binary forms, with or without modification, are          ||\n"
+                    "||  permitted provided that the following conditions are met:                                     ||\n"
+                    "||                                                                                                ||\n"
+                    "||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||\n"
+                    "||           conditions and the following disclaimer.                                             ||\n"
+                    "||                                                                                                ||\n"
+                    "||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||\n"
+                    "||           of conditions and the following disclaimer in the documentation and/or other         ||\n"
+                    "||           materials provided with the distribution.                                            ||\n"
+                    "||                                                                                                ||\n"
+                    "||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||\n"
+                    "||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||\n"
+                    "||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||\n"
+                    "||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||\n"
+                    "||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||\n"
+                    "||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||\n"
+                    "||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||\n"
+                    "||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||\n"
+                    "||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||\n"
+                    "||                                                                                                ||\n"
+                    "\*================================================================================================*/\n"
                     "#ifndef BWC_H\n"
                     "#define BWC_H\n")
 
-lspaces = ceil((116 - 31 - len(tab))/2)
-rspaces = floor((116 - 31 - len(tab))/2)
+#----------------------------------------------------------#
+# Generate the necessary includes for the bwc.h file.      #
+#----------------------------------------------------------#
+title_length = 31
 
-public_header.write(ubox + tab + "||" + lspaces * " " + "_ _  _ ____ _    _  _ ___  ____" + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "| |\ | |    |    |  | |  \ |___" + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "| | \| |___ |___ |__| |__/ |___" + rspaces * " " + "||\n" + 
-                           tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
+lspaces = ceil((text_width - 2*len(sbox) - title_length - len(tab))/2)
+rspaces = floor((text_width - 2*len(sbox) - title_length - len(tab))/2)
+
+public_header.write(ubox + tab + sbox + lspaces * " " + "_ _  _ ____ _    _  _ ___  ____" + rspaces * " " + sbox + "\n" +
+                           tab + sbox + lspaces * " " + "| |\ | |    |    |  | |  \ |___" + rspaces * " " + sbox + "\n" +
+                           tab + sbox + lspaces * " " + "| | \| |___ |___ |__| |__/ |___" + rspaces * " " + sbox + "\n" + 
+                           tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
 
 public_header.write(tab + "#include <stdio.h>\n" + tab + "#include <stdint.h>\n\n")
 
-lspaces = ceil((116 - 62 - len(tab))/2)
-rspaces = floor((116 - 62 - len(tab))/2)
+#----------------------------------------------------------#
+# Ingest primitive type definitions from the corresponding #
+# header files according to the user specified precision.  #
+#----------------------------------------------------------#
+title_length = 62
 
-public_header.write(ubox + tab + "||" + lspaces * " " + "___  ____ _ _  _ _ ___ _ _  _ ____    ___ _   _ ___  ____ ____" + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|__] |__/ | |\/| |  |  | |  | |___     |   \_/  |__] |___ [__ " + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|    |  \ | |  | |  |  |  \/  |___     |    |   |    |___ ___]" + rspaces * " " + "||\n" + 
-                           tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
+lspaces = ceil((text_width - 2*len(sbox) - title_length - len(tab))/2)
+rspaces = floor((text_width - 2*len(sbox) - title_length - len(tab))/2)
+
+public_header.write(ubox + tab + sbox + lspaces * " " + "___  ____ _ _  _ _ ___ _ _  _ ____    ___ _   _ ___  ____ ____" + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|__] |__/ | |\/| |  |  | |  | |___     |   \_/  |__] |___ [__ " + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|    |  \ | |  | |  |  |  \/  |___     |    |   |    |___ ___]" + rspaces * " " + "||\n" + 
+                           tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
 
 if(args.SinglePrecision == True):
   file = "prim_types_single.h"
 else:
   file = "prim_types_double.h"
 
-print_flag = 0
+print_flag = False
 with open(source.joinpath(file)) as f:
   for line in f:
     if("/*" in line and print_flag == 1):
       break
     if("typedef" in line or print_flag == 1):
-      print_flag = 1
+      print_flag = True
       public_header.write(line)
 f.close
 
-lspaces = ceil((116 - 29 - len(tab))/2)
-rspaces = floor((116 - 29 - len(tab))/2)
+#----------------------------------------------------------#
+# Ingest Macros with 'BWC_' prefix from all header files.  #
+#----------------------------------------------------------#
+title_length = 29
 
-public_header.write(ubox + tab + "||" + lspaces * " " + "_  _ ____ ____ ____ ____ ____" + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|\/| |__| |    |__/ |  | [__ " + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|  | |  | |___ |  \ |__| ___]" + rspaces * " " + "||\n" + 
-                           tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
+lspaces = ceil((text_width - 2*len(sbox) - title_length - len(tab))/2)
+rspaces = floor((text_width - 2*len(sbox) - title_length - len(tab))/2)
 
-with open(source.joinpath('prim_types_double.h')) as f:
+public_header.write(ubox + tab + sbox + lspaces * " " + "_  _ ____ ____ ____ ____ ____" + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|\/| |__| |    |__/ |  | [__ " + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|  | |  | |___ |  \ |__| ___]" + rspaces * " " + "||\n" + 
+                           tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
+
+with open(source.joinpath(file)) as f:
   for line in f:
     if("#define" in line):
-      if("PREC_BIT" in line):
-        public_header.write(line)
-      elif("#define MAXIMUM_NO_PASSES" in line):
-        public_header.write(line + "\n")
-        break
+      if("MAXIMUM_NO_PASSES" in line or
+         "PREC_BIT" in line):
+        if("//" in line):
+          public_header.write((line.split('/', 1)[0]).rstrip() + '\n')
+        else:
+          public_header.write(line)
 f.close
 
-lspaces = ceil((116 - 42 - len(tab))/2)
-rspaces = floor((116 - 42 - len(tab))/2)
+printFlg    = False
+buff        = ""
+brktCnt     = 0
 
-public_header.write(ubox + tab + "||" + lspaces * " " + "____ ____ _  _ ____ ___ ____ _  _ ___ ____" + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|    |  | |\ | [__   |  |__| |\ |  |  [__ " + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|___ |__| | \| ___]  |  |  | | \|  |  ___]" + rspaces * " " + "||\n" + 
-                           tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
+for file in header_files:
+  with open(source.joinpath(file)) as f:
+    for line in f:
+      if("BWC_" in line):
+        if("ifndef" in line):
+          next(f)
+        elif("#define" in line and line[len(line) - len(line.lstrip())] != "/"):
+          while True:
+            if("//" in line):
+              buff = buff + (line.split('/', 1)[0]).rstrip() + '\n'
+            else:
+              buff = buff + line
+            if("\\" not in line):
+              public_header.write(buff+"\n")
+              buff = ""
+              break
+            line = next(f)
+  f.close
+public_header.write("\n")
 
-print_flag = -1
-with open(source.joinpath('constants.h')) as f:
-  for line in f:
-    if(";" in line and print_flag == 1):
-      print_flag = 0
-      public_header.write(line)
-    if("typedef" in line or print_flag == 1):
-      if(print_flag == 0):
-        public_header.write(deliminator)
-      print_flag = 1
-      public_header.write(line)
-f.close
+#----------------------------------------------------------#
+# Ingest enums with 'bwc_' prefix from all header files    #
+# excluding prim_types_****.h.                             #
+#----------------------------------------------------------#
+title_length = 42
 
-lspaces = ceil((116 - 64 - len(tab))/2)
-rspaces = floor((116 - 64 - len(tab))/2)
+lspaces = ceil((text_width - 2*len(sbox) - title_length - len(tab))/2)
+rspaces = floor((text_width - 2*len(sbox) - title_length - len(tab))/2)
+
+public_header.write(ubox + tab + sbox + lspaces * " " + "____ ____ _  _ ____ ___ ____ _  _ ___ ____" + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|    |  | |\ | [__   |  |__| |\ |  |  [__ " + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|___ |__| | \| ___]  |  |  | | \|  |  ___]" + rspaces * " " + "||\n" + 
+                           tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
+
+delimFlg    = False
+buff        = ""
+
+for file in header_files:
+  with open(source.joinpath(file)) as f:
+    for line in f:
+      if("typedef enum" in line):
+        while True:
+          buff = buff + (line.split('/', 1)[0]).rstrip() + '\n'
+          if("}" in line and ";" in line):
+            if("bwc_" in line):
+              if(delimFlg == True):
+                public_header.write(deliminator)
+              public_header.write(buff)
+              delimFlg = True
+            buff = ""
+            break
+          line = next(f)
+  f.close
+
+#----------------------------------------------------------#
+# Ingest derived types with 'bwc_' prefix from all header  #
+# files excluding prim_types_****.h.                       #
+#----------------------------------------------------------#
+title_length = 64
+
+lspaces = ceil((text_width - 2*len(sbox) - title_length - len(tab))/2)
+rspaces = floor((text_width - 2*len(sbox) - title_length - len(tab))/2)
 
 public_header.write("\n")
-public_header.write(ubox + tab + "||" + lspaces * " " + "___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____" + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__ " + rspaces * " " + "||\n" +
-                           tab + "||" + lspaces * " " + "|__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]" + rspaces * " " + "||\n" + 
-                           tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
+public_header.write(ubox + tab + sbox + lspaces * " " + "___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____" + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__ " + rspaces * " " + "||\n" +
+                           tab + sbox + lspaces * " " + "|__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]" + rspaces * " " + "||\n" + 
+                           tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
 
 printFlg    = False
 delimFlg    = False
 preProcFlg  = False
-preProc     = ""
 buff        = ""
 brktCnt     = 0
 
-for file in ["mq_types.h", "types.h"]:
+for file in header_files:
   with open(source.joinpath(file)) as f:
     for line in f:
-      if("typedef" in line):
+      if("typedef struct" in line or
+         "typedef union"  in line):
+        if("bwc_" in line):
+          printFlg = True
         while True:
-          if("#if" in line):
-            if("_OPENMP" in line):
-              preProcFlg = True
-            while True:
-              line = next(f)
-              if("endif" in line):
-                break
-              preProc = preProc + line[len(tab):len(line)]
-
-            if(preProcFlg and args.OpenMP == True):
-              buff = buff + preProc
-
-            preProcFlg = False  
-            preProc = ""  
-          else:
-            buff = buff + line
-
+          buff = buff + (line.split('/', 1)[0]).rstrip() + '\n'
           if("{" in line):
             brktCnt = brktCnt + 1
-
           if("}" in line):
             brktCnt = brktCnt - 1
             if(brktCnt == 0):
+              if("bwc_" in line):
+                printFlg = True
               break
           line = next(f)
-
-        if("bwc_" in line):
-          if(printFlg == True):
-            buff = deliminator + buff
-          else:
-            printFlg = True
+        if (printFlg == True):
+          if(delimFlg == True):
+            public_header.write(deliminator)
           public_header.write(buff)
-
+          delimFlg = True
         buff = ""
+
   f.close
 
-lspaces = ceil((116 - 70 - len(tab))/2)
-rspaces = floor((116 - 70 - len(tab))/2)
+#----------------------------------------------------------#
+# Ingest public functions with 'bwc_' prefix from all      #
+# header files excluding prim_types_****.h.                #
+#----------------------------------------------------------#
+title_length = 70
 
-public_header.write("\n" + ubox + tab + "||" + lspaces * " " + "___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____" + rspaces * " " + "||\n" +
-                                  tab + "||" + lspaces * " " + "|__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__ " + rspaces * " " + "||\n" +
-                                  tab + "||" + lspaces * " " + "|    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]" + rspaces * " " + "||\n" + 
-                                  tab + "||" + (116 - len(tab)) * " " + "||\n" + lbox)
+lspaces = ceil((text_width - 2*len(sbox) - title_length - len(tab))/2)
+rspaces = floor((text_width - 2*len(sbox) - title_length - len(tab))/2)
+
+public_header.write("\n" + ubox + tab + sbox + lspaces * " " + "___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____" + rspaces * " " + "||\n" +
+                                  tab + sbox + lspaces * " " + "|__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__ " + rspaces * " " + "||\n" +
+                                  tab + sbox + lspaces * " " + "|    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]" + rspaces * " " + "||\n" + 
+                                  tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
 
 public_header.write(tab + "#ifdef __cplusplus\n" +
                     tab + "extern \"C\" {\n" +
@@ -295,27 +342,16 @@ buff     = ""
 for file in files:
   with open(source.joinpath(file)) as f:
     for line in f:
-
-      if("#ifdef" in line or "#if defined" in line):
-        if("_OPENMP" in line and args.OpenMP == True):
-          ltab = len(tab)
-          line = next(f)
-        else:
-          while ("#endif" not in line):
-            line = next(f)
-      if("#endif" in line):
-        ltab = 0
-
+      if("#if defined" in line):
+        line = next(f)
       if("(" in line):
-        tmp = line[0:line.index('(')]
+        tmp = line[0:line.index('(')].strip()
         tmp = tmp[tmp.rfind(' '):-1]
       else:
         tmp = ""
-      if("bwc_" in tmp and "!" not in line):
-        if("/*" in buff or "*/" in buff):
+      if("bwc_" in tmp and "!" not in line and "#if" not in line):
+        if("/*" in buff or "*/" in buff or "//" in buff):
           buff = ""
-        else:
-          buff = buff[ltab:len(buff)]
 
         if(print_flag == True):
           buff = deliminator + buff

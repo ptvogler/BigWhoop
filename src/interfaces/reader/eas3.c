@@ -239,7 +239,7 @@ read_eas3_header(bwc_data *const data)
    ! Save the file pointer and data info structure in tempo-  !
    ! rary variables to make the code more readable.           !
    \*--------------------------------------------------------*/
-   fp   = data->file.fp;
+   fp   = data->fp;
    info = &data->info;
 
    /*--------------------------------------------------------*\
@@ -618,7 +618,7 @@ write_eas3_header(bwc_data *const data)
    ! Save the file pointer and data info structure in tempo-  !
    ! rary variables to make the code more readable.           !
    \*--------------------------------------------------------*/
-   fp   = data->file.fp;
+   fp   = data->fp;
    info = &data->info;
 
    /*--------------------------------------------------------*\
@@ -866,7 +866,7 @@ read_eas3(char *const filename)
    ! Open the specified file for reading. If the file doesn't !
    ! exist, exit the bwc command-line tool.                   !
    \*--------------------------------------------------------*/
-   if((data->file.fp = fopen(filename, "rb")) == NULL)
+   if((data->fp = fopen(filename, "rb")) == NULL)
    {
       // error opening file
       fprintf(stderr, "o##########################################################o\n"\
@@ -891,10 +891,10 @@ read_eas3(char *const filename)
    ! file and store the information in the bwc_gl_data struc- !
    ! ture.                                                    !
    \*--------------------------------------------------------*/
-   root   = ftell(data->file.fp);
-   fseek(data->file.fp, 0L,   SEEK_END); 
-   Lfield = (ftell(data->file.fp) - root) / sizeof(double);
-   fseek(data->file.fp, root, SEEK_SET);
+   root   = ftell(data->fp);
+   fseek(data->fp, 0L,   SEEK_END); 
+   Lfield = (ftell(data->fp) - root) / sizeof(double);
+   fseek(data->fp, root, SEEK_SET);
 
    /*--------------------------------------------------------*\
    ! Check if the file_size coincide with the specified dimen-!
@@ -935,7 +935,7 @@ read_eas3(char *const filename)
       /*--------------------------------------------------------*\
       ! Read the flow field data from the specified eas3 file.   !
       \*--------------------------------------------------------*/
-      if(fread(data->field.f, sizeof(float), Lfield, data->file.fp) != Lfield)
+      if(fread(data->field.f, sizeof(float), Lfield, data->fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, RDERROR);
@@ -971,7 +971,7 @@ read_eas3(char *const filename)
       /*--------------------------------------------------------*\
       ! Read the flow field data from the specified eas3 file.   !
       \*--------------------------------------------------------*/
-      if(fread(data->field.d, sizeof(double), Lfield, data->file.fp) != Lfield)
+      if(fread(data->field.d, sizeof(double), Lfield, data->fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, RDERROR);
@@ -993,8 +993,8 @@ read_eas3(char *const filename)
    ! Close the file pointer and return the bwc_data structure !
    ! to the function caller.                                  !
    \*--------------------------------------------------------*/
-   fclose(data->file.fp);
-   data->file.fp = NULL;
+   fclose(data->fp);
+   data->fp = NULL;
    return data;
 }
 
@@ -1051,7 +1051,7 @@ write_eas3(bwc_data *const data, char *const filename)
    ! exist, discard its content. If the file cannot be creat- !
    ! ed, exit the bwc command-line tool.                      !
    \*--------------------------------------------------------*/
-   if((data->file.fp = fopen(filename, "wb")) == NULL)
+   if((data->fp = fopen(filename, "wb")) == NULL)
    {
       // error opening file
       fprintf(stderr, "o##########################################################o\n"\
@@ -1090,7 +1090,7 @@ write_eas3(bwc_data *const data, char *const filename)
       /*--------------------------------------------------------*\
       ! Write the flow field data to the specified eas3 file.    !
       \*--------------------------------------------------------*/
-      if(fwrite(data->field.f, sizeof(float), Lfield, data->file.fp) != Lfield)
+      if(fwrite(data->field.f, sizeof(float), Lfield, data->fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, WRTERROR);
@@ -1110,7 +1110,7 @@ write_eas3(bwc_data *const data, char *const filename)
       /*--------------------------------------------------------*\
       ! Write the flow field data to the specified eas3 file.    !
       \*--------------------------------------------------------*/
-      if(fwrite(data->field.d, sizeof(double), Lfield, data->file.fp) != Lfield)
+      if(fwrite(data->field.d, sizeof(double), Lfield, data->fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, WRTERROR);
@@ -1121,7 +1121,7 @@ write_eas3(bwc_data *const data, char *const filename)
    /*--------------------------------------------------------*\
    ! Close the file pointer and return to the function caller.!
    \*--------------------------------------------------------*/
-   fclose(data->file.fp);
-   data->file.fp = NULL;
+   fclose(data->fp);
+   data->fp = NULL;
    return 0;
 }

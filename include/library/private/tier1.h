@@ -1,153 +1,173 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||      File:  tier1.h                                                                                                              ||
-||      -----                                                                                                                       ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      DESCRIPTION NEEDED.                                                                                                         ||
-||                                                                                                                                  ||
-||      STRUCTS:                                                                                                                    ||
-||      --------                                                                                                                    ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            -           Patrick Vogler     B87D120     V 0.1.0     header file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        This file describes a set of functions that can be used to de-/encode bwc               ||
+||        codeblocks described by the bwc_field structure according to the embedded block         ||
+||        coding paradigm described by the JPEG 2000 standard. For more information please        ||
+||        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.                                ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 #ifndef TIER1_H
 #define TIER1_H
+  /************************************************************************************************\
+  ||                               _ _  _ ____ _    _  _ ___  ____                                ||
+  ||                               | |\ | |    |    |  | |  \ |___                                ||
+  ||                               | | \| |___ |___ |__| |__/ |___                                ||
+  ||                                                                                              ||
+  \************************************************************************************************/
+  #include "types.h"
 
-   /************************************************************************************************************\
-   ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
-   ||                                      | |\ | |    |    |  | |  \ |___                                     ||
-   ||                                      | | \| |___ |___ |__| |__/ |___                                     ||
-   ||                                                                                                          ||
-   \************************************************************************************************************/
-   #include "types.h"
+  /************************************************************************************************\
+  ||                                _  _ ____ ____ ____ ____ ____                                 ||
+  ||                                |\/| |__| |    |__/ |  | [__                                  ||
+  ||                                |  | |  | |___ |  \ |__| ___]                                 ||
+  ||                                                                                              ||
+  \************************************************************************************************/
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         The macros listed indicate how many bits, from the current coding position,            !
+  !         are used for error evaluation in the coding passes.                                    !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  #define DISTORTION_SIG        5                         // Clean up/significance propagation pass.
+  #define DISTORTION_MAG        6                         // Magnitude refinement pass.
 
-   /************************************************************************************************************\
-   ||                                      _  _ ____ ____ ____ ____ ____                                       ||
-   ||                                      |\/| |__| |    |__/ |  | [__                                        ||
-   ||                                      |  | |  | |___ |  \ |__| ___]                                       ||
-   ||                                                                                                          ||
-   \************************************************************************************************************/
-   /*----------------------------------------------------------------------------------------------------------*\
-   !   DESCRIPTION:                                                                                             !
-   !   ------------                                                                                             !
-   !                                                                                                            !
-   !              This macro defines the maximum decomposition level up to which the wavelet filer energy gain  !
-   !              is calculated. Beyond the maximum decomposition level the energy gain will only be            !
-   !              approximated.                                                                                 !
-   !                                                                                                            !
-   !   Macros:                                                                                                  !
-   !   -------                                                                                                  !
-   !                Macro                                Description                                            !
-   !                -----                                -----------                                            !
-   !                MAX_DECOMPOSITION_LEVELS           - Maximum number of wavelet layers for which the energy  !
-   !                                                     gain is calculated.                                    !
-   !                                                                                                            !
-   !   DEVELOPMENT HISTORY:                                                                                     !
-   !   --------------------                                                                                     !
-   !                                                                                                            !
-   !                Date        Author             Change Id   Release     Description Of Change                !
-   !                ----        ------             ---------   -------     ---------------------                !
-   !                20.03.2018  Patrick Vogler     B87D120     V 0.1.0     Macros created                       !
-   \*----------------------------------------------------------------------------------------------------------*/
-   #define DISTORTION_DELTA     0.5f
-   #define DISTORTION_MANTISSA  5
-   #define DISTORTION_PRECISION 6
+  /************************************************************************************************\
+  ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
+  ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
+  ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
+  ||                                                                                              ||
+  \************************************************************************************************/
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         This structure holds the sign (xi), bitfield (bit) and state (delta, sigma and         !
+  !         pi) information for four vertically adjacent samples for easy access during the        !
+  !         entropy encoding stage. Here, the delayed significance is set once the first bit       !
+  !         is encoded during the magnitude refinement pass, while the significance state          !
+  !         sigma is set once the first non-zero bit is encoded for a specific sample.             !
+  !         The stripe_* pointers are used to store the address of the left(l), upper(u),          !
+  !         right(r) and lower(d) neighbour of a specific stripe for easy access. To               !
+  !         facilitate distortion estimation the magnitude of the wavelet coefficients is          !
+  !         stored in an appropriate sample array.                                                 !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  typedef struct stripe
+  {
+    uint64                     *sample;                   // Wavelet coef. for two adjacent stripes.
 
-   /*----------------------------------------------------------------------------------------------------------*\
-   !   DESCRIPTION:                                                                                             !
-   !   ------------                                                                                             !
-   !                                                                                                            !
-   !              These macros define the irrational coefficients for the high and low pass synthesis filters   !
-   !              associated with the (5-3) LeGall-Wavelet.                                                     !
-   !                                                                                                            !
-   !   Macros:                                                                                                  !
-   !   -------                                                                                                  !
-   !                Macro                                Description                                            !
-   !                -----                                -----------                                            !
-   !                DWT_5X3_H0                         - Coefficients for the (9-7)                             !
-   !                DWT_5X3_H1                           low pass synthesis filter.                             !
-   !                                                                                                            !
-   !                DWT_5X3_G0                                                                                  !
-   !                DWT_5X3_G1                         - Coefficients for the (9-7)                             !
-   !                DWT_5X3_G2                           high pass synthesis filter.                            !
-   !                                                                                                            !
-   !   DEVELOPMENT HISTORY:                                                                                     !
-   !   --------------------                                                                                     !
-   !                                                                                                            !
-   !                Date        Author             Change Id   Release     Description Of Change                !
-   !                ----        ------             ---------   -------     ---------------------                !
-   !                20.03.2018  Patrick Vogler     B87D120     V 0.1.0     Macros created                       !
-   \*----------------------------------------------------------------------------------------------------------*/
-   #define DWT_5X3_H0  1.0f
-   #define DWT_5X3_H1  0.5f
+    uint8                       delta;                    // Delayed sig. for two adjacent stripes.
+    uint8                       sigma;                    // Significance for two adjacent stripes. 
+    uint8                       pi;                       // Cdng pass membership for adj. stripes.
 
-   #define DWT_5X3_G0  0.75f
-   #define DWT_5X3_G1 -0.25f
-   #define DWT_5X3_G2 -0.125f
+    uint8                       codingpass;               // Last decoded coding pass.
 
-   /************************************************************************************************************\
-   ||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
-   ||                  |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__                   ||
-   ||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
-   ||                                                                                                          ||
-   \************************************************************************************************************/
-   /*----------------------------------------------------------------------------------------------------------*\
-   !   TYPE NAME: Template                                                                                      !
-   !   -----------                                                                                              !
-   !                                                                                                            !
-   !   DESCRIPTION:                                                                                             !
-   !   ------------                                                                                             !
-   !                DESCRIPTION NEEDED                                                                          !
-   !                                                                                                            !
-   \*----------------------------------------------------------------------------------------------------------*/
-   uchar
-   t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter);
+    uint8                       bitplane;                 // Last decoded bitplane.
+    uint8                      *bit;                      // Bitplanes for vertically adj. stripes.
+    uint8                       xi;                       // Wvlt coef. sign bit for adj. stripes.
 
-   uchar
-   t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter);
+    struct stripe              *stripe_u;                 // Upper stripe.
+    struct stripe              *stripe_r;                 // Right stripe.
+    struct stripe              *stripe_d;                 // Lower stripe.
+    struct stripe              *stripe_l;                 // Left stripe.
+  } bwc_coder_stripe;
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         This structure accumulates all necessary structures used to (de-)compress a            !
+  !         codeblock of wavelet coefficients. The spatial and temporal dimension of the           !
+  !         codeblock is defined by its width, height and number of slices (depth * dt). The       !
+  !         codeblock itself is subdivided into so-called stripes that represent 4 vertical-       !
+  !         ly adjacent coefficients. The parameter no_full_stripes stores overnumber of           !
+  !         full stripes present in one slice.                                                     !
+  !         The look-up table sig2context is used to determine the coding context of a cur-        !
+  !         ren bit according to its significance context within the codeblock bitplane.           !
+  !         The look-up table is specific to a certain highband and is set accordingly.            !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  typedef struct
+  {
+    uchar                       highband_flag;            // Flag indicating current wavelet subbnd.
+    uint8                       K;                        // Idx of the first significant bitplane.
+    uchar                       erres;                    // Flag signaling error resilience.
+
+    uint64                      no_full_stripe;           // Number of full, vert. adjacent stripes.
+    uint64                      width, height;            // Codeblock width and height.
+    uint64                      no_slice;                 // N.o. slices in the spec. codeblock.
+
+    uint8                const *sig2context;              // Signifance-to-context loop-up table.
+    bwc_bit_coder              *bitcoder;                 // BWC bitcoder.
+
+    bwc_coder_stripe           *data;                     // BWC coder stripe.
+
+    uint64                      buff_size;                // Size of packed stream.
+    uint64                      buff_incr;                // Increment for packed stream assembly.
+    uchar                      *compressed;               // Compressed data chunck.
+  } bwc_coder;
+
+  /************************************************************************************************************\
+  ||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
+  ||                  |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__                   ||
+  ||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
+  ||                                                                                                          ||
+  \************************************************************************************************************/
+  /*----------------------------------------------------------------------------------------------------------*\
+  !   TYPE NAME: Template                                                                                      !
+  !   -----------                                                                                              !
+  !                                                                                                            !
+  !   DESCRIPTION:                                                                                             !
+  !   ------------                                                                                             !
+  !                DESCRIPTION NEEDED                                                                          !
+  !                                                                                                            !
+  \*----------------------------------------------------------------------------------------------------------*/
+  uchar
+  t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter);
+
+  uchar
+  t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter);
 #endif

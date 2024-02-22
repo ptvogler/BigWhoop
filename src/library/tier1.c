@@ -1,69 +1,49 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||      FILE NAME:   tier1.c                                                                                                        ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      DESCRIPTION NEEDED.                                                                                                         ||
-||                                                                                                                                  ||
-||      FILE REFERENCES:                                                                                                            ||
-||      ----------------                                                                                                            ||
-||                                                                                                                                  ||
-||                         Name              I/O             Description                                                            ||
-||                         ----              ---             -----------                                                            ||
-||                         none               -                   -                                                                 ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      PRIVATE FUNCTIONS:                                                                                                          ||
-||      ------------------                                                                                                          ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            -           Patrick Vogler     B87D120     V 0.1.0     source file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
-
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        This file describes a set of functions that can be used to de-/encode bwc               ||
+||        codeblocks described by the bwc_field structure according to the embedded block         ||
+||        coding paradigm described by the JPEG 2000 standard. For more information please        ||
+||        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.                                ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 /************************************************************************************************************\
 ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
 ||                                      | |\ | |    |    |  | |  \ |___                                     ||
@@ -111,10 +91,10 @@
 \*----------------------------------------------------------------------------------------------------------*/
 #define encode_segmark(bitcoder)                   \
 {                                                  \
-   bit_encode(bitcoder, 1, CONTEXT_UNI);           \
-   bit_encode(bitcoder, 0, CONTEXT_UNI);           \
-   bit_encode(bitcoder, 1, CONTEXT_UNI);           \
-   bit_encode(bitcoder, 0, CONTEXT_UNI);           \
+   mq_bit_encode(bitcoder, 1, CONTEXT_UNI);        \
+   mq_bit_encode(bitcoder, 0, CONTEXT_UNI);        \
+   mq_bit_encode(bitcoder, 1, CONTEXT_UNI);        \
+   mq_bit_encode(bitcoder, 0, CONTEXT_UNI);        \
 }
 
 /************************************************************************************************************\
@@ -1014,8 +994,8 @@ significance_propagation_enc_pass(bwc_coder *const coder, const int8 b)
    stripe      = coder->data;
    rest        = 4 - (coder->height & 0x03);
    stripe_mask = ~((0x0F >> ((coder->height & 0x03))) | 0xF0);
-   dist_shift  = (b < DISTORTION_MANTISSA) ? 0 : (b - DISTORTION_MANTISSA);
-   dist_corr   = (b < DISTORTION_MANTISSA) ? (DISTORTION_MANTISSA - b) : 0;
+   dist_shift  = (b < DISTORTION_SIG) ? 0 : (b - DISTORTION_SIG);
+   dist_corr   = (b < DISTORTION_SIG) ? (DISTORTION_SIG - b) : 0;
 
    for(i = 0, k = 0; i < coder->no_slice; ++i)
    {
@@ -1053,7 +1033,7 @@ significance_propagation_enc_pass(bwc_coder *const coder, const int8 b)
 
                      if(k_sig)
                      {
-                        bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[k_sig]);
+                        mq_bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[k_sig]);
                         
                         if(bit & bit_mask)
                         {
@@ -1075,8 +1055,8 @@ significance_propagation_enc_pass(bwc_coder *const coder, const int8 b)
                            xi_h = SIG2XI[xi_h];
                            xi_v = SIG2XI[xi_v];
                      
-                           bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
-                                                                                                XI2CONT[(xi_h << 2) | xi_v][0]);
+                           mq_bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
+                                                                                                   XI2CONT[(xi_h << 2) | xi_v][0]);
 
                            mse             += DISTORTION_TS_LUT[((stripe[k].sample[l] >> dist_shift) << dist_corr) & 0x1F];
                            stripe[k].sigma |= bit_mask;
@@ -1126,7 +1106,7 @@ significance_propagation_enc_pass(bwc_coder *const coder, const int8 b)
 
                      if(k_sig && (stripe[k].sigma^bit_mask))
                      {
-                        bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[k_sig]);
+                        mq_bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[k_sig]);
                         
                         if(bit & bit_mask)
                         {
@@ -1144,8 +1124,8 @@ significance_propagation_enc_pass(bwc_coder *const coder, const int8 b)
                            xi_h = SIG2XI[xi_h];
                            xi_v = SIG2XI[xi_v];
                      
-                           bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
-                                                                                                XI2CONT[(xi_h << 2) | xi_v][0]);
+                           mq_bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
+                                                                                                   XI2CONT[(xi_h << 2) | xi_v][0]);
 
                            mse             += DISTORTION_TS_LUT[((stripe[k].sample[l] >> dist_shift) << dist_corr) & 0x1F];
                            stripe[k].sigma |= bit_mask;
@@ -1227,8 +1207,8 @@ magnitude_refinement_enc_pass(bwc_coder *const coder, const int8 b)
    stripe      = coder->data;
    rest        = 4 - (coder->height & 0x03);
    stripe_mask = ~((0x0F >> ((coder->height & 0x03))) | 0xF0);
-   dist_shift  = (b < DISTORTION_MANTISSA) ? 0 : (b - DISTORTION_MANTISSA);
-   dist_corr   = (b < DISTORTION_MANTISSA) ? (DISTORTION_MANTISSA - b) : 0;
+   dist_shift  = (b < DISTORTION_MAG) ? 0 : (b - DISTORTION_MAG);
+   dist_corr   = (b < DISTORTION_MAG) ? (DISTORTION_MAG - b) : 0;
 
    for(i = 0, k = 0; i < coder->no_slice; ++i)
    {
@@ -1271,7 +1251,7 @@ magnitude_refinement_enc_pass(bwc_coder *const coder, const int8 b)
                      }
                   }
 
-                  bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), k_mag);
+                  mq_bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), k_mag);
 
                   mse             += DISTORTION_TM_LUT[((stripe[k].sample[l] >> dist_shift) << dist_corr) & 0x3F];
                   stripe[k].delta |= bit_mask;
@@ -1313,7 +1293,7 @@ magnitude_refinement_enc_pass(bwc_coder *const coder, const int8 b)
                      }
                   }
 
-                  bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), k_mag);
+                  mq_bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), k_mag);
 
                   mse             += DISTORTION_TM_LUT[((stripe[k].sample[l] >> dist_shift) << dist_corr) & 0x3F];
                   stripe[k].delta |= bit_mask;
@@ -1383,8 +1363,8 @@ cleanup_enc_pass(bwc_coder *const coder, const int8 b)
    mse        = 0;
    stripe     = coder->data;
    rest       = 4 - (coder->height & 0x03);
-   dist_shift  = (b < DISTORTION_MANTISSA) ? 0 : (b - DISTORTION_MANTISSA);
-   dist_corr   = (b < DISTORTION_MANTISSA) ? (DISTORTION_MANTISSA - b) : 0;
+   dist_shift  = (b < DISTORTION_SIG) ? 0 : (b - DISTORTION_SIG);
+   dist_corr   = (b < DISTORTION_SIG) ? (DISTORTION_SIG - b) : 0;
 
    for(i = 0, k = 0; i < coder->no_slice; ++i)
    {
@@ -1407,14 +1387,14 @@ cleanup_enc_pass(bwc_coder *const coder, const int8 b)
                   r |= r >> 2;
                   r  = DISTORTION_LZ_LUT[r];
 
-                  bit_encode(coder->bitcoder, (uchar)1,      CONTEXT_RUN);
-                  bit_encode(coder->bitcoder, (uchar)r >> 1, CONTEXT_UNI);
-                  bit_encode(coder->bitcoder, (uchar)r&0x01, CONTEXT_UNI);
+                  mq_bit_encode(coder->bitcoder, (uchar)1,      CONTEXT_RUN);
+                  mq_bit_encode(coder->bitcoder, (uchar)r >> 1, CONTEXT_UNI);
+                  mq_bit_encode(coder->bitcoder, (uchar)r&0x01, CONTEXT_UNI);
                }
                else
                {
                   r = 4;
-                  bit_encode(coder->bitcoder, (uchar)0,      CONTEXT_RUN);
+                  mq_bit_encode(coder->bitcoder, (uchar)0,      CONTEXT_RUN);
                }
             }
             
@@ -1448,7 +1428,7 @@ cleanup_enc_pass(bwc_coder *const coder, const int8 b)
                                 (0x08 & stripe[k].stripe_d->stripe_r->sigma)) >> 3;
                      }
 
-                     bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]);
+                     mq_bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]);
                   }
                   if(bit & bit_mask)
                   {
@@ -1470,8 +1450,8 @@ cleanup_enc_pass(bwc_coder *const coder, const int8 b)
                      xi_h = SIG2XI[xi_h];
                      xi_v = SIG2XI[xi_v];
 
-                     bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
-                                                                                          XI2CONT[(xi_h << 2) | xi_v][0]);
+                     mq_bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
+                                                                                             XI2CONT[(xi_h << 2) | xi_v][0]);
 
                      mse             += DISTORTION_TS_LUT[((stripe[k].sample[l] >> dist_shift) << dist_corr) & 0x1F];
                      stripe[k].sigma |= bit_mask;
@@ -1503,7 +1483,7 @@ cleanup_enc_pass(bwc_coder *const coder, const int8 b)
                              (0x01 & stripe[k].stripe_u->stripe_r->sigma)) << 3;
                   }
 
-                  bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]);
+                  mq_bit_encode(coder->bitcoder, (uchar)((bit >> l) & 0x01), coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]);
 
                   if(bit & bit_mask)
                   {
@@ -1521,8 +1501,8 @@ cleanup_enc_pass(bwc_coder *const coder, const int8 b)
                      xi_h = SIG2XI[xi_h];
                      xi_v = SIG2XI[xi_v];
                
-                     bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
-                                                                                          XI2CONT[(xi_h << 2) | xi_v][0]);
+                     mq_bit_encode(coder->bitcoder, (uchar)(((bit_mask & stripe[k].xi) >> l)^XI2CONT[(xi_h << 2) | xi_v][1]),
+                                                                                             XI2CONT[(xi_h << 2) | xi_v][0]);
 
                      mse             += DISTORTION_TS_LUT[((stripe[k].sample[l] >> dist_shift) << dist_corr) & 0x1F];
                      stripe[k].sigma |= bit_mask;
@@ -1630,7 +1610,7 @@ significance_propagation_dec_pass(bwc_coder *const coder, const int8 b)
 
                      if(k_sig)
                      {
-                        bit = bit_decode(coder->bitcoder, coder->sig2context[k_sig]);
+                        bit = mq_bit_decode(coder->bitcoder, coder->sig2context[k_sig]);
                         
                         if(bit)
                         {
@@ -1654,7 +1634,7 @@ significance_propagation_dec_pass(bwc_coder *const coder, const int8 b)
                            xi_h = SIG2XI[xi_h];
                            xi_v = SIG2XI[xi_v];
 
-                           stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
+                           stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ mq_bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
 
                            stripe[k].sigma |= bit_mask;
                         }
@@ -1703,7 +1683,7 @@ significance_propagation_dec_pass(bwc_coder *const coder, const int8 b)
 
                      if(k_sig && (stripe[k].sigma^bit_mask))
                      {
-                        bit = bit_decode(coder->bitcoder, coder->sig2context[k_sig]);
+                        bit = mq_bit_decode(coder->bitcoder, coder->sig2context[k_sig]);
                         
                         if(bit)
                         {
@@ -1723,7 +1703,7 @@ significance_propagation_dec_pass(bwc_coder *const coder, const int8 b)
                            xi_h = SIG2XI[xi_h];
                            xi_v = SIG2XI[xi_v];
                      
-                           stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
+                           stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ mq_bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
 
                            stripe[k].sigma |= bit_mask;
                         }
@@ -1843,7 +1823,7 @@ magnitude_refinement_dec_pass(bwc_coder *const coder, const int8 b)
                      }
                   }
 
-                  stripe[k].bit[b] |= (bit_decode(coder->bitcoder, k_mag) << l);
+                  stripe[k].bit[b] |= (mq_bit_decode(coder->bitcoder, k_mag) << l);
 
                   stripe[k].delta |= bit_mask;
                }
@@ -1884,7 +1864,7 @@ magnitude_refinement_dec_pass(bwc_coder *const coder, const int8 b)
                      }
                   }
 
-                  stripe[k].bit[b] |= (bit_decode(coder->bitcoder, k_mag) << l);
+                  stripe[k].bit[b] |= (mq_bit_decode(coder->bitcoder, k_mag) << l);
 
                   stripe[k].delta |= bit_mask;
                }
@@ -1965,10 +1945,10 @@ cleanup_dec_pass(bwc_coder *const coder, const int8 b)
                !(0x01 & stripe[k].stripe_u->stripe_r->sigma) &&         !stripe[k].stripe_r->sigma  &&
                                                                         !stripe[k].sigma)
             {
-               if(bit_decode(coder->bitcoder, CONTEXT_RUN))
+               if(mq_bit_decode(coder->bitcoder, CONTEXT_RUN))
                {
-                  r    = bit_decode(coder->bitcoder, CONTEXT_UNI);
-                  r    = (r << 1) + bit_decode(coder->bitcoder, CONTEXT_UNI);
+                  r    = mq_bit_decode(coder->bitcoder, CONTEXT_UNI);
+                  r    = (r << 1) + mq_bit_decode(coder->bitcoder, CONTEXT_UNI);
                   bit |= (0x08 >> r);
                }
                else
@@ -2007,7 +1987,7 @@ cleanup_dec_pass(bwc_coder *const coder, const int8 b)
                                 (0x08 & stripe[k].stripe_d->stripe_r->sigma)) >> 3;
                      }
 
-                     bit |= (bit_decode(coder->bitcoder, coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]) << l);
+                     bit |= (mq_bit_decode(coder->bitcoder, coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]) << l);
                   }
                   if(bit & bit_mask)
                   {
@@ -2029,7 +2009,7 @@ cleanup_dec_pass(bwc_coder *const coder, const int8 b)
                      xi_h = SIG2XI[xi_h];
                      xi_v = SIG2XI[xi_v];
                
-                     stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
+                     stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ mq_bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
 
                      stripe[k].sigma |= bit_mask;
                   }
@@ -2063,7 +2043,7 @@ cleanup_dec_pass(bwc_coder *const coder, const int8 b)
                              (0x01 & stripe[k].stripe_u->stripe_r->sigma)) << 3;
                   }
 
-                  bit |= (bit_decode(coder->bitcoder, coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]) << l);
+                  bit |= (mq_bit_decode(coder->bitcoder, coder->sig2context[(15 * k_h + 5 * k_v + k_d) >> l]) << l);
 
                   if(bit & bit_mask)
                   {
@@ -2081,7 +2061,7 @@ cleanup_dec_pass(bwc_coder *const coder, const int8 b)
                      xi_h = SIG2XI[xi_h];
                      xi_v = SIG2XI[xi_v];
                
-                     stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
+                     stripe[k].xi |= ((XI2CONT[(xi_h << 2) | xi_v][1] ^ mq_bit_decode(coder->bitcoder, XI2CONT[(xi_h << 2) | xi_v][0])) << l);
 
                      stripe[k].sigma |= bit_mask;
                   }
@@ -2488,7 +2468,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
    ! Initialize the entropy encoder used for the current com- !
    ! pression run.                                            !
    \*--------------------------------------------------------*/
-   if(initialize_bit_encoder(&coder, CONTEXT_TOTAL))
+   if(initialize_mq_encoder(&coder, CONTEXT_TOTAL))
    {
       return;
    }
@@ -2516,7 +2496,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
          /*--------------------------------------------------------*\
          ! Reset the bit encoder for the next coding pass.          !
          \*--------------------------------------------------------*/
-         if(bit_encoder_next_run(coder.bitcoder))
+         if(mq_next_run(coder.bitcoder))
          {
             return;
          }
@@ -2528,7 +2508,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
       ! Evaluate the number of bytes generated so far by the bit !
       ! encoder and increase the buffer size if necessary.       !
       \*--------------------------------------------------------*/
-      if(coder.buff_size <= (bit_coder_get_no_bytes(coder.bitcoder) + coder.buff_incr))
+      if(coder.buff_size <= (mq_get_no_bytes(coder.bitcoder) + coder.buff_incr))
       {
          coder.buff_size  += ((uint64)k >> 1) * coder.buff_incr;
          coder.compressed  = realloc(coder.compressed, coder.buff_size * sizeof(uchar));
@@ -2539,7 +2519,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
             return;
          }
 
-         bit_coder_reset_ptr(coder.bitcoder, coder.compressed);
+         mq_reset_ptr(coder.bitcoder, coder.compressed);
       }
       /*--------------------------------------------------------*\
       ! If the error resilience flag is set, encode a segmark    !
@@ -2559,7 +2539,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
    ! Evalute the number of bytes generated by the bit encoder !
    ! and increase the buffer size if necessary.               !
    \*--------------------------------------------------------*/
-   if(coder.buff_size <= (bit_coder_get_no_bytes(coder.bitcoder) + 16))
+   if(coder.buff_size <= (mq_get_no_bytes(coder.bitcoder) + 16))
    {
       coder.buff_size  += 16;
       coder.compressed  = realloc(coder.compressed, coder.buff_size * sizeof(uchar));
@@ -2570,13 +2550,13 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
          return;
       }
 
-      bit_coder_reset_ptr(coder.bitcoder, coder.compressed);
+      mq_reset_ptr(coder.bitcoder, coder.compressed);
    }
    /*--------------------------------------------------------*\
    ! Flush the remaining bits in the byte buffer to the coder !
    ! output and calculate the minimum truncation lengths.     !
    \*--------------------------------------------------------*/
-   bit_encoder_termination(coder.bitcoder);
+   mq_termination(coder.bitcoder);
 
    /*--------------------------------------------------------*\
    ! Save the number of significant bitplanes, insignificant  !
@@ -2598,12 +2578,12 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
    ! Save the lengths of the coding passes in the encoded     !
    ! codeblock structure.                                     !
    \*--------------------------------------------------------*/
-   bit_coder_get_pass_lengths(coder.bitcoder, encoded_cblk);
+   mq_get_pass_lengths(coder.bitcoder, encoded_cblk);
 
    /*--------------------------------------------------------*\
    ! Free the entropy encoder structure.                      !
    \*--------------------------------------------------------*/
-   free_bit_encoder(&coder);
+   free_mq_encoder(&coder);
 
    /*--------------------------------------------------------*\
    ! Calculate the slope values of the distortion/rate convex !
@@ -2771,7 +2751,7 @@ decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
    ! Initialize the entropy encoder used for the current com- !
    ! pression run.                                            !
    \*--------------------------------------------------------*/
-   if(initialize_bit_decoder(&coder, CONTEXT_TOTAL, encoded_cblk->L[encoded_cblk->Z - 1]))
+   if(initialize_mq_decoder(&coder, CONTEXT_TOTAL, encoded_cblk->L[encoded_cblk->Z - 1]))
    {
       return;
    }
@@ -2787,10 +2767,10 @@ decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
          decoding_pass[i](&coder, k);
       }
 
-      if((coder.erres) && (((bit_decode(coder.bitcoder, CONTEXT_UNI) << 3) |
-                            (bit_decode(coder.bitcoder, CONTEXT_UNI) << 2) |
-                            (bit_decode(coder.bitcoder, CONTEXT_UNI) << 1) |
-                             bit_decode(coder.bitcoder, CONTEXT_UNI)) != 0x0A))
+      if((coder.erres) && (((mq_bit_decode(coder.bitcoder, CONTEXT_UNI) << 3) |
+                            (mq_bit_decode(coder.bitcoder, CONTEXT_UNI) << 2) |
+                            (mq_bit_decode(coder.bitcoder, CONTEXT_UNI) << 1) |
+                             mq_bit_decode(coder.bitcoder, CONTEXT_UNI)) != 0x0A))
       {
          goto break_out;
       }
@@ -2808,7 +2788,7 @@ decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
    /*--------------------------------------------------------*\
    ! Free the entropy encoder structure.                      !
    \*--------------------------------------------------------*/
-   free_bit_encoder(&coder);
+   free_mq_encoder(&coder);
 }
 
 /************************************************************************************************************\

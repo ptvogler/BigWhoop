@@ -1,76 +1,55 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||      FILE NAME:   tagtree.c                                                                                                      ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      DESCRIPTION NEEDED.                                                                                                         ||
-||                                                                                                                                  ||
-||      FILE REFERENCES:                                                                                                            ||
-||      ----------------                                                                                                            ||
-||                                                                                                                                  ||
-||                         Name              I/O             Description                                                            ||
-||                         ----              ---             -----------                                                            ||
-||                         none               -                   -                                                                 ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      PRIVATE FUNCTIONS:                                                                                                          ||
-||      ------------------                                                                                                          ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||      - kill_tagtree                                                                                                              ||
-||      - reset_tagtree                                                                                                             ||
-||      - tagtree_get_value                                                                                                         ||
-||      - tagtree_set_value                                                                                                         ||
-||      - initialize_tagtree                                                                                                        ||
-||      - encode_tagtree                                                                                                            ||
-||      - decode_tagtree                                                                                                            ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            18.05.2018  Patrick Vogler     B87D120     V 0.1.0     source file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
-
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        This file defines a tagtree procedure used to encode/decode two types of                ||
+||        information found defining in a codeblock in specific quality layer:                    ||
+||                                                                                                ||
+||                - The inclusion tag records if a codeblock has any contribution                 ||
+||                  to a quality layer.                                                           ||
+||                - The number of leading bitplanes that are not significant/only                 ||
+||                  populated by zero bits.                                                       ||
+||                                                                                                ||
+||        For more information on the encoding/decoding process please refere to JPEG2000         ||
+||        by D. S. Taubman and M. W. Marcellin (p. 384).                                          ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 /************************************************************************************************************\
 ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
 ||                                      | |\ | |    |    |  | |  \ |___                                     ||

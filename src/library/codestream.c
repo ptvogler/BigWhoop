@@ -1,68 +1,49 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||      FILE NAME:   bitstream.c                                                                                                    ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      DESCRIPTION NEEDED.                                                                                                         ||
-||                                                                                                                                  ||
-||      FILE REFERENCES:                                                                                                            ||
-||      ----------------                                                                                                            ||
-||                                                                                                                                  ||
-||                         Name              I/O             Description                                                            ||
-||                         ----              ---             -----------                                                            ||
-||                         none               -                   -                                                                 ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      PRIVATE FUNCTIONS:                                                                                                          ||
-||      ------------------                                                                                                          ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            28.05.2018  Patrick Vogler     B87D120     V 0.1.0     source file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        This file describes a set of function that can be used to create and manipulate         ||
+||        a BigWhoop Codestream. They facilitate the assembly and parsing of the main             ||
+||        header and tile bitsreams as well as read and write functions used to access            ||
+||        conforming bwc datasets.                                                                ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 /************************************************************************************************************\
 ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
 ||                                      | |\ | |    |    |  | |  \ |___                                     ||
@@ -911,7 +892,7 @@ assemble_main_header(bwc_field *const field)
 
    bwc_emit_symbol(stream, control->progression,                           1);
    bwc_emit_symbol(stream, control->KernelX << 6 | control->KernelY << 4 | 
-                       control->KernelZ << 2 | control->KernelTS,      1);
+                           control->KernelZ << 2 | control->KernelTS,      1);
 
    bwc_emit_symbol(stream, control->decompX,                               1);
    bwc_emit_symbol(stream, control->decompY,                               1);
@@ -1145,7 +1126,7 @@ bwc_parse_main_header(bwc_data *const data,bwc_stream *const stream)
 
             if(CSsgc & (0x01 << 1))
             {
-               bwc_set_quantization_style(field, (bwc_quant_st)buff_long);
+               bwc_set_quant_style(field, (bwc_quant_st)buff_long);
             }
 
             buff_long = bwc_get_symbol(stream, 1);

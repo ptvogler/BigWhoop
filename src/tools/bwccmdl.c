@@ -2845,9 +2845,9 @@ main(int    argc,
       if((temp != NULL) && (temp->count == 1))
         {
           if(strcmp(temp->lit_opt[0], "NONE"))
-            bwc_set_quantization_style(field, bwc_qt_none);
+            bwc_set_quant_style(field, bwc_qt_none);
           else
-            bwc_set_quantization_style(field, bwc_qt_derived);
+            bwc_set_quant_style(field, bwc_qt_derived);
         }
 
       /*--------------------------------------------------------*\
@@ -2856,7 +2856,7 @@ main(int    argc,
       temp = retrieve_arg(args, "quantisation_step_size");
       if((temp != NULL) && (temp->count == 1))
         {
-          bwc_set_quantization_step_size(field, temp->num_opt[0]);
+          bwc_set_quant_step_size(field, temp->num_opt[0]);
         }
 
       /*--------------------------------------------------------*\

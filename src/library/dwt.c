@@ -1,82 +1,49 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||      FILE NAME:   dwt.c                                                                                                          ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      DESCRIPTION NEEDED.                                                                                                         ||
-||                                                                                                                                  ||
-||      FILE REFERENCES:                                                                                                            ||
-||      ----------------                                                                                                            ||
-||                                                                                                                                  ||
-||                         Name              I/O             Description                                                            ||
-||                         ----              ---             -----------                                                            ||
-||                         none               -                   -                                                                 ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      PRIVATE FUNCTIONS:                                                                                                          ||
-||      ------------------                                                                                                          ||
-||      - get_filter_taps                                                                                                           ||
-||      - fill_forward_buffer                                                                                                       ||
-||      - fill_inverse_buffer                                                                                                       ||
-||      - whole_point_symmetric_extend                                                                                              ||
-||      - forward_9x7_CDF_wavelet_transform                                                                                         ||
-||      - inverse_9x7_CDF_wavelet_transform                                                                                         ||
-||      - forward_5x3_LeGall_wavelet_transform                                                                                      ||
-||      - inverse_5x3_LeGall_wavelet_transform                                                                                      ||
-||      - forward_Haar_wavelet_transform                                                                                            ||
-||      - inverse_Haar_wavelet_transform                                                                                            ||
-||      - buffer_flush_forward                                                                                                      ||
-||      - buffer_flush_inverse                                                                                                      ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||      - initialize_gain_lut                                                                                                       ||
-||      - get_dwt_energy_gain                                                                                                       ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            19.03.2018  Patrick Vogler     B87D120     V 0.1.0     source file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        This file describes a set of functions that can be used to performe the forward/        ||
+||        inverse discrete wavelet transform on 1- to 4-dimensional IEEE 754 data-sets.           ||
+||        For more information please refere to JPEG2000 by D. S. Taubman and M. W.               ||
+||        Marcellin.                                                                              ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 
 /************************************************************************************************************\
 ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
@@ -101,7 +68,7 @@
 ||            |___ _/\_  |  |___ |  \ | \| |  | |___     \/  |  | |  \ | |  | |__] |___ |___ ___]           ||
 ||                                                                                                          ||
 \************************************************************************************************************/
-double DWT_ENERGY_GAIN_LUT[3][2 * MAX_DECOMPOSITION_LEVELS + 2];
+double DWT_ENERGY_GAIN_LUT[3][2 * MAX_DECOMP_LEVELS + 2];
 
 /************************************************************************************************************\
 ||                ___  ____ _ _  _ ____ ___ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                ||
@@ -1250,9 +1217,9 @@ initialize_gain_lut()
    ! (5/3) and Haar wavelet transform by setting the energy   !
    ! gain factor for level zero to one.                       !
    \*--------------------------------------------------------*/
-   DWT_ENERGY_GAIN_LUT[bwc_dwt_9_7][0]  = DWT_ENERGY_GAIN_LUT[bwc_dwt_9_7][MAX_DECOMPOSITION_LEVELS + 1] = 1.0f;
-   DWT_ENERGY_GAIN_LUT[bwc_dwt_5_3][0]  = DWT_ENERGY_GAIN_LUT[bwc_dwt_5_3][MAX_DECOMPOSITION_LEVELS + 1] = 1.0f;
-   DWT_ENERGY_GAIN_LUT[bwc_dwt_haar][0] = DWT_ENERGY_GAIN_LUT[bwc_dwt_haar][MAX_DECOMPOSITION_LEVELS + 1] = 1.0f;
+   DWT_ENERGY_GAIN_LUT[bwc_dwt_9_7][0]  = DWT_ENERGY_GAIN_LUT[bwc_dwt_9_7][MAX_DECOMP_LEVELS + 1] = 1.0f;
+   DWT_ENERGY_GAIN_LUT[bwc_dwt_5_3][0]  = DWT_ENERGY_GAIN_LUT[bwc_dwt_5_3][MAX_DECOMP_LEVELS + 1] = 1.0f;
+   DWT_ENERGY_GAIN_LUT[bwc_dwt_haar][0] = DWT_ENERGY_GAIN_LUT[bwc_dwt_haar][MAX_DECOMP_LEVELS + 1] = 1.0f;
    
    /*--------------------------------------------------------*\
    ! Loop through the symmetric wavelet filter banks and as-  !
@@ -1307,7 +1274,7 @@ initialize_gain_lut()
          /*--------------------------------------------------------*\
          ! Loop through the remaining decomposition levels.         !
          \*--------------------------------------------------------*/
-         for(k = 1; k < MAX_DECOMPOSITION_LEVELS; ++k)
+         for(k = 1; k < MAX_DECOMP_LEVELS; ++k)
          {
             /*--------------------------------------------------------*\
             ! Assemble the low- or high-pass synthesis sequence for    !
@@ -1346,7 +1313,7 @@ initialize_gain_lut()
          ! high-pass energy gain factor and set the length of work  !
          ! buffer 1 to the corresponding high-pass filter length.   !
          \*--------------------------------------------------------*/
-         LUT += MAX_DECOMPOSITION_LEVELS + 1;
+         LUT += MAX_DECOMP_LEVELS + 1;
          Length_Gb = Length[1];
       }
       /*--------------------------------------------------------*\
@@ -1399,7 +1366,7 @@ initialize_gain_lut()
          /*--------------------------------------------------------*\
          ! Loop through the remaining decomposition levels.         !
          \*--------------------------------------------------------*/
-         for(k = 1; k < MAX_DECOMPOSITION_LEVELS; ++k)
+         for(k = 1; k < MAX_DECOMP_LEVELS; ++k)
          {
             /*--------------------------------------------------------*\
             ! Assemble the low- or high-pass synthesis sequence for    !
@@ -1435,7 +1402,7 @@ initialize_gain_lut()
          ! Calculate the energy gain factor for decomposition level !
          ! i by evaluating the square norm of work buffer 1.        !
          \*--------------------------------------------------------*/
-         LUT += MAX_DECOMPOSITION_LEVELS + 1;
+         LUT += MAX_DECOMP_LEVELS + 1;
          Length_Gb = Length[1];
       }
       /*--------------------------------------------------------*\
@@ -1457,9 +1424,9 @@ initialize_gain_lut()
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
 !   ------------                                                                                             !
-!                This function evaluates the energy gain factor according to the the specified decomposition !
-!                level. For decomposition levels larger than MAX_DECOMPOSITION_LEVELS the filter gain for    !
-!                the extra levels is approximated by multiplying the energy gain factor by 2.                !
+!                This function evaluates the energy gain factor according to the the specified decom-        !
+!                position level. For decomposition levels larger than MAX_DECOMP_LEVELS the filter gain      !
+!                for the extra levels is approximated by multiplying the energy gain factor by 2.            !
 !                                                                                                            !
 !   PARAMETERS:                                                                                              !
 !   -----------                                                                                              !
@@ -1535,73 +1502,73 @@ get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
    /*--------------------------------------------------------*\
    ! Multiply the energy gain factor with the filter gain of  !
    ! the wavelet kernel applied along the X-axis. For decom-  !
-   ! position levels larger than MAX_DECOMPOSITION_LEVELS the !
-   ! energy gain for the extra levels is approximated by mul- !
-   ! tiplying it by 2.                                        !
+   ! position levels larger than MAX_DECOMP_LEVELS the energy !
+   ! gain for the extra levels is approximated by multiplying !
+   ! it by 2.                                                 !
    \*--------------------------------------------------------*/
    if(level_X  != 0)
    {
-      while(level_X > MAX_DECOMPOSITION_LEVELS)
+      while(level_X > MAX_DECOMP_LEVELS)
       {
          Gb *= 2.0f;
          level_X--;
       }
 
-      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelX][level_X + ((highband_flag & DIM_X) * (MAX_DECOMPOSITION_LEVELS + 1))];
+      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelX][level_X + ((highband_flag & DIM_X) * (MAX_DECOMP_LEVELS + 1))];
    } 
 
    /*--------------------------------------------------------*\
    ! Multiply the energy gain factor with the filter gain of  !
    ! the wavelet kernel applied along the Y-axis. For decom-  !
-   ! position levels larger than MAX_DECOMPOSITION_LEVELS the !
-   ! energy gain for the extra levels is approximated by mul- !
-   ! tiplying it by 2.                                        !
+   ! position levels larger than MAX_DECOMP_LEVELS the energy !
+   ! gain for the extra levels is approximated by multiplying !
+   ! it by 2.                                                 !
    \*--------------------------------------------------------*/
    if(level_Y  != 0)
    {
-      while(level_Y > MAX_DECOMPOSITION_LEVELS)
+      while(level_Y > MAX_DECOMP_LEVELS)
       {
          Gb *= 2.0f;
          level_Y--;
       }
 
-      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelY][level_Y + (((highband_flag & DIM_Y) >> 1) * (MAX_DECOMPOSITION_LEVELS + 1))];
+      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelY][level_Y + (((highband_flag & DIM_Y) >> 1) * (MAX_DECOMP_LEVELS + 1))];
    }
 
    /*--------------------------------------------------------*\
    ! Multiply the energy gain factor with the filter gain of  !
    ! the wavelet kernel applied along the Z-axis. For decom-  !
-   ! position levels larger than MAX_DECOMPOSITION_LEVELS the !
-   ! energy gain for the extra levels is approximated by mul- !
-   ! tiplying it by 2.                                        !
+   ! position levels larger than MAX_DECOMP_LEVELS the energy !
+   ! gain for the extra levels is approximated by multiplying !
+   ! it by 2.                                                 !
    \*--------------------------------------------------------*/
    if(level_Z  != 0)
    {
-      while(level_Z > MAX_DECOMPOSITION_LEVELS)
+      while(level_Z > MAX_DECOMP_LEVELS)
       {
          Gb *= 2.0f;
          level_Z--;
       }
 
-      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelZ][level_Z + (((highband_flag & DIM_Z) >> 2) * (MAX_DECOMPOSITION_LEVELS + 1))];
+      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelZ][level_Z + (((highband_flag & DIM_Z) >> 2) * (MAX_DECOMP_LEVELS + 1))];
    }
 
    /*--------------------------------------------------------*\
    ! Multiply the energy gain factor with the filter gain of  !
    ! the wavelet kernel applied along the TS-axis. For decom- !
-   ! position levels larger than MAX_DECOMPOSITION_LEVELS the !
-   ! energy gain for the extra levels is approximated by mul- !
-   ! tiplying it by 2.                                        !
+   ! position levels larger than MAX_DECOMP_LEVELS the energy !
+   ! gain for the extra levels is approximated by multiplying !
+   ! it by 2.                                                 !
    \*--------------------------------------------------------*/
    if(level_TS != 0)
    {
-      while(level_TS > MAX_DECOMPOSITION_LEVELS)
+      while(level_TS > MAX_DECOMP_LEVELS)
       {
          Gb *= 2.0f;
          level_TS--;
       }
 
-      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelTS][level_TS + (((highband_flag & DIM_TS) >> 3) * (MAX_DECOMPOSITION_LEVELS + 1))];   
+      Gb *= DWT_ENERGY_GAIN_LUT[control->KernelTS][level_TS + (((highband_flag & DIM_TS) >> 3) * (MAX_DECOMP_LEVELS + 1))];   
    }
    return (bwc_float)Gb;
 }
@@ -1645,7 +1612,7 @@ get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-forward_discrete_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter)
+forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -2182,7 +2149,7 @@ forward_discrete_wavelet_transform(bwc_field *const field, bwc_parameter *const 
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-inverse_discrete_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter)
+inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !

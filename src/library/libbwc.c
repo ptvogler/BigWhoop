@@ -1,87 +1,47 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||                                                           Version 0.1.1                                                          ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      Big Whoop is a compression codec for the lossy compression of IEEE 754 floating point arrays defined on curvelinear         ||
-||      compute grids.                                                                                                              ||
-||                                                                                                                                  ||
-||      FILE REFERENCES:                                                                                                            ||
-||      ----------------                                                                                                            ||
-||                                                                                                                                  ||
-||                         Name              I/O             Description                                                            ||
-||                         ----              ---             -----------                                                            ||
-||                         none               -                   -                                                                 ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      PRIVATE FUNCTIONS:                                                                                                          ||
-||      ------------------                                                                                                          ||
-||      - initialize_precinct                                                                                                       ||
-||      - subband_gain                                                                                                              ||
-||      - initialize_subband                                                                                                        ||
-||      - create_field                                                                                                              ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||      - bwc_initialize_field                                                                                                      ||
-||      - bwc_add_param                                                                                                             ||
-||      - bwc_set_error_resilience                                                                                                  ||
-||      - bwc_set_quantization_style                                                                                                ||
-||      - bwc_set_progression                                                                                                       ||
-||      - bwc_set_kernels                                                                                                           ||
-||      - bwc_set_decomp                                                                                                            ||
-||      - bwc_set_precincts                                                                                                         ||
-||      - bwc_set_codeblocks                                                                                                        ||
-||      - bwc_set_qm                                                                                                                ||
-||      - bwc_set_tiles                                                                                                             ||
-||      - bwc_create_compression                                                                                                    ||
-||      - bwc_kill_compression                                                                                                      ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            10.10.2017  Patrick Vogler     B87D120     V 0.1.0     source file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
-
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        Big Whoop is a compression codec for the lossy compression of IEEE 754 floating         ||
+||        point arrays defined on curvelinear compute grids.                                      ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 /************************************************************************************************************\
 ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
 ||                                      | |\ | |    |    |  | |  \ |___                                     ||
@@ -1889,15 +1849,13 @@ bwc_free_data(bwc_data* data)
          {
             release_packed_stream(data->codestream.com);
          }
-         if(data->file.fp)
+         if(data->fp)
          {
-            fclose(data->file.fp);
+            fclose(data->fp);
          }
          free(data->codestream.data);
          free(data->codestream.aux);
          free(data->codestream.com);
-         free(data->file.d_root);
-         free(data->file.f_root);
          free(data->field.d);
          free(data->field.f);
          free(data);
@@ -2719,7 +2677,7 @@ bwc_set_error_resilience(bwc_field *const field)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_quantization_style(bwc_field *const field, bwc_quant_st quantization_style)  !
+!   FUNCTION NAME: void bwc_set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)         !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -2752,7 +2710,7 @@ bwc_set_error_resilience(bwc_field *const field)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_set_quantization_style(bwc_field *const field, bwc_quant_st quantization_style)
+bwc_set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2785,7 +2743,7 @@ bwc_set_quantization_style(bwc_field *const field, bwc_quant_st quantization_sty
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_quantization_step_size(bwc_field *const field, double delta)                 !
+!   FUNCTION NAME: void bwc_set_quant_step_size(bwc_field *const field, double delta)                        !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -2818,7 +2776,7 @@ bwc_set_quantization_style(bwc_field *const field, bwc_quant_st quantization_sty
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_set_quantization_step_size(bwc_field *const field, double delta)
+bwc_set_quant_step_size(bwc_field *const field, double delta)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -4062,7 +4020,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          #else
             start = (double)clock();
          #endif
-         if(forward_discrete_wavelet_transform(field, parameter))
+         if(forward_wavelet_transform(field, parameter))
          {
             free(working_buffer);
             return 1;
@@ -4419,7 +4377,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          #else
             start = (double)clock();
          #endif
-         if(inverse_discrete_wavelet_transform(field, parameter))
+         if(inverse_wavelet_transform(field, parameter))
          {
             free(working_buffer);
             return 1;

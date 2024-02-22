@@ -1,69 +1,47 @@
-/*==================================================================================================================================*\
-||                                                                                                                                  ||
-||                         /$$$$$$$  /$$                 /$$      /$$ /$$                                                           ||
-||                        | $$__  $$|__/                | $$  /$ | $$| $$                                                           ||
-||                        | $$  \ $$ /$$  /$$$$$$       | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$                        ||
-||                        | $$$$$$$ | $$ /$$__  $$      | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$                       ||
-||                        | $$__  $$| $$| $$  \ $$      | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$                       ||
-||                        | $$  \ $$| $$| $$  | $$      | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$                       ||
-||                        | $$$$$$$/| $$|  $$$$$$$      | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/                       ||
-||                        |_______/ |__/ \____  $$      |__/     \__/|__/  |__/ \______/  \______/ | $$____/                        ||
-||                                       /$$  \ $$                                                 | $$                             ||
-||                                      |  $$$$$$/                                                 | $$                             ||
-||                                       \______/                                                  |__/                             ||
-||                                                                                                                                  ||
-||      FILE NAME:   mq.c                                                                                                           ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      DESCRIPTION:                                                                                                                ||
-||      ------------                                                                                                                ||
-||      DESCRIPTION NEEDED.                                                                                                         ||
-||                                                                                                                                  ||
-||      FILE REFERENCES:                                                                                                            ||
-||      ----------------                                                                                                            ||
-||                                                                                                                                  ||
-||                         Name              I/O             Description                                                            ||
-||                         ----              ---             -----------                                                            ||
-||                         none               -                   -                                                                 ||
-||                                                                                                                                  ||
-||                                                                                                                                  ||
-||      PRIVATE FUNCTIONS:                                                                                                          ||
-||      ------------------                                                                                                          ||
-||                                                                                                                                  ||
-||      PUBLIC FUNCTIONS:                                                                                                           ||
-||      -----------------                                                                                                           ||
-||                                                                                                                                  ||
-||      DEVELOPMENT HISTORY:                                                                                                        ||
-||      --------------------                                                                                                        ||
-||                                                                                                                                  ||
-||                            Date        Author             Change Id   Release     Description Of Change                          ||
-||                            ----        ------             ---------   -------     ---------------------                          ||
-||                            13.02.2019  Patrick Vogler     B87D120     V 0.1.0     source file created                            ||
-||                                                                                                                                  ||
-||       --------------------------------------------------------------------------------------------------------------------       ||
-||                                                                                                                                  ||
-||       Copyright (c) 2023, High Performance Computing Center - University of Stuttgart                                            ||
-||                                                                                                                                  ||
-||       Redistribution and use in source and binary forms, with or without modification, are permitted provided that the           ||
-||       following conditions are met:                                                                                              ||
-||                                                                                                                                  ||
-||          (1)   Redistributions of source code must retain the above copyright notice, this list of conditions and                ||
-||                the following disclaimer.                                                                                         ||
-||                                                                                                                                  ||
-||          (2)   Redistributions in binary form must reproduce the above copyright notice, this list of conditions                 ||
-||                and the following disclaimer in the documentation and/or other materials provided with the                        ||
-||                distribution.                                                                                                     ||
-||                                                                                                                                  ||
-||       THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,         ||
-||       INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          ||
-||       DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          ||
-||       SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR            ||
-||       SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,          ||
-||       WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE           ||
-||       USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                                   ||
-||                                                                                                                                  ||
-\*==================================================================================================================================*/
-
+/*================================================================================================*\
+||                                                                                                ||
+||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
+||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
+||      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       ||
+||      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      ||
+||      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      ||
+||      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      ||
+||      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      ||
+||      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       ||
+||                     /$$  \ $$                                                  | $$            ||
+||                    |  $$$$$$/                                                  | $$            ||
+||                     \______/                                                   |__/            ||
+||                                                                                                ||
+||  DESCRIPTION:                                                                                  ||
+||  ------------                                                                                  ||
+||                                                                                                ||
+||        DESCRIPTION NEEDED.                                                                     ||
+||       |                                                                                |       ||
+||                                                                                                ||
+||  --------------------------------------------------------------------------------------------  ||
+||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||                                                                                                ||
+||  Redistribution and use in source and binary forms, with or without modification, are          ||
+||  permitted provided that the following conditions are met:                                     ||
+||                                                                                                ||
+||     (1)   Redistributions of source code must retain the above copyright notice, this list of  ||
+||           conditions and the following disclaimer.                                             ||
+||                                                                                                ||
+||     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  ||
+||           of conditions and the following disclaimer in the documentation and/or other         ||
+||           materials provided with the distribution.                                            ||
+||                                                                                                ||
+||  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   ||
+||  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               ||
+||  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    ||
+||  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     ||
+||  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            ||
+||  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        ||
+||  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      ||
+||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
+||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
+||                                                                                                ||
+\*================================================================================================*/
 /************************************************************************************************************\
 ||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
 ||                                      | |\ | |    |    |  | |  \ |___                                     ||
@@ -77,6 +55,7 @@
 
 #include "macros.h"
 #include "mq.h"
+#include "tier1.h"
 #include "types.h"
 
 /************************************************************************************************************\
@@ -346,7 +325,7 @@ static const bwc_context_state context_state[94] =
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-initialize_bit_encoder(bwc_coder *const coder, const uint8 number_of_contexts)
+initialize_mq_encoder(bwc_coder *const coder, const uint8 number_of_contexts)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -427,7 +406,7 @@ initialize_bit_encoder(bwc_coder *const coder, const uint8 number_of_contexts)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-bit_encoder_next_run(bwc_bit_coder *const bitcoder)
+mq_next_run(bwc_bit_coder *const bitcoder)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -496,7 +475,7 @@ bit_encoder_next_run(bwc_bit_coder *const bitcoder)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bit_encode(bwc_bit_coder *const bitcoder, const uint8 s, const uint8 k)
+mq_bit_encode(bwc_bit_coder *const bitcoder, const uint8 s, const uint8 k)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -605,7 +584,7 @@ bit_encode(bwc_bit_coder *const bitcoder, const uint8 s, const uint8 k)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bit_encoder_truncation_length_min(bwc_coder_state *const state)
+mq_truncation_length_min(bwc_coder_state *const state)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -724,7 +703,7 @@ bit_encoder_truncation_length_min(bwc_coder_state *const state)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bit_encoder_termination(bwc_bit_coder *const bitcoder)
+mq_termination(bwc_bit_coder *const bitcoder)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -774,7 +753,7 @@ bit_encoder_termination(bwc_bit_coder *const bitcoder)
 
    while(state)
    {
-      bit_encoder_truncation_length_min(state);
+      mq_truncation_length_min(state);
       state = state->next;
    }
 }
@@ -808,7 +787,7 @@ bit_encoder_termination(bwc_bit_coder *const bitcoder)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-free_bit_encoder(bwc_coder *const coder)
+free_mq_encoder(bwc_coder *const coder)
 {
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -864,7 +843,7 @@ free_bit_encoder(bwc_coder *const coder)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-initialize_bit_decoder(bwc_coder *const coder, const uint8 number_of_contexts, const int64 Lmax)
+initialize_mq_decoder(bwc_coder *const coder, const uint8 number_of_contexts, const int64 Lmax)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -968,7 +947,7 @@ initialize_bit_decoder(bwc_coder *const coder, const uint8 number_of_contexts, c
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uint8
-bit_decode(bwc_bit_coder *const bitcoder, const uint8 k)
+mq_bit_decode(bwc_bit_coder *const bitcoder, const uint8 k)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1078,7 +1057,7 @@ bit_decode(bwc_bit_coder *const bitcoder, const uint8 k)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uint64
-bit_coder_get_no_bytes(bwc_bit_coder *const bitcoder)
+mq_get_no_bytes(bwc_bit_coder *const bitcoder)
 {
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -1117,7 +1096,7 @@ bit_coder_get_no_bytes(bwc_bit_coder *const bitcoder)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bit_coder_reset_ptr(bwc_bit_coder *const bitcoder, uchar *const memory)
+mq_reset_ptr(bwc_bit_coder *const bitcoder, uchar *const memory)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -1169,7 +1148,7 @@ bit_coder_reset_ptr(bwc_bit_coder *const bitcoder, uchar *const memory)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bit_coder_get_pass_lengths(bwc_bit_coder *const bitcoder, bwc_encoded_cblk *const encoded_cblk)
+mq_get_pass_lengths(bwc_bit_coder *const bitcoder, bwc_encoded_cblk *const encoded_cblk)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
