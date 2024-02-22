@@ -48,6 +48,61 @@
   !   DESCRIPTION:                                                                                 !
   !   ------------                                                                                 !
   !                                                                                                !
+  !         These constants are used to identify the spatial and temporal dimensions.              !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  #define DIM_X                 1                         // 1st. spacial direction
+  #define DIM_Y                 2                         // 2nd. spacial direction
+  #define DIM_Z                 4                         // 3rd. spacial direction
+  #define DIM_TS                8                         // temporal direction
+  #define DIM_ALL               15                        // all dimensions
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         These Constants define codestream markers used to create the embedded codestream.      !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  #define SOC                   0xFF50                    // Start of codestream
+  #define SGI                   0xFF51                    // Global data-set information
+  #define SGC                   0xFF52                    // Global control parameters
+  #define SAX                   0xFF53                    // Auxiliary data-set information
+  #define TLM                   0xFF54                    // Packet lengths: main header
+  #define PLM                   0xFF55                    // Packet lengths: tile-part
+  #define PPM                   0xFF56                    // Quantization default
+  #define COM                   0xFF57                    // Comment
+  #define EOH                   0xFF58                    // End of header
+  #define PLT                   0xFF60                    // Packed packet headers: main header
+  #define PPT                   0xFF61                    // Packed packet headers: tile-part
+  #define SOT                   0xFF90                    // Start of tile
+  #define SOP                   0xFF91                    // Start of packet
+  #define EPH                   0xFF92                    // End of packet header
+  #define SOD                   0xFF93                    // Start of data
+  #define EOC                   0xFFFF                    // End of code-stream
+
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         These macros define flags used for codestream parsing.                                 !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+   #define CODESTREAM_OK        0x00                      // No errors detected in Codestream
+   #define CODESTREAM_ERROR     0x80                      // Error detexted in Codestream
+   #define CODESTREAM_SGI_READ  0x01                      // Global data-set information read
+   #define CODESTREAM_SGC_READ  0x02                      // Global control parameters read
+   #define CODESTREAM_SAX_READ  0x08                      // Auxiliary information block read
+   #define CODESTREAM_COM_READ  0x10                      // Comment block read
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
   !         These macros define simple mathematicall oprators.                                     !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
@@ -76,7 +131,7 @@
                    "|                   ERROR: Out of memory                   |\n"\
                    "o##########################################################o\n"
 
-  #define CSERROR "o##########################################################o\n"\
-                  "|                ERROR: Invalid Codestream                 |\n"\
-                  "o##########################################################o\n"
+  #define CSERROR  "o##########################################################o\n"\
+                   "|                ERROR: Invalid Codestream                 |\n"\
+                   "o##########################################################o\n"
 #endif
