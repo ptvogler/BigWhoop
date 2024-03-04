@@ -41,3 +41,10 @@ make clean
 make debug
 ```
 This builds the library and places the associated files in the `/lib` or `/lib64` folders. If a full build was attempted, the command line tool binaries are placed in the `/bin` folder.
+
+### Credits
+
+This project exists thanks to all the people who contribute.
+
+- Patrick Vogler patrick.vogler@hlrs.de (principal author)
+- Gregor Weiss gregor.weiss@hlrs.de 
