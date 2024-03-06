@@ -19,9 +19,9 @@ BigWhoop is a compression library for numerical datasets that has been developed
 
 ### Building
 
-pull the sources from HLRS' gitea instance (note: default branch is `main`):
+clone the sources from HLRS' gitea instance (note: default branch is `main`):
 ```
-git pull https://code.hlrs.de/hpcpvogl/BigWhoop.git
+git clone https://code.hlrs.de/TOPIO/BigWhoop.git
 ```
 
 Now change into the source directory and run the following commands.
