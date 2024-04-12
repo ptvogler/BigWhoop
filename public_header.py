@@ -91,9 +91,12 @@ destination   = current_path.joinpath('include/library/public')
 if os.path.isdir(destination) == False:
   os.mkdir(destination)
 
-header_files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
-header_files.remove('prim_types_double.h')
-header_files.remove('prim_types_single.h')
+all_header_files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
+all_header_files.remove('prim_types_double.h')
+all_header_files.remove('prim_types_single.h')
+header_files = ['macros.h', 'constants.h', 'dwt.h', 'tagtree.h', 'mq_types.h', 'mq.h',
+                'bitstream.h', 'codestream.h', 'tier1.h', 'tier2.h', 'types.h', 'libbwc.h']
+header_files += [element for element in all_header_files if element not in header_files]
 print(header_files)
 
 #----------------------------------------------------------#
