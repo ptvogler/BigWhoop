@@ -1658,7 +1658,6 @@ bwc_add_param(bwc_data* data, char *name, uint8 precision)
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
    assert(data);
-   assert(dim <= DIM_ALL);
 
    /*--------------------------------------------------------*\
    ! Save the global info structure to a temporary variable   !
