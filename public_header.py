@@ -91,10 +91,16 @@ destination   = current_path.joinpath('include/library/public')
 if os.path.isdir(destination) == False:
   os.mkdir(destination)
 
-header_files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
-header_files.remove('prim_types_double.h')
-header_files.remove('prim_types_single.h')
-print(header_files)
+include_files = ['macros.h', 'constants.h', 'dwt.h', 'tagtree.h', 'mq_types.h', 'mq.h',
+                'bitstream.h', 'codestream.h', 'tier1.h', 'tier2.h', 'types.h', 'libbwc.h']
+exclude_files = ["prim_types_double.h", "prim_types_single.h"]
+all_files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
+missing_files = [f for f in all_files if f not in include_files and f not in exclude_files]
+if missing_files:
+  raise Warning("Consider updating public_header.py. Missing header file(s)"
+               f"\n{missing_files}\n"
+                "should be added to include_files or exclude_files lists.")
+print(include_files)
 
 #----------------------------------------------------------#
 # Create the I/O stream and write the bwc file header.     #
@@ -213,7 +219,7 @@ printFlg    = False
 buff        = ""
 brktCnt     = 0
 
-for file in header_files:
+for file in include_files:
   with open(source.joinpath(file)) as f:
     for line in f:
       if("BWC_" in line):
@@ -250,7 +256,7 @@ public_header.write(ubox + tab + sbox + lspaces * " " + "____ ____ _  _ ____ ___
 delimFlg    = False
 buff        = ""
 
-for file in header_files:
+for file in include_files:
   with open(source.joinpath(file)) as f:
     for line in f:
       if("typedef enum" in line):
@@ -288,7 +294,7 @@ preProcFlg  = False
 buff        = ""
 brktCnt     = 0
 
-for file in header_files:
+for file in include_files:
   with open(source.joinpath(file)) as f:
     for line in f:
       if("typedef struct" in line or
@@ -311,6 +317,7 @@ for file in header_files:
             public_header.write(deliminator)
           public_header.write(buff)
           delimFlg = True
+        printFlg = False
         buff = ""
 
   f.close
