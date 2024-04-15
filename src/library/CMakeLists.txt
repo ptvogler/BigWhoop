@@ -57,7 +57,13 @@ if("${PREC}" STREQUAL "Single")
 endif()
 
 execute_process(COMMAND python3 public_header.py ${PYTHON_ARGUMENT}
-                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                RESULT_VARIABLE result
+                ERROR_VARIABLE error_output)
+
+if(result)
+  message(WARNING "Public header generation failed: ${error_output}")
+endif()
 
 #----------------------------------------------------------#
 # Set the linking type according to user choice and add    #
