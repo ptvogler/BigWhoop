@@ -317,6 +317,7 @@ for file in include_files:
             public_header.write(deliminator)
           public_header.write(buff)
           delimFlg = True
+        printFlg = False
         buff = ""
 
   f.close
