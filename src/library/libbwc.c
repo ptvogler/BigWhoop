@@ -2709,7 +2709,7 @@ bwc_set_error_resilience(bwc_field *const field)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
+set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2775,7 +2775,7 @@ bwc_set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_set_quant_step_size(bwc_field *const field, double delta)
+set_quant_step_size(bwc_field *const field, double delta)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2880,7 +2880,7 @@ bwc_set_quant_step_size(bwc_field *const field, double delta)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_set_progression(bwc_field *const field, bwc_prog_ord progression)
+set_progression(bwc_field *const field, bwc_prog_ord progression)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2953,8 +2953,8 @@ bwc_set_progression(bwc_field *const field, bwc_prog_ord progression)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-bwc_set_kernels(bwc_field *const field, bwc_dwt_filter KernelX, bwc_dwt_filter KernelY, 
-                                        bwc_dwt_filter KernelZ, bwc_dwt_filter KernelTS)
+set_kernels(bwc_field *const field, bwc_dwt_filter KernelX, bwc_dwt_filter KernelY, 
+                                    bwc_dwt_filter KernelZ, bwc_dwt_filter KernelTS)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !

@@ -2751,38 +2751,38 @@ main(int    argc,
       /*--------------------------------------------------------*\
       !                                                          !
       \*--------------------------------------------------------*/
-      temp = retrieve_arg(args, "wavelet_kernels");
-      if((temp != NULL) && (temp->count == 4) && (temp->dim != 0x00))
-        {
-          for(i = 0; i < temp->count; ++i)
-            {
-              switch(hash(temp->lit_opt[i]))
-                {
-                  case 0x000000000B87CF64:
-                    {
-                      filter[i] = bwc_dwt_9_7;
-                      break;
-                    }
-                  case 0x00000652AB15772A:
-                    {
-                      filter[i] = bwc_dwt_5_3;
-                      break;
-                    }
-                  case 0x000000017C858EFF:
-                    {
-                      filter[i] = bwc_dwt_5_3;
-                      break;
-                    }
-                  default:
-                    {
-                      filter[i] = bwc_dwt_9_7;
-                      break;
-                    }
-                }
-            }
-          bwc_set_kernels(field,  filter[0], filter[1],
-                                  filter[2], filter[3]);
-        }
+      // temp = retrieve_arg(args, "wavelet_kernels");
+      // if((temp != NULL) && (temp->count == 4) && (temp->dim != 0x00))
+      //   {
+      //     for(i = 0; i < temp->count; ++i)
+      //       {
+      //         switch(hash(temp->lit_opt[i]))
+      //           {
+      //             case 0x000000000B87CF64:
+      //               {
+      //                 filter[i] = bwc_dwt_9_7;
+      //                 break;
+      //               }
+      //             case 0x00000652AB15772A:
+      //               {
+      //                 filter[i] = bwc_dwt_5_3;
+      //                 break;
+      //               }
+      //             case 0x000000017C858EFF:
+      //               {
+      //                 filter[i] = bwc_dwt_5_3;
+      //                 break;
+      //               }
+      //             default:
+      //               {
+      //                 filter[i] = bwc_dwt_9_7;
+      //                 break;
+      //               }
+      //           }
+      //       }
+      //     bwc_set_kernels(field,  filter[0], filter[1],
+      //                             filter[2], filter[3]);
+      //   }
 
       /*--------------------------------------------------------*\
       !                                                          !
@@ -2827,23 +2827,23 @@ main(int    argc,
       /*--------------------------------------------------------*\
       !                                                          !
       \*--------------------------------------------------------*/
-      temp = retrieve_arg(args, "quantisation_style");
-      if((temp != NULL) && (temp->count == 1))
-        {
-          if(strcmp(temp->lit_opt[0], "NONE"))
-            bwc_set_quant_style(field, bwc_qt_none);
-          else
-            bwc_set_quant_style(field, bwc_qt_derived);
-        }
+      // temp = retrieve_arg(args, "quantisation_style");
+      // if((temp != NULL) && (temp->count == 1))
+      //   {
+      //     if(strcmp(temp->lit_opt[0], "NONE"))
+      //       bwc_set_quant_style(field, bwc_qt_none);
+      //     else
+      //       bwc_set_quant_style(field, bwc_qt_derived);
+      //   }
 
       /*--------------------------------------------------------*\
       !                                                          !
       \*--------------------------------------------------------*/
-      temp = retrieve_arg(args, "quantisation_step_size");
-      if((temp != NULL) && (temp->count == 1))
-        {
-          bwc_set_quant_step_size(field, temp->num_opt[0]);
-        }
+      // temp = retrieve_arg(args, "quantisation_step_size");
+      // if((temp != NULL) && (temp->count == 1))
+      //   {
+      //     bwc_set_quant_step_size(field, temp->num_opt[0]);
+      //   }
 
       /*--------------------------------------------------------*\
       !                                                          !

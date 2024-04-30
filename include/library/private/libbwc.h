@@ -90,16 +90,16 @@
   //==========|==========================|======================|======|=======|====================
   void         bwc_set_error_resilience   (bwc_field                    *const  field);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_quant_style        (bwc_field                    *const  field, 
+  void         set_quant_style            (bwc_field                    *const  field, 
                                            bwc_quant_st          const          quantization_style);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_quant_step_size    (bwc_field                    *const  field,
+  void         set_quant_step_size        (bwc_field                    *const  field,
                                            double                const          delta);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_progression        (bwc_field                    *const  field,
+  void         set_progression            (bwc_field                    *const  field,
                                            bwc_prog_ord          const          progression);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_kernels            (bwc_field                    *const  field,
+  void         set_kernels                (bwc_field                    *const  field,
                                            bwc_dwt_filter        const          KernelX,
                                            bwc_dwt_filter        const          KernelY,
                                            bwc_dwt_filter        const          KernelZ,

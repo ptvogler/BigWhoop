@@ -703,7 +703,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
 
             if(CSsgc & (0x01 << 1))
             {
-               bwc_set_quant_style(field, (bwc_quant_st)buff_long);
+               set_quant_style(field, (bwc_quant_st)buff_long);
             }
 
             buff_long = get_symbol(stream, 1);
@@ -719,14 +719,14 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             buff_long  = get_symbol(stream, 1);
             if(CSsgc & (0x01 << 3))
             {
-               bwc_set_progression(field, (uint8)buff_long);
+               set_progression(field, (uint8)buff_long);
             }
 
             buff_long  = get_symbol(stream, 1);
             if(CSsgc & (0x01 << 4))
             {
-               bwc_set_kernels(field, (uint8)(0x03 & (buff_long >> 6)), (uint8)(0x03 & (buff_long >> 4)),
-                                      (uint8)(0x03 & (buff_long >> 2)), (uint8)(0x03 &  buff_long));
+               set_kernels(field, (uint8)(0x03 & (buff_long >> 6)), (uint8)(0x03 & (buff_long >> 4)),
+                                  (uint8)(0x03 & (buff_long >> 2)), (uint8)(0x03 &  buff_long));
             }
 
             buff_long  = get_symbol(stream, 4);
