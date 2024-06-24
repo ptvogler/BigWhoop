@@ -95,6 +95,15 @@ else()
 endif()
 
 #----------------------------------------------------------#
+# Set the target compile definition for the profiling      #
+# output.                                                  #
+#----------------------------------------------------------#
+if(${PROF})
+  target_compile_definitions(bwclib PRIVATE -DBWC_PROFILE)
+  MESSAGE(STATUS "Profiling: ${PROF}")
+endif()
+
+#----------------------------------------------------------#
 # Set the Version and SOVersion and define the public API  # 
 # for the BigWhoop library.                                #
 #----------------------------------------------------------#

@@ -181,6 +181,8 @@ add_subdirectory(src/library)
 #----------------------------------------------------------#
 if(${TOOL})
   add_subdirectory(src/tools)
+else()
+  set(ignoreMe "${BUILD_EAS3}${BUILD_NETCDF}")
 endif()
 
 #----------------------------------------------------------#

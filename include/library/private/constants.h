@@ -103,4 +103,19 @@
     bwc_tile_sizeof,                                      // Tiling defined by size of one tile
     bwc_tile_numbof,                                      // Tiling defined by the number of tiles
   } bwc_tile_instr;
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         These constants are used to signal the dataset sample precision.                       !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  typedef enum
+  {
+    bwc_type_half,
+    bwc_type_single,
+    bwc_type_double,
+  } bwc_type;
 #endif

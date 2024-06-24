@@ -713,24 +713,5 @@
     bwc_gl_ctrl                 control;                  // Global control structure
 
     bwc_tile                   *tile;                     // Structure defining bwc tile.
-
-    struct meter
-    {
-      double                    bpd;                      // Average bits per datapoint.
-      double                    cpr;                      // Compression ratio
-      double                    css;                      // Codestream size.
-
-      struct time
-      {
-        double                  ttl;                      // Total compression time.
-
-        double                  cpy;                      // Total time used copying data.
-        double                  nrm;                      // Total time used normalizing data.
-
-        double                  wav;                      // Total time used for wavelet transform.
-        double                  ent;                      // Total time used for entropy encoding.
-        double                  ass;                      // Total codestream assembly time.
-      } time;
-    } meter;
   } bwc_field;
 #endif

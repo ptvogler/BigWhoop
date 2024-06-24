@@ -56,6 +56,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifdef BWC_PROFILE
+   #include <inttypes.h>
+#endif 
 
 #include "bitstream.h"
 #include "constants.h"
@@ -73,6 +76,72 @@
 ||                |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]                ||
 ||                                                                                                          ||
 \************************************************************************************************************/
+/*----------------------------------------------------------------------------------------------------------*\
+!                                                                                                            !
+!   DESCRIPTION:                                                                                             !
+!   ------------                                                                                             !
+!               This function takes an integer value and generates a version with the appropri-              !
+!               ate byte unit in log2 format that is returned to the function caller.                        !
+!                                                                                                            !
+!   DEVELOPMENT HISTORY:                                                                                     !
+!   --------------------                                                                                     !
+!                                                                                                            !
+!                Date        Author             Change Id   Release     Description Of Change                !
+!                ----        ------             ---------   -------     ---------------------                !
+!                03.05.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
+!                04.05.2021  Patrick Vogler     B87E7E4     V 0.1.0     clean up                             !
+!                                                                                                            !
+\*----------------------------------------------------------------------------------------------------------*/
+#if defined BWC_PROFILE
+   const char*
+   get_size(uint64_t integer)
+   {
+     /*-----------------------*\
+     ! DEFINE INT VARIABLES:   !
+     \*-----------------------*/
+     uint64_t    multiplier;
+     uint8_t     i;
+   
+     /*-----------------------*\
+     ! DEFINE CHAR VARIABLES:  !
+     \*-----------------------*/
+     char        *sizes[] = { "EiB", "PiB", "TiB", "GiB", "MiB", "KiB", "B" };
+     static char  str[20];
+   
+     /*--------------------------------------------------------*\
+     ! Set up the multiplier used to evaluate the digital unit  !
+     ! prefix and allocate the character array returned to the  !
+     ! function caller.                                         !
+     \*--------------------------------------------------------*/
+     multiplier  =  1024ULL * 1024ULL * 1024ULL *
+                    1024ULL * 1024ULL * 1024ULL;
+   
+     /*--------------------------------------------------------*\
+     ! If larger than 0, iterate over the byte units until the  !
+     ! integer is within its range and populate the char. array !
+     ! with the appropriate information.                        !
+     \*--------------------------------------------------------*/
+     if(integer > 0)
+       {
+         for(i = 0; i < 7; ++i, multiplier /= 1024)
+           {
+             if(integer < multiplier)
+               continue;
+             if(integer % multiplier == 0)
+               sprintf(str, "%" PRIu64 " %s", integer / multiplier, sizes[i]);
+             else
+               sprintf(str, "%.1f %s", floor((10.0 * integer) / multiplier) / 10.0, sizes[i]);
+             break;
+           }
+       }
+     else
+       {
+         strcpy(str, "0 B");
+       }
+     return str;
+   }
+#endif
+
 /*----------------------------------------------------------------------------------------------------------*\
 !   FUNCTION NAME: uint8 initialize_precinct(bwc_field *const field, bwc_precinct *precinct,                 !
 !   --------------                                         const uint32 dX, const uint32 dY,                 !
@@ -3885,10 +3954,29 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    uint64   i;
    uint16   p;
 
+   #ifdef BWC_PROFILE
+      uint64   css;
+      uint64   nfs;
+   #endif
+
    /*-----------------------*\
    ! DEFINE FLOAT VARIABLES: !
    \*-----------------------*/
    double   start, end;
+
+   #ifdef BWC_PROFILE
+      double   bpd;
+      double   cpr;
+
+      double   ttl;
+
+      double   cpy;
+      double   nrm;
+
+      double   wav;
+      double   ent;
+      double   ass;
+   #endif
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3908,10 +3996,12 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Initialize the compression time measurement.             !
    \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      field->meter.time.ttl = omp_get_wtime();
-   #else
-      field->meter.time.ttl = (double)clock();
+   #if defined BWC_PROFILE
+      #if defined (_OPENMP)
+         ttl = omp_get_wtime();
+      #else
+         ttl = (double)clock();
+      #endif
    #endif
 
    /*--------------------------------------------------------*\
@@ -3978,18 +4068,22 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          ! Fill the working buffer with the flow field data for the !
          ! current tile parameter.                                  !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          fill_buffer(field, tile, parameter, working_buffer, data, p);
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.cpy += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.cpy += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               cpy += end - start;
+            #else
+               end = (double)clock();
+               cpy += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
@@ -3997,60 +4091,72 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          ! scale it to the dynamic range specified by the Qm param- !
          ! eter.                                                    !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          normalize_param(field, parameter);
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.nrm += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.nrm += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               nrm += end - start;
+            #else
+               end = (double)clock();
+               nrm += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
          ! Perform the forward discrete wavelet transform.          !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          if(forward_wavelet_transform(field, parameter))
          {
             free(working_buffer);
             return 1;
          }
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.wav += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.wav += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               wav += end - start;
+            #else
+               end = (double)clock();
+               wav += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
          ! Tier1 encode the current tile parameter.                 !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          if(t1_encode(field, tile, parameter))
          {
             free(working_buffer);
             return 1;
          }
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.ent += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.ent += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               ent += end - start;
+            #else
+               end = (double)clock();
+               ent += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
@@ -4062,31 +4168,37 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
       /*--------------------------------------------------------*\
       ! Tier2 encode the current tile.                           !
       \*--------------------------------------------------------*/
-      #if defined (_OPENMP)
-         start = omp_get_wtime();
-      #else
-         start = (double)clock();
+      #if defined BWC_PROFILE
+         #if defined (_OPENMP)
+            start = omp_get_wtime();
+         #else
+            start = (double)clock();
+         #endif
       #endif
       if(t2_encode(field, tile))
       {
          free(working_buffer);
          return 1;
       }
-      #if defined (_OPENMP)
-         end = omp_get_wtime();
-         field->meter.time.ent += end - start;
-      #else
-         end = (double)clock();
-         field->meter.time.ent += (end - start)/CLOCKS_PER_SEC;
+      #if defined BWC_PROFILE
+         #if defined (_OPENMP)
+            end = omp_get_wtime();
+            ent += end - start;
+         #else
+            end = (double)clock();
+            ent += (end - start)/CLOCKS_PER_SEC;
+         #endif
       #endif
    }
    /*--------------------------------------------------------*\
    ! Assemble compressed codestream.                          !
    \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      start = omp_get_wtime();
-   #else
-      start = (double)clock();
+   #if defined BWC_PROFILE
+      #if defined (_OPENMP)
+         start = omp_get_wtime();
+      #else
+         start = (double)clock();
+      #endif
    #endif
    data->codestream.data = assemble_codestream(field);
    if(!data->codestream.data)
@@ -4094,12 +4206,14 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
       free(working_buffer);
       return 1;
    }
-   #if defined (_OPENMP)
-      end = omp_get_wtime();
-      field->meter.time.ass += end - start;
-   #else
-      end = (double)clock();
-      field->meter.time.ass += (end - start)/CLOCKS_PER_SEC;
+   #if defined BWC_PROFILE
+      #if defined (_OPENMP)
+         end = omp_get_wtime();
+         ass += end - start;
+      #else
+         end = (double)clock();
+         ass += (end - start)/CLOCKS_PER_SEC;
+      #endif
    #endif
 
    /*--------------------------------------------------------*\
@@ -4108,12 +4222,33 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    free(working_buffer);
 
    /*--------------------------------------------------------*\
-   ! Calculate the compression time.                          !
+   ! Output the profiling information.                        !
    \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      field->meter.time.ttl = omp_get_wtime() - field->meter.time.ttl;
-   #else
-      field->meter.time.ttl = ((double)clock() - field->meter.time.ttl)/CLOCKS_PER_SEC;
+   #if defined BWC_PROFILE
+      #if defined (_OPENMP)
+         ttl = omp_get_wtime() - ttl;
+      #else
+         ttl = ((double)clock() - ttl)/CLOCKS_PER_SEC;
+      #endif
+
+      nfs = (uint64)(info->nX * info->nY * info->nZ * info->nTS * info->nPar * info->precision);
+      css = (uint64)data->codestream.data->size;
+
+
+      cpr = (double)nfs/css;
+      bpd = (double)(css * 64.0f)/nfs;
+
+      printf("==============================================================\n");
+      printf("  Compression Time:              %*.2f s\n", 25, ttl);
+      printf("       - Wavelet transformation: %*.2f s\n", 25, wav);
+      printf("       - Entropy encoding:       %*.2f s\n", 25, ent);
+      printf("       - Codestream assembly:    %*.2f s\n", 25, ass);
+      printf("\n");
+      printf("  Compression Ratio:             %*.2f\n",   27, cpr);
+      printf("       - Codestream size:          %*s\n",   25, get_size(css));
+      printf("       - Field size:               %*s\n",   25, get_size(nfs));
+      printf("       - Average bpd:            %*.2f\n",   27, bpd);
+      printf("==============================================================\n");
    #endif
 
    /*--------------------------------------------------------*\
@@ -4240,6 +4375,17 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    \*-----------------------*/
    double   start, end;
 
+   #ifdef BWC_PROFILE
+      double   ttl;
+
+      double   cpy;
+      double   nrm;
+
+      double   wav;
+      double   ent;
+      double   ass;
+   #endif
+
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
@@ -4259,11 +4405,14 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Initialize the decompression time measurement.           !
    \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      field->meter.time.ttl = omp_get_wtime();
-   #else
-      field->meter.time.ttl = (double)clock();
+   #if defined BWC_PROFILE
+      #if defined (_OPENMP)
+         ttl = omp_get_wtime();
+      #else
+         ttl = (double)clock();
+      #endif
    #endif
+
    
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
@@ -4350,61 +4499,73 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          /*--------------------------------------------------------*\
          ! Tier1 decode the current tile parameter.                 !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          if(t1_decode(field, tile, parameter))
          {
             free(working_buffer);
             return 1;
          }
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.ent += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.ent += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               ent += end - start;
+            #else
+               end = (double)clock();
+               ent += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
          ! Perform the inverse discrete wavelet transform.          !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          if(inverse_wavelet_transform(field, parameter))
          {
             free(working_buffer);
             return 1;
          }
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.wav += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.wav += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               wav += end - start;
+            #else
+               end = (double)clock();
+               wav += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
          ! Denormalize the working buffer scale it to the original  !
          ! dynamic range specified by the Qm parameter.             !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          denormalize_param(field, parameter);
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.nrm += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.nrm += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               nrm += end - start;
+            #else
+               end = (double)clock();
+               nrm += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
@@ -4412,18 +4573,22 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          ! in the flow field data structure for the current tile pa-!
          ! rameter.                                                 !
          \*--------------------------------------------------------*/
-         #if defined (_OPENMP)
-            start = omp_get_wtime();
-         #else
-            start = (double)clock();
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               start = omp_get_wtime();
+            #else
+               start = (double)clock();
+            #endif
          #endif
          flush_buffer(field, tile, parameter, working_buffer, data, p);
-         #if defined (_OPENMP)
-            end = omp_get_wtime();
-            field->meter.time.cpy += end - start;
-         #else
-            end = (double)clock();
-            field->meter.time.cpy += (end - start)/CLOCKS_PER_SEC;
+         #if defined BWC_PROFILE
+            #if defined (_OPENMP)
+               end = omp_get_wtime();
+               cpy += end - start;
+            #else
+               end = (double)clock();
+               cpy += (end - start)/CLOCKS_PER_SEC;
+            #endif
          #endif
 
          /*--------------------------------------------------------*\
@@ -4440,13 +4605,22 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    free(working_buffer);
 
    /*--------------------------------------------------------*\
-   ! Calculate the decompression time.                        !
+   ! Output the profiling information.                        !
    \*--------------------------------------------------------*/
-   #if defined (_OPENMP)
-      field->meter.time.ttl = omp_get_wtime() - field->meter.time.ttl;
-   #else
-      field->meter.time.ttl = ((double)clock() - field->meter.time.ttl)/CLOCKS_PER_SEC;
+   #if defined BWC_PROFILE
+      #if defined (_OPENMP)
+         ttl = omp_get_wtime() - ttl;
+      #else
+         ttl = ((double)clock() - ttl)/CLOCKS_PER_SEC;
+      #endif
+
+      printf("==============================================================\n");
+      printf("  Decompression Time:            %*.2f s\n", 24, ttl);
+      printf("       - Wavelet transformation: %*.2f s\n", 24, wav);
+      printf("       - Entropy encoding:       %*.2f s\n", 24, ent);
+      printf("==============================================================\n");
    #endif
+
 
    return 0;
 }

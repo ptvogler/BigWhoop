@@ -3012,57 +3012,6 @@ main(int    argc,
             {
               printf("==============================================================\n");
             }
-
-          /*--------------------------------------------------------*\
-          ! Calculate the original field size, compression ratio and !
-          ! bits per datapoint and print the miscellaneous compres-  !
-          ! sion information to the standard output.                 !
-          \*--------------------------------------------------------*/
-          if(file->info.parameter)
-            {
-              param = file->info.parameter->root;
-
-              while(param != NULL)
-                {
-                  size += (param->size * param->precision);
-                  param = param -> next;
-                }
-            }
-
-          comp_ratio = (double)size/(file->codestream.data->size);
-          bpd        = (double)(file->codestream.data->size * 64)/size;
-
-          /*--------------------------------------------------------*\
-          ! Calculate the original field size, compression ratio and !
-          ! bits per datapoint and print the miscellaneous compres-  !
-          ! sion information to the standard output.                 !
-          \*--------------------------------------------------------*/
-          csSize = get_size(file->codestream.data->size);
-          fdSize = get_size(size);
-
-          /*--------------------------------------------------------*\
-          ! Calculate the original field size, compression ratio and !
-          ! bits per datapoint and print the miscellaneous compres-  !
-          ! sion information to the standard output.                 !
-          \*--------------------------------------------------------*/
-          printf("  Compression Time:              %*.2f s\n", 25, field->meter.time.ttl);
-          printf("       - Wavelet transformation: %*.2f s\n", 25, field->meter.time.wav);
-          printf("       - Entropy encoding:       %*.2f s\n", 25, field->meter.time.ent);
-          printf("       - Codestream assembly:    %*.2f s\n", 25, field->meter.time.ass);
-          printf("\n");
-          printf("  Compression Ratio:             %*.2f\n",   27, comp_ratio);
-          printf("       - Codestream size:          %*s\n",   25, csSize);
-          printf("       - Field size:               %*s\n",   25, fdSize);
-          printf("       - Average bpd:            %*.2f\n",   27, bpd);
-          printf("==============================================================\n");
-
-          /*--------------------------------------------------------*\
-          ! Calculate the original field size, compression ratio and !
-          ! bits per datapoint and print the miscellaneous compres-  !
-          ! sion information to the standard output.                 !
-          \*--------------------------------------------------------*/
-          free(csSize);
-          free(fdSize);
         }
     }
   /*--------------------------------------------------------*\
@@ -3151,21 +3100,6 @@ main(int    argc,
               error_handle = EXIT_FAILURE;
               goto OUT;
             }
-        }
-
-      /*--------------------------------------------------------*\
-      ! If the verbose flag is set by the function caller, print !
-      ! the miscellaneous decompression information to the stan- !
-      ! dard output.                                             !
-      \*--------------------------------------------------------*/
-      temp     = retrieve_arg(args, "verbose");
-      if(temp != NULL)
-        {
-          printf("==============================================================\n");
-          printf("  Decompression Time:            %*.2f s\n", 24, field->meter.time.ttl);
-          printf("       - Wavelet transformation: %*.2f s\n", 24, field->meter.time.wav);
-          printf("       - Entropy encoding:       %*.2f s\n", 24, field->meter.time.ent);
-          printf("==============================================================\n");
         }
     }
   /*--------------------------------------------------------*\

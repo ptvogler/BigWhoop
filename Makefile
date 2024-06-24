@@ -53,14 +53,19 @@
 .PHONY: single
 
 .PHONY: tool
+.PHONY: profiling
 .PHONY: eas3
 .PHONY: netCDF
 
-.PHONY: --build_debug
+.PHONY: build_debug
 
 .PHONY: default
 .PHONY: debug
 .PHONY: full
+.PHONY: release
+
+.PHONY: cmdl
+.PHONY: cldebug
 
 #*--------------------------------------------------------*#
 # Initialize the compiler flags used to build the library. #
@@ -72,6 +77,8 @@ LINK_TYPE="Dynamic"
 BUILD_PREC="Double"
 
 BUILD_TOOL="False"
+
+BUILD_PROF="False"
 
 BUILD_EAS3="False"
 
@@ -95,12 +102,25 @@ help:
 	@echo   ""
 	@echo	"   [Type]                                                 [Description]"
 	@echo   ""
-	@echo	"   debug                                                  Compiles BigWhoop and the command line tool with "
-	@echo	"                                                          full file support. All relevant debug flags are set."
+	@echo	"   debug                                                  Compiles BigWhoop with all relevant debug flags."
 	@echo   ""
-	@echo	"   full                                                   Compiles BigWhoop (with OpenMP enabled if applica-"
-	@echo	"                                                          ble) and the command line tool with full file sup-"
-	@echo	"                                                          port. Code optimization is set to the highest level."
+	@echo	"   full                                                   Removes all files and folders created during a pre-"
+	@echo	"                                                          vious compile run. Compiles BigWhoop (with OpenMP  "
+	@echo	"                                                          enabled if applicable). Code optimization is set to"
+	@echo	"                                                          the highest level."
+	@echo   ""
+	@echo	"   release                                                Compiles BigWhoop (with OpenMP enabled if applica-"
+	@echo	"                                                          ble). Code optimization is set to the highest level."
+	@echo   ""
+	@echo	"   cmdl                                                   Removes all files and folders created during a pre-"
+	@echo	"                                                          vious compile run. Compiles BigWhoop (with OpenMP  "
+	@echo	"                                                          enabled if applicable). All relevant debug flags   "
+	@echo	"                                                          are set.                                           "
+	@echo   ""
+	@echo	"   cmdl                                                   Removes all files and folders created during a pre-"
+	@echo	"                                                          vious compile run. Compiles BigWhoop (with OpenMP  "
+	@echo	"                                                          enabled if applicable). Code optimization is set to"
+	@echo	"                                                          the highest level."
 	@echo   ""
 	@echo	"   clean                                                  Removes all files and folders created during a pre-"
 	@echo	"                                                          vious compile run."
@@ -116,6 +136,8 @@ help:
 	@echo   ""
 	@echo	"   tool                                                   Build the command line tool."
 	@echo   ""
+	@echo	"   profiling                                              Enable Profiling."
+	@echo   ""
 	@echo	"   eas3                                                   Adds support for the eas3 file format to the com-"
 	@echo	"                                                          mand line tool."
 	@echo   ""
@@ -125,7 +147,7 @@ help:
 #*--------------------------------------------------------*#
 # Define private targets.                                  #
 #*--------------------------------------------------------*#
---build_debug:	
+build_debug:	
 	$(eval BUILD_TYPE="Debug")
 
 #*--------------------------------------------------------*#
@@ -143,6 +165,11 @@ single:
 tool:
 	$(eval BUILD_TOOL="True")
 
+#*--------------------------------------------------------*#
+# Define target used to activate command line tool build.  #
+#*--------------------------------------------------------*#
+profiling:
+	$(eval BUILD_PROF="True")
 
 #*--------------------------------------------------------*#
 # Define targets used to activate file format support.     #
@@ -156,9 +183,11 @@ netCDF:
 #*--------------------------------------------------------*#
 # Define the wrappers for the compile command targets.     #
 #*--------------------------------------------------------*#
-debug:   	| clean --build_debug tool eas3 build_bwc display
+debug:   	| clean build_debug build_bwc display
+full:    	| clean build_bwc display
 release:	| build_bwc display
-full:    	| clean tool eas3 build_bwc display
+cmdl:		| clean tool profiling eas3 build_bwc display
+cldebug:    | clean build_debug tool profiling eas3 build_bwc display
 
 #*--------------------------------------------------------*#
 # Define target used to output compile information.        #
@@ -182,6 +211,7 @@ display:
 	@echo    "  Link Type:        $(LINK_TYPE)"
 	@echo    "  Precision:        $(BUILD_PREC)"
 	@echo    "  Utilities:        $(BUILD_TOOL)"
+	@echo    "  Profiling:        $(BUILD_PROF)"
 	@echo    ""
 	@echo    "  Build date:       $(shell date)"
 	@echo    "  User:             $(USER)"
@@ -192,7 +222,7 @@ display:
 # Define the main compile command targets.                 #
 #*--------------------------------------------------------*#
 build_bwc:
-	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DLINK:STRING=${LINK_TYPE}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
+	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DLINK:STRING=${LINK_TYPE}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DPROF=${BUILD_PROF}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
 
 clean:
 	- /bin/rm -rf build/ bin/ lib/ lib64/ include/library/public
