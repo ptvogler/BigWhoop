@@ -1745,7 +1745,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    ! wavelet transform along the spatial and temporal dimen-  !
    ! sions specified in the control structure.                !
    \*--------------------------------------------------------*/
-   #if defined(_OPENMP)
+   #if defined (_OPENMP)
       #pragma omp parallel private(data, id, level, working_buffer, rX0, rX1, rY0, rY1, rZ0, rZ1, rTS0, rTS1)
    #endif
    {
@@ -1798,7 +1798,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             ! Walk trough all the temporal and spatial slices as well  !
             ! as rows.                                                 !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(t = 0; t < (rTS1 - rTS0); ++t)
@@ -1879,7 +1879,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             ! Walk trough all the temporal and spatial slices as well  !
             ! as columns.                                              !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(t = 0; t < (rTS1 - rTS0); ++t)
@@ -1959,7 +1959,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             /*--------------------------------------------------------*\
             ! Walk trough all the temporal slices, rows and columns.   !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(t = 0; t < (rTS1 - rTS0); ++t)
@@ -2039,7 +2039,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             /*--------------------------------------------------------*\
             ! Walk trough all the spatial slices, rows and columns.    !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(z = 0; z < (rZ1 - rZ0); ++z)
@@ -2282,7 +2282,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    ! wavelet transform along the spatial and temporal dimen-  !
    ! sions specified in the control structure.                !
    \*--------------------------------------------------------*/
-   #if defined(_OPENMP)
+   #if defined (_OPENMP)
       #pragma omp parallel private(data, id, level, working_buffer, rX0, rX1, rY0, rY1, rZ0, rZ1, rTS0, rTS1)
    #endif
    {
@@ -2334,7 +2334,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             /*--------------------------------------------------------*\
             ! Walk trough all the spatial slices, rows and columns.    !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(z = 0; z < (rZ1 - rZ0); ++z)
@@ -2414,7 +2414,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             /*--------------------------------------------------------*\
             ! Walk trough all the temporal slices, rows and columns.   !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(t = 0; t < (rTS1 - rTS0); ++t)
@@ -2495,7 +2495,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             ! Walk trough all the temporal and spatial slices as well  !
             ! as columns.                                              !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(t = 0; t < (rTS1 - rTS0); ++t)
@@ -2576,7 +2576,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
             ! Walk trough all the temporal and spatial slices as well  !
             ! as rows.                                                 !
             \*--------------------------------------------------------*/
-            #if defined(_OPENMP)
+            #if defined (_OPENMP)
                #pragma omp for collapse(3)
             #endif
             for(t = 0; t < (rTS1 - rTS0); ++t)

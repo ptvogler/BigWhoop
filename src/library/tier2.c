@@ -1154,7 +1154,7 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
    ! Calculate the size of the main header, including the end !
    ! of header marker segment.                                !
    \*--------------------------------------------------------*/
-   main_header_size = control->header.size + 4 + (control->nTiles * info->nPar * 2 * PREC_BYTE);
+   main_header_size = control->headerSize;
 
    /*--------------------------------------------------------*\
    ! Calculate the size of the present tile and the overall   !

@@ -112,7 +112,7 @@ help:
 	@echo	"   release                                                Compiles BigWhoop (with OpenMP enabled if applica-"
 	@echo	"                                                          ble). Code optimization is set to the highest level."
 	@echo   ""
-	@echo	"   cmdl                                                   Removes all files and folders created during a pre-"
+	@echo	"   cldebug                                                Removes all files and folders created during a pre-"
 	@echo	"                                                          vious compile run. Compiles BigWhoop (with OpenMP  "
 	@echo	"                                                          enabled if applicable). All relevant debug flags   "
 	@echo	"                                                          are set.                                           "

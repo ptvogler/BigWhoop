@@ -1486,7 +1486,6 @@ write_eas3(bwc_data *const data, char *const filename)
       return 1;
    }
 
-
    /*--------------------------------------------------------*\
    ! Calculate the size of the data field used for the endian !
    ! conversion and write operations.                         !

@@ -92,7 +92,7 @@
 !                04.05.2021  Patrick Vogler     B87E7E4     V 0.1.0     clean up                             !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-#if defined BWC_PROFILE
+#ifdef BWC_PROFILE
    const char*
    get_size(uint64_t integer)
    {
@@ -680,208 +680,6 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_header_append_aux(bwc_field *const field, bwc_stream *const aux)                 !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the main header for the compressed codestream with an auxiliary        !
-!                information block.                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                aux                         unsigned char*        - Memory handle for the auxiliary infor-  !
-!                                                                    mation block.                           !
-!                                                                                                            !
-!                size                        unsigned int(32 bit)  - Size of the auxiliary information block.!
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                12.04.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-static uchar
-header_append_aux(bwc_field *const field, bwc_stream *const aux)
-{
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/ 
-   bwc_gl_ctrl       *control;
-
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(field);
-   assert(aux);
-
-   /*--------------------------------------------------------*\
-   ! Save the global control and info structure to temporary  !
-   ! variables to make the code more readable.                !
-   \*--------------------------------------------------------*/
-   control = &field->control;
-
-   /*--------------------------------------------------------*\
-   ! Check if the main header is already defined in the field !
-   ! structure.                                               !
-   \*--------------------------------------------------------*/
-   if(!control->header.memory)
-   {
-      fprintf(stderr,"o==========================================================o\n"\
-                     "| ERROR: Main header not defined                           |\n"\
-                     "|                                                          |\n"\
-                     "|        Unable to append auxiliary information since the  |\n"\
-                     "|        main header has not yet been created. Appending   |\n"\
-                     "|        information to the end of the main header can     |\n"\
-                     "|        only be done after the bwc_create_compression     |\n"\
-                     "|        function has been called.                         |\n"\
-                     "|                                                          |\n"\
-                     "o==========================================================o\n");
-
-      return 1;
-   }
-
-   /*--------------------------------------------------------*\
-   ! Check if the main header would exceed the maximum number !
-   ! of allowable bits after appending the auxiliary          !
-   ! information.                                             !
-   \*--------------------------------------------------------*/
-   if(((uint64)control->header.size + aux->size) >= 0xFFFFFFFF)
-   {
-      fprintf(stderr,"o==========================================================o\n"\
-                     "| ERROR: Main header exceeds maximum size limit            |\n"\
-                     "|                                                          |\n"\
-                     "|        Appending the auxiliary information to the main   |\n"\
-                     "|        header would exceed its maximum size limit of     |\n"\
-                     "|        4294967295 bytes.                                 |\n"\
-                     "|                                                          |\n"\
-                     "o==========================================================o\n");
-
-      return 1;
-   }
-
-   if(codestream_write_aux(&control->header, aux))
-   {
-      return 1;
-   }
-
-   return 0;
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_header_append_com(bwc_field *const field, bwc_stream *const com)                 !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the main header for the compressed codestream with a comment           !
-!                block.                                                                                      !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                com                         unsigned char*        - Memory handle for the auxiliary infor-  !
-!                                                                    mation block.                           !
-!                                                                                                            !
-!                size                        unsigned int(32 bit)  - Size of the auxiliary information block.!
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                12.04.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-static uchar
-header_append_com(bwc_field *const field, bwc_stream *const com)
-{
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/ 
-   bwc_gl_ctrl       *control;
-
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(field);
-
-   /*--------------------------------------------------------*\
-   ! Save the global control and info structure to temporary  !
-   ! variables to make the code more readable.                !
-   \*--------------------------------------------------------*/
-   control = &field->control;
-
-   /*--------------------------------------------------------*\
-   ! Check if the main header is already defined in the field !
-   ! structure.                                               !
-   \*--------------------------------------------------------*/
-   if(!control->header.memory)
-   {
-      fprintf(stderr,"o==========================================================o\n"\
-                     "| ERROR: Main header not defined                           |\n"\
-                     "|                                                          |\n"\
-                     "|        Unable to append auxiliary information since the  |\n"\
-                     "|        main header has not yet been created. Appending   |\n"\
-                     "|        information to the end of the main header can     |\n"\
-                     "|        only be done after the bwc_create_compression     |\n"\
-                     "|        function has been called.                         |\n"\
-                     "|                                                          |\n"\
-                     "o==========================================================o\n");
-
-      return 1;
-   }
-
-   /*--------------------------------------------------------*\
-   ! Check if the main header would exceed the maximum number !
-   ! of allowable bits after appending the auxiliary          !
-   ! information.                                             !
-   \*--------------------------------------------------------*/
-   if(((uint64)control->header.size + com->size) >= 0xFFFFFFFF)
-   {
-      fprintf(stderr,"o==========================================================o\n"\
-                     "| ERROR: Main header exceeds maximum size limit            |\n"\
-                     "|                                                          |\n"\
-                     "|        Appending the auxiliary information to the main   |\n"\
-                     "|        header would exceed its maximum size limit of     |\n"\
-                     "|        4294967295 bytes.                                 |\n"\
-                     "|                                                          |\n"\
-                     "o==========================================================o\n");
-
-      return 1;
-   }
-
-   if(codestream_write_com(&control->header, com))
-   {
-      return 1;
-   }
-
-   return 0;
-}
 
 /*----------------------------------------------------------------------------------------------------------*\
 !   FUNCTION NAME: void fill_buffer(bwc_field *const field, bwc_tile *const tile,                            !
@@ -1035,7 +833,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
       \*--------------------------------------------------------*/
-      #if defined(_OPENMP)
+      #if defined (_OPENMP)
          #pragma omp parallel for collapse(3) private(dest, src_d, x) reduction(max:max) reduction(min:min)
       #endif
       for(t = 0; t < dt; ++t)
@@ -1083,7 +881,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
       \*--------------------------------------------------------*/
-      #if defined(_OPENMP)
+      #if defined (_OPENMP)
          #pragma omp parallel for collapse(3) private(dest, src_f, x) reduction(max:max) reduction(min:min)
       #endif
       for(t = 0; t < dt; ++t)
@@ -1209,7 +1007,6 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    \*-----------------------*/
    bwc_sample       *src;
    bwc_gl_inf       *info;
-   bwc_param_ctrl   *param_control;
    bwc_param_inf    *param_info;
    bwc_cmd_opts_ll  *param;
 
@@ -1229,7 +1026,6 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    \*--------------------------------------------------------*/
    info          =  field->info;
 
-   param_control = &parameter->control;
    param_info    = &parameter->info;
 
    nX            = info->nX;
@@ -1276,7 +1072,7 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
       \*--------------------------------------------------------*/
-      #if defined(_OPENMP)
+      #if defined (_OPENMP)
          #pragma omp parallel for collapse(3) private(dst_d, src, x)
       #endif
       for(t = 0; t < dt; ++t)
@@ -1318,7 +1114,7 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
       \*--------------------------------------------------------*/
-      #if defined(_OPENMP)
+      #if defined (_OPENMP)
          #pragma omp parallel for collapse(3) private(dst_f, src, x)
       #endif
       for(t = 0; t < dt; ++t)
@@ -1457,7 +1253,7 @@ normalize_param(bwc_field *const field, bwc_parameter *const parameter)
    /*--------------------------------------------------------*\
    ! Walk through the tile parameter working buffer.          !
    \*--------------------------------------------------------*/
-   #if defined(_OPENMP)
+   #if defined (_OPENMP)
       #pragma omp parallel for
    #endif
    for(x = 0; x < param_size; ++x)
@@ -1580,7 +1376,7 @@ denormalize_param(bwc_field *const field, bwc_parameter *const parameter)
    /*--------------------------------------------------------*\
    ! Walk through the tile parameter working buffer.          !
    \*--------------------------------------------------------*/
-   #if defined(_OPENMP)
+   #if defined (_OPENMP)
       #pragma omp parallel for
    #endif
    for(x = 0; x < param_size; ++x)
@@ -1790,6 +1586,82 @@ bwc_add_param(bwc_data* data, char *name, uint8 precision)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
+!   FUNCTION NAME:                                                                                           !
+!   --------------                                                                                           !
+!                                                                                                            !
+!                                                                                                            !
+!   DESCRIPTION:                                                                                             !
+!   ------------                                                                                             !
+!                                                                                                            !
+\*----------------------------------------------------------------------------------------------------------*/
+uchar
+bwc_set_com(bwc_data *const  data, char const *const com, uint16 size)
+{
+   /*-----------------------*\
+   ! DEFINE ASSERTIONS:      !
+   \*-----------------------*/
+   assert(data);
+   assert(com);
+
+   /*--------------------------------------------------------*\
+   ! Save the global info structure to a temporary variable   !
+   ! to make the code more readable.                          !
+   \*--------------------------------------------------------*/
+   data->codestream.com->memory = calloc(size, sizeof(char));
+   if(!data->codestream.com->memory) 
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      return 1;
+   }
+
+   memcpy(data->codestream.com->memory, com, size * sizeof(char));
+   data->codestream.com->access   = data->codestream.com->memory;
+   data->codestream.com->size     = size;
+   data->codestream.com->position = 0;
+
+   return 0;
+}
+
+/*----------------------------------------------------------------------------------------------------------*\
+!   FUNCTION NAME:                                                                                           !
+!   --------------                                                                                           !
+!                                                                                                            !
+!                                                                                                            !
+!   DESCRIPTION:                                                                                             !
+!   ------------                                                                                             !
+!                                                                                                            !
+\*----------------------------------------------------------------------------------------------------------*/
+uchar
+bwc_set_aux(bwc_data *const  data, char const *const aux, uint32 size)
+{
+   /*-----------------------*\
+   ! DEFINE ASSERTIONS:      !
+   \*-----------------------*/
+   assert(data);
+   assert(aux);
+
+   /*--------------------------------------------------------*\
+   ! Save the global info structure to a temporary variable   !
+   ! to make the code more readable.                          !
+   \*--------------------------------------------------------*/
+   data->codestream.com->memory = calloc(size, sizeof(char));
+   if(!data->codestream.com->memory) 
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      return 1;
+   }
+
+   memcpy(data->codestream.com->memory, aux, size * sizeof(char));
+   data->codestream.com->access   = data->codestream.com->memory;
+   data->codestream.com->size     = size;
+   data->codestream.com->position = 0;
+
+   return 0;
+}
+
+/*----------------------------------------------------------------------------------------------------------*\
 !   FUNCTION NAME: bwc_field *bwc_initialize_data(...)                                                       !
 !   --------------                                                                                           !
 !                                                                                                            !
@@ -1830,10 +1702,7 @@ bwc_get_data(bwc_data* data, uchar* buffer, uint64 size)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
-   \*-----------------------*/ 
-   bwc_gl_inf *info;
-
-   info = &data->info;
+   \*-----------------------*/
 
    if(size != (uint64)(data->info.nX * data->info.nY * data->info.nZ * data->info.nTS * data->info.nPar))
       {
@@ -2074,7 +1943,7 @@ create_field(bwc_field *const field)
                /*--------------------------------------------------------*\
                ! Initialize the tile header size.                         !
                \*--------------------------------------------------------*/
-               tile_control->header_size = 14;
+               tile_control->header_size = 18;
 
                /*--------------------------------------------------------*\
                ! Initialize the convex hull slope threshold.              !
@@ -2478,7 +2347,6 @@ bwc_kill_compression(bwc_field *const field)
             free(field->tile[i].parameter);
          }
       }
-      free(control->header.memory);
       free(control->bitrate);
       free(field->tile);
       free(field);
@@ -3797,6 +3665,7 @@ bwc_create_compression(bwc_field *field, char *rate_control)
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
+   bwc_gl_inf        *info;
    bwc_gl_ctrl       *control;
 
    /*-----------------------*\
@@ -3808,6 +3677,7 @@ bwc_create_compression(bwc_field *field, char *rate_control)
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
+   info    = field->info;
    control = &field->control;
    
    /*--------------------------------------------------------*\
@@ -3904,13 +3774,34 @@ bwc_create_compression(bwc_field *field, char *rate_control)
    }
 
    /*--------------------------------------------------------*\
-   ! Create the main header for the compressed codestream and !
-   ! save the memory handle in the field structure.           !
+   ! Evaluate the size of the main header.                    !
    \*--------------------------------------------------------*/
-   if(assemble_main_header(field))
+   /*control->headerSize =  108 + info->nPar * (25 + control->nTiles * 2 * PREC_BYTE)
+                              + control->nLayers * 4;
+
+   if(field->aux != NULL)
    {
-      return 1;
+      control->headerSize += 6 + field->aux->size;
    }
+
+   if(field->com != NULL)
+   {
+      control->headerSize += 6 + field->com->size;
+   }
+
+   if(control->headerSize >= 0xFFFFFFFF)
+   {
+      fprintf(stderr,"o==========================================================o\n"\
+                     "| ERROR: Main header exceeds maximum size limit            |\n"\
+                     "|                                                          |\n"\
+                     "|        Appending the auxiliary information to the main   |\n"\
+                     "|        header would exceed its maximum size limit of     |\n"\
+                     "|        4294967295 bytes.                                 |\n"\
+                     "|                                                          |\n"\
+                     "o==========================================================o\n");
+
+      return 1;
+   }*/
 
    return 0;
 }
@@ -3965,17 +3856,17 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    double   start, end;
 
    #ifdef BWC_PROFILE
-      double   bpd;
-      double   cpr;
+      double   bpd = 0;
+      double   cpr = 0;
 
-      double   ttl;
+      double   ttl = 0;
 
-      double   cpy;
-      double   nrm;
+      double   cpy = 0;
+      double   nrm = 0;
 
-      double   wav;
-      double   ent;
-      double   ass;
+      double   wav = 0;
+      double   ent = 0;
+      double   ass = 0;
    #endif
 
    /*-----------------------*\
@@ -3996,7 +3887,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Initialize the compression time measurement.             !
    \*--------------------------------------------------------*/
-   #if defined BWC_PROFILE
+   #ifdef BWC_PROFILE
       #if defined (_OPENMP)
          ttl = omp_get_wtime();
       #else
@@ -4012,20 +3903,34 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    info    =  field->info;
 
    /*--------------------------------------------------------*\
-   ! Check if any auxiliary information has been supplied by  !
-   ! the function caller and append the header accordingly.   !
+   ! Evaluate the size of the main header.                    !
    \*--------------------------------------------------------*/
-   if(data->codestream.aux && header_append_aux(field, data->codestream.aux))
+   control->headerSize =  108 + info->nPar * (25 + control->nTiles * 2 * PREC_BYTE)
+                              + control->nLayers * 4;
+
+   if(data->codestream.aux != NULL)
    {
-      return 1;
+      field->aux           = data->codestream.aux;
+      control->headerSize += 6 + field->aux->size;
    }
 
-   /*--------------------------------------------------------*\
-   ! Check if any commentary information has been supplied by !
-   ! the function caller and append the header accordingly.   !
-   \*--------------------------------------------------------*/
-   if(data->codestream.com && header_append_com(field, data->codestream.com))
+   if(data->codestream.com != NULL)
    {
+      field->com           = data->codestream.com;
+      control->headerSize += 6 + field->com->size;
+   }
+
+   if(control->headerSize >= 0xFFFFFFFF)
+   {
+      fprintf(stderr,"o==========================================================o\n"\
+                     "| ERROR: Main header exceeds maximum size limit            |\n"\
+                     "|                                                          |\n"\
+                     "|        Appending the auxiliary information to the main   |\n"\
+                     "|        header would exceed its maximum size limit of     |\n"\
+                     "|        4294967295 bytes.                                 |\n"\
+                     "|                                                          |\n"\
+                     "o==========================================================o\n");
+
       return 1;
    }
 
@@ -4068,7 +3973,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          ! Fill the working buffer with the flow field data for the !
          ! current tile parameter.                                  !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4076,7 +3981,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
             #endif
          #endif
          fill_buffer(field, tile, parameter, working_buffer, data, p);
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                cpy += end - start;
@@ -4091,7 +3996,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          ! scale it to the dynamic range specified by the Qm param- !
          ! eter.                                                    !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4099,7 +4004,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
             #endif
          #endif
          normalize_param(field, parameter);
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                nrm += end - start;
@@ -4112,7 +4017,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          /*--------------------------------------------------------*\
          ! Perform the forward discrete wavelet transform.          !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4124,7 +4029,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
             free(working_buffer);
             return 1;
          }
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                wav += end - start;
@@ -4137,7 +4042,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          /*--------------------------------------------------------*\
          ! Tier1 encode the current tile parameter.                 !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4149,7 +4054,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
             free(working_buffer);
             return 1;
          }
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                ent += end - start;
@@ -4168,7 +4073,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
       /*--------------------------------------------------------*\
       ! Tier2 encode the current tile.                           !
       \*--------------------------------------------------------*/
-      #if defined BWC_PROFILE
+      #ifdef BWC_PROFILE
          #if defined (_OPENMP)
             start = omp_get_wtime();
          #else
@@ -4180,7 +4085,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          free(working_buffer);
          return 1;
       }
-      #if defined BWC_PROFILE
+      #ifdef BWC_PROFILE
          #if defined (_OPENMP)
             end = omp_get_wtime();
             ent += end - start;
@@ -4193,7 +4098,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Assemble compressed codestream.                          !
    \*--------------------------------------------------------*/
-   #if defined BWC_PROFILE
+   #ifdef BWC_PROFILE
       #if defined (_OPENMP)
          start = omp_get_wtime();
       #else
@@ -4206,7 +4111,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
       free(working_buffer);
       return 1;
    }
-   #if defined BWC_PROFILE
+   #ifdef BWC_PROFILE
       #if defined (_OPENMP)
          end = omp_get_wtime();
          ass += end - start;
@@ -4224,7 +4129,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Output the profiling information.                        !
    \*--------------------------------------------------------*/
-   #if defined BWC_PROFILE
+   #ifdef BWC_PROFILE
       #if defined (_OPENMP)
          ttl = omp_get_wtime() - ttl;
       #else
@@ -4383,7 +4288,6 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
 
       double   wav;
       double   ent;
-      double   ass;
    #endif
 
    /*-----------------------*\
@@ -4405,7 +4309,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Initialize the decompression time measurement.           !
    \*--------------------------------------------------------*/
-   #if defined BWC_PROFILE
+   #ifdef BWC_PROFILE
       #if defined (_OPENMP)
          ttl = omp_get_wtime();
       #else
@@ -4413,7 +4317,6 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
       #endif
    #endif
 
-   
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
@@ -4499,7 +4402,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          /*--------------------------------------------------------*\
          ! Tier1 decode the current tile parameter.                 !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4511,7 +4414,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
             free(working_buffer);
             return 1;
          }
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                ent += end - start;
@@ -4524,7 +4427,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          /*--------------------------------------------------------*\
          ! Perform the inverse discrete wavelet transform.          !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4536,7 +4439,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
             free(working_buffer);
             return 1;
          }
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                wav += end - start;
@@ -4550,7 +4453,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          ! Denormalize the working buffer scale it to the original  !
          ! dynamic range specified by the Qm parameter.             !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4558,7 +4461,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
             #endif
          #endif
          denormalize_param(field, parameter);
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                nrm += end - start;
@@ -4573,7 +4476,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
          ! in the flow field data structure for the current tile pa-!
          ! rameter.                                                 !
          \*--------------------------------------------------------*/
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                start = omp_get_wtime();
             #else
@@ -4581,7 +4484,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
             #endif
          #endif
          flush_buffer(field, tile, parameter, working_buffer, data, p);
-         #if defined BWC_PROFILE
+         #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
                cpy += end - start;
@@ -4607,7 +4510,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Output the profiling information.                        !
    \*--------------------------------------------------------*/
-   #if defined BWC_PROFILE
+   #ifdef BWC_PROFILE
       #if defined (_OPENMP)
          ttl = omp_get_wtime() - ttl;
       #else

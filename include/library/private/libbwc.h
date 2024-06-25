@@ -72,6 +72,14 @@
                                            uint8                 const          nPar,
                                            char                         *const  file_extension);
   //==========|==========================|======================|======|=======|====================
+  uchar        bwc_set_com                (bwc_data                     *const  data,
+                                           char                  const  *const  com, 
+                                           uint16                const          size);
+  //==========|==========================|======================|======|=======|====================
+  uchar        bwc_set_aux                (bwc_data                     *const  data,
+                                           char                  const  *const  aux, 
+                                           uint32                const          size);
+  //==========|==========================|======================|======|=======|====================
   void         bwc_add_param              (bwc_data                     *const  data, 
                                            char                         *const  name,
                                            uint8                 const          precision);

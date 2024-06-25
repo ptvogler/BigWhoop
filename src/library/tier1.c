@@ -2977,7 +2977,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
       }
    }
 
-   #if defined(_OPENMP)
+   #if defined (_OPENMP)
       #pragma omp parallel private(working_buffer, codeblock, cblk_info, cbSizeX, cbSizeY, cbSizeZ, cbSizeTS) reduction(max:slope_max) reduction(min:slope_min)
    #endif
    {
@@ -2995,7 +2995,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
       ! Loop through and encode all codeblocks for the current   !
       ! parameter.                                               !
       \*--------------------------------------------------------*/
-      #if defined(_OPENMP)
+      #if defined (_OPENMP)
          #pragma omp for
       #endif
       for(c = 0; c < parameter->control.number_of_codeblocks; ++c)
@@ -3270,7 +3270,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
       }
    }
 
-   #if defined(_OPENMP)
+   #if defined (_OPENMP)
       #pragma omp parallel private(working_buffer, codeblock, cblk_info, subb_ctrl,\
                                    cbSizeX,        cbSizeY,   cbSizeZ,   cbSizeTS)
    #endif
@@ -3289,7 +3289,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
       ! Loop through and encode all codeblocks for the current   !
       ! parameter.                                               !
       \*--------------------------------------------------------*/
-      #if defined(_OPENMP)
+      #if defined (_OPENMP)
          #pragma omp for
       #endif
       for(c = 0; c < parameter->control.number_of_codeblocks; ++c)

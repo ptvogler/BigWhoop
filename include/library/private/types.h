@@ -689,7 +689,8 @@
 
     uint8                       guard_bits;               // Number of guard bits during quant.
 
-    bwc_stream                  header;                   // Main codestream header.
+    uint64                      headerSize;               // Size estimation of the global header.
+    uint64                      codestreamSize;           // Size of entire code-stream.
 
     bwc_quant_st                quantization_style;       // Quantization style.
     bwc_prog_ord                progression;              // Packet progression order.
@@ -713,5 +714,8 @@
     bwc_gl_ctrl                 control;                  // Global control structure
 
     bwc_tile                   *tile;                     // Structure defining bwc tile.
+
+    bwc_stream                  *aux;                      // Auxiliary info. codestream block.
+    bwc_stream                  *com;                      // Comment codestream block.
   } bwc_field;
 #endif

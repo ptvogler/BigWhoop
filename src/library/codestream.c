@@ -137,20 +137,28 @@ can_read(bitstream *const stream, const uint64 length)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static void
-codestream_write_header(bitstream *const stream, bwc_field *const field)
+codestream_write_header(bitstream   *const stream,
+                        bwc_field   *const field)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint32             t;
-   uint16             Leoh;
-   uint8              p;
+   uint64            Lcss;
+   uint32            t;
+   uint32            Laux;
+   uint16            Linf, Lctr, Lcom;
+   uint16            Leoh;
+   uint8             p, l;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
-   bwc_gl_ctrl       *control;
-   bwc_gl_inf        *info;
+   bwc_gl_ctrl      *control;
+   bwc_gl_inf       *info;
+   bwc_tile         *tile;
+   bwc_parameter    *parameter;
+   bwc_stream       *aux;
+   bwc_stream       *com;
    
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -163,46 +171,116 @@ codestream_write_header(bitstream *const stream, bwc_field *const field)
    ! structure to temporary variables to make the code more   !
    ! readable.                                                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   info          =  field->info;
+   control       = &field->control;
 
-   /*--------------------------------------------------------*\
-   ! Calculate the size of the end of header (EOH) maker seg- !
-   ! ment - excluding the EOH marker.                         !
-   \*--------------------------------------------------------*/
-   Leoh = 2 + (control->nTiles * info->nPar * 2 * PREC_BYTE); 
+   tile          = &field->tile[0];
 
-   /*--------------------------------------------------------*\
-   ! Emit the portion of the main header already created by   !
-   ! the bwc_create_compression function.                     !
-   \*--------------------------------------------------------*/
-   emit_chunck(stream, control->header.memory, control->header.size);
+   parameter     = &tile->parameter[0];
 
-   /*--------------------------------------------------------*\
-   ! Emit the end of header (EOH) marker and EOH marker seg-  !
-   ! ment size Leoh.                                          !
-   \*--------------------------------------------------------*/
+   aux           = field->aux;
+   com           = field->com;
+   
+   Linf = 40 + info->nPar * 25;
+   Lctr = 50 + control->nLayers * 4;
+   Leoh = info->nPar * control->nTiles * 2 * PREC_BYTE;
+   Lcss = control->codestreamSize;
+
+   emit_symbol(stream, SOC,                                            2);
+   emit_symbol(stream, Lcss,                                           8);
+   emit_symbol(stream, SGI,                                            2);
+   emit_symbol(stream, Linf,                                           2);
+   emit_symbol(stream, info->nX,                                       8);
+   emit_symbol(stream, info->nY,                                       8);
+   emit_symbol(stream, info->nZ,                                       8);
+   emit_symbol(stream, info->nTS,                                      2);
+   emit_symbol(stream, info->nPar,                                     1);
+   emit_symbol(stream, info->precision,                                1);
+   emit_chunck(stream, (uchar*)info->f_ext,                            10);
+
+   for(p = 0; p < info->nPar; ++p)
+   {
+      emit_chunck(stream, (uchar*)parameter[p].info.name,             24);
+      emit_symbol(stream, parameter[p].info.precision,                 1);
+   }
+
+   emit_symbol(stream, SGC,                                            2);
+   emit_symbol(stream, Lctr,                                           2);
+
+   emit_symbol(stream, control->CSsgc,                                 2);
+
+   emit_symbol(stream, control->error_resilience,                      1);
+
+   emit_symbol(stream, control->quantization_style,                    1);
+   emit_symbol(stream, control->guard_bits,                            1);
+
+   emit_symbol(stream, control->qt_exponent,                           1);
+   emit_symbol(stream, control->qt_mantissa,                           2);
+
+   emit_symbol(stream, control->progression,                           1);
+   emit_symbol(stream, control->KernelX << 6 | control->KernelY << 4 | 
+                       control->KernelZ << 2 | control->KernelTS,      1);
+
+   emit_symbol(stream, control->decompX,                               1);
+   emit_symbol(stream, control->decompY,                               1);
+   emit_symbol(stream, control->decompZ,                               1);
+   emit_symbol(stream, control->decompTS,                              1);
+
+   emit_symbol(stream, control->precSizeY  << 4 | control->precSizeX,  1);
+   emit_symbol(stream, control->precSizeTS << 4 | control->precSizeZ,  1);
+
+   emit_symbol(stream, control->cbX,                                   1);
+   emit_symbol(stream, control->cbY,                                   1);
+   emit_symbol(stream, control->cbZ,                                   1);
+   emit_symbol(stream, control->cbTS,                                  1);
+
+   emit_symbol(stream, control->Qm,                                    1);
+
+   emit_symbol(stream, control->tileSizeX,                             8);
+   emit_symbol(stream, control->tileSizeY,                             8);
+   emit_symbol(stream, control->tileSizeZ,                             8);
+   emit_symbol(stream, control->tileSizeTS,                            2);
+
+   emit_symbol(stream, control->nLayers,                               1);
+
+   for(l = 0; l < control->nLayers; ++l)
+   {
+      emit_symbol(stream, *(uint32 *)&control->bitrate[l], 4);
+   }
+
+   if(aux != NULL)
+   {
+      Laux = aux->size + 4;
+
+      emit_symbol(stream, SAX,         2);
+      emit_symbol(stream, Laux,        4);
+      emit_chunck(stream, aux->memory, aux->size);
+   }
+
+   if(com != NULL)
+   {
+      Lcom = com->size + 2;
+
+      emit_symbol(stream, COM,         2);
+      emit_symbol(stream, Lcom,        2);
+      emit_chunck(stream, com->memory, com->size);
+   }
+
    emit_symbol(stream, EOH,  2);
    emit_symbol(stream, Leoh, 2);
 
-   /*--------------------------------------------------------*\
-   ! Loop through all tile parameters and...                  !
-   \*--------------------------------------------------------*/
    for(t = 0; t < control->nTiles; ++t)
    {
       for(p = 0; p < info->nPar; ++p)
       {
-         /*--------------------------------------------------------*\
-         ! ...emit the maximum and minimum parameter value to the   !
-         ! header stream.                                           !
-         \*--------------------------------------------------------*/
-         emit_symbol(stream, *(uint64 *)&field->tile[t].parameter[p].info.parameter_min, PREC_BYTE);
-         emit_symbol(stream, *(uint64 *)&field->tile[t].parameter[p].info.parameter_max, PREC_BYTE);
 
-         /*--------------------------------------------------------*\
-         ! Reset the maximum and minimum parameter value in the     !
-         ! parameter structure.                                     !
-         \*--------------------------------------------------------*/
+         emit_symbol(stream, *(uint64 *)&field->tile[t].
+                                                parameter[p].info.
+                                                parameter_min, PREC_BYTE);
+         emit_symbol(stream, *(uint64 *)&field->tile[t].
+                                                parameter[p].info.
+                                                parameter_max, PREC_BYTE);
+
          field->tile[t].parameter[p].info.parameter_max  = -FLT_MAX;
          field->tile[t].parameter[p].info.parameter_min  =  FLT_MAX;
       }
@@ -475,7 +553,6 @@ assemble_tile(bwc_field *const field, bwc_tile *const tile, bitstream *const str
    emit_symbol(stream, tile->info.tile_index,      4);
    emit_symbol(stream, tile->control.body_size,    8);
    emit_symbol(stream, SOD,                        2);
-
    for(packet_index = 0; packet_index < tile->control.nPackets; ++packet_index)
    {
       packet = tile->packet_sequence[packet_index];
@@ -553,9 +630,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
    uint16      Linf, Lctr, Lcom, Leoh, Lunk;
    uint16      marker;
    uint16      nTS;
-   uint8       dim;
    uint8       index, l;
-   uint8       samp;
    uint8       nPar, p;
    uint8       codec_prec, precision;
 
@@ -601,12 +676,16 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
       {
          case SOC:
          {
-            if(index != 0)
+            if(index != 0 && !can_read(stream, 2))
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
                status |= CODESTREAM_ERROR;
+               break;
             }
+
+            stream->Lmax            = (uint64)get_symbol(stream, 8);
+
             break;
          }
 
@@ -663,6 +742,8 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             \*--------------------------------------------------------*/
             info    =  field->info = &data->info;
             control = &field->control;
+
+            control->codestreamSize = stream->Lmax;
 
             status |= CODESTREAM_SGI_READ;
             break;
@@ -1255,311 +1336,6 @@ parse_body(bwc_field *const field, bitstream *const stream)
 ||                                                                                                          ||
 \************************************************************************************************************/
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar
-assemble_main_header(bwc_field *const field)
-{
-   /*-----------------------*\
-   ! DEFINE INT VARIABLES:   !
-   \*-----------------------*/
-   uint64            size;
-   uint16            Linf, Lctr;
-   uint8             p, l;
-
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-   bwc_gl_ctrl      *control;
-   bwc_gl_inf       *info;
-   bwc_tile         *tile;
-   bwc_parameter    *parameter;
-   bitstream        *stream;
-   
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(field);
-
-   /*--------------------------------------------------------*\
-   ! Save the global as well as the subband control and info  !
-   ! structure to temporary variables to make the code more   !
-   ! readable.                                                !
-   \*--------------------------------------------------------*/
-   info          =  field->info;
-   control       = &field->control;
-
-   tile          = &field->tile[0];
-
-   parameter     = &tile->parameter[0];
-   
-   Linf = 40 + info->nPar * 25;
-   Lctr = 50 + control->nLayers * 4;
-
-   size = 6 + Linf + Lctr;
-
-   stream = init_stream(NULL, size, 'c');
-   if(!stream)
-   {
-      // memory allocation error
-      return 1;
-   }
-
-   emit_symbol(stream, SOC,                                            2);
-   emit_symbol(stream, SGI,                                            2);
-   emit_symbol(stream, Linf,                                           2);
-   emit_symbol(stream, info->nX,                                       8);
-   emit_symbol(stream, info->nY,                                       8);
-   emit_symbol(stream, info->nZ,                                       8);
-   emit_symbol(stream, info->nTS,                                      2);
-   emit_symbol(stream, info->nPar,                                     1);
-   emit_symbol(stream, info->precision,                                1);
-   emit_chunck(stream, (uchar*)info->f_ext,                            10);
-
-   for(p = 0; p < info->nPar; ++p)
-   {
-      emit_chunck(stream, (uchar*)parameter[p].info.name,             24);
-      emit_symbol(stream, parameter[p].info.precision,                 1);
-   }
-
-   emit_symbol(stream, SGC,                                            2);
-   emit_symbol(stream, Lctr,                                           2);
-
-   emit_symbol(stream, control->CSsgc,                                 2);
-
-   emit_symbol(stream, control->error_resilience,                      1);
-
-   emit_symbol(stream, control->quantization_style,                    1);
-   emit_symbol(stream, control->guard_bits,                            1);
-
-   emit_symbol(stream, control->qt_exponent,                           1);
-   emit_symbol(stream, control->qt_mantissa,                           2);
-
-   emit_symbol(stream, control->progression,                           1);
-   emit_symbol(stream, control->KernelX << 6 | control->KernelY << 4 | 
-                       control->KernelZ << 2 | control->KernelTS,      1);
-
-   emit_symbol(stream, control->decompX,                               1);
-   emit_symbol(stream, control->decompY,                               1);
-   emit_symbol(stream, control->decompZ,                               1);
-   emit_symbol(stream, control->decompTS,                              1);
-
-   emit_symbol(stream, control->precSizeY  << 4 | control->precSizeX,  1);
-   emit_symbol(stream, control->precSizeTS << 4 | control->precSizeZ,  1);
-
-   emit_symbol(stream, control->cbX,                                   1);
-   emit_symbol(stream, control->cbY,                                   1);
-   emit_symbol(stream, control->cbZ,                                   1);
-   emit_symbol(stream, control->cbTS,                                  1);
-
-   emit_symbol(stream, control->Qm,                                    1);
-
-   emit_symbol(stream, control->tileSizeX,                             8);
-   emit_symbol(stream, control->tileSizeY,                             8);
-   emit_symbol(stream, control->tileSizeZ,                             8);
-   emit_symbol(stream, control->tileSizeTS,                            2);
-
-   emit_symbol(stream, control->nLayers,                               1);
-
-   for(l = 0; l < control->nLayers; ++l)
-   {
-      emit_symbol(stream, *(uint32 *)&control->bitrate[l], 4);
-   }
-
-   if(terminate_stream(stream, &control->header))
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return 1;
-   }
-
-   return 0;
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar
-codestream_write_aux(bwc_stream *const header, bwc_stream *const aux)
-{
-   /*-----------------------*\
-   ! DEFINE INT VARIABLES:   !
-   \*-----------------------*/
-   uint32             Laux;
-
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-   bitstream         *stream;
-   
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(header);
-   assert(aux);
-
-   stream = init_stream(header->memory, header->size, 'c');
-   if(!stream)
-   {
-      // memory allocation error
-      return 1;
-   }
-
-   Laux = aux->size + 4;
-
-   stream->L      = stream->Lmax;
-   stream->Lmax  += Laux + 2;
-   stream->memory = realloc(stream->memory, stream->Lmax);
-   if(!stream->memory)
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return 1;
-   }
-
-   emit_symbol(stream, SAX,         2);
-   emit_symbol(stream, Laux,        4);
-   emit_chunck(stream, aux->memory, aux->size);
- 
-   if(terminate_stream(stream, header))
-   {
-      // memory allocation error
-      return 1;
-   }
-
-   return 0;
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar
-codestream_write_com(bwc_stream *const header, bwc_stream *const com)
-{
-   /*-----------------------*\
-   ! DEFINE INT VARIABLES:   !
-   \*-----------------------*/
-   uint16             Lcom;
-
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-   bitstream         *stream;
-   
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(header);
-   assert(com);
-
-   stream = init_stream(header->memory, header->size, 'c');
-   if(!stream)
-   {
-      // memory allocation error
-      return 1;
-   }
-
-   Lcom = com->size + 2;
-
-   stream->L      = stream->Lmax;
-   stream->Lmax  += Lcom + 2;
-   stream->memory = realloc(stream->memory, stream->Lmax);
-   if(!stream->memory)
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return 1;
-   }
-
-   emit_symbol(stream, COM,         2);
-   emit_symbol(stream, Lcom,        2);
-   emit_chunck(stream, com->memory, com->size);
-
-   if(terminate_stream(stream, header))
-   {
-      // memory allocation error
-      return 1;
-   }
-
-   return 0;
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
 !   FUNCTION NAME: bwc_stream* assemble_codestream(bwc_field *const field)                                   !
 !   --------------                                                                                           !
 !                                                                                                            !
@@ -1594,7 +1370,7 @@ assemble_codestream(bwc_field *const field)
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint64   i, size;
+   uint64   i;
    
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -1616,7 +1392,8 @@ assemble_codestream(bwc_field *const field)
    ! bytes.                                                   !
    \*--------------------------------------------------------*/
    control = &field->control;
-   size    =  control->header.size;
+
+   control->codestreamSize = control->headerSize + 2;
 
    /*--------------------------------------------------------*\
    ! Walk through the tile structure and assemble the packed  !
@@ -1638,15 +1415,15 @@ assemble_codestream(bwc_field *const field)
       {
          return NULL;
       }
-
-      size += tile->control.header_size + tile->control.body_size;
+      control->codestreamSize += tile->control.header_size + 
+                                 tile->control.body_size;
    }
 
    /*--------------------------------------------------------*\
    ! Initialize the final codestream and emit the header      !
    ! bytes.                                                   !
    \*--------------------------------------------------------*/
-   stream = init_stream(NULL, size, 'c');
+   stream = init_stream(NULL, control->codestreamSize, 'c');
    codestream_write_header(stream, field);
 
    /*--------------------------------------------------------*\
@@ -1655,6 +1432,7 @@ assemble_codestream(bwc_field *const field)
    \*--------------------------------------------------------*/
    for(i = 0; i < control->nTiles; ++i)
    {
+
       /*--------------------------------------------------------*\
       ! Save the tile structure in a temporary variable to make  !
       ! the code more readable.                                  !
@@ -1734,8 +1512,7 @@ parse_codestream(bwc_data *const data, uint8 const layer)
    ! Initialize a bitstream used to parse the packed code-    !
    ! stream.                                                  !
    \*--------------------------------------------------------*/
-   stream = init_stream(data->codestream.data->memory, 
-                        data->codestream.data->size, 'd');
+   stream = init_stream(data->codestream.data->memory, 10, 'd');
 
    /*--------------------------------------------------------*\
    ! Parse the main header and set up the field structure for !

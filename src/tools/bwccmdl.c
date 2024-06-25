@@ -1503,7 +1503,6 @@ output_info(bwc_cmdl_arg_node *const args,
   bwc_gl_ctrl        *control;
   bwc_gl_inf         *info;
 
-  bwc_param_ctrl     *param_ctrl;
   bwc_param_inf      *param_info;
 
   bwc_cmdl_arg_node  *temp;
@@ -1801,7 +1800,6 @@ output_info(bwc_cmdl_arg_node *const args,
 
   for(p = 0; p < info->nPar; ++p)
     {
-      param_ctrl = &field->tile[0].parameter[p].control;
       param_info = &field->tile[0].parameter[p].info;
 
       minVal     = param_info->parameter_min;
@@ -2653,23 +2651,14 @@ main(int    argc,
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  uint64_t            size=0;
   uint64_t            i;
   uint8_t             error_handle;
 
   /*-----------------------*\
   ! DEFINE CHAR VARIABLES:  !
   \*-----------------------*/
-  char               *csSize = NULL;
-  char               *fdSize = NULL;
   char                buff[200];
   char                rate[10];
-
-  /*-----------------------*\
-  ! DEFINE FLOAT VARIABLES: !
-  \*-----------------------*/
-  double              comp_ratio;
-  double              bpd;
 
   /*-----------------------*\
   ! DEFINE STRUCTS:         !
@@ -2679,10 +2668,8 @@ main(int    argc,
 
   bwc_gl_ctrl        *control;
 
-  bwc_dwt_filter      filter[4];
+  //bwc_dwt_filter      filter[4];
   bwc_cmdl_arg_node  *args, *temp;
-
-  bwc_cmd_opts_ll    *param;
 
   /*--------------------------------------------------------*\
   ! Initialize the field and args structures for proper er-  !
@@ -2951,11 +2938,11 @@ main(int    argc,
               printf("-----------------   Compression Parameters   -----------------\n\n");
               if((control->CSsgc &0x200) != 0)
                 {
-                  printf("  Number of Tiles:               %27d\n",  control->nTiles);
+                  printf("  Number of Tiles:               %27ld\n", control->nTiles);
                   printf("       - Samples in 1.D:         %27ld\n", control->tileSizeX);
                   printf("       - Samples in 2.D:         %27ld\n", control->tileSizeY);
                   printf("       - Samples in 3.D:         %27ld\n", control->tileSizeZ);
-                  printf("       - Timesteps:              %27d\n",  control->tileSizeTS);
+                  printf("       - Timesteps:              %27ld\n", control->tileSizeTS);
                   printf("  ..........................................................\n");
                   printf("\n");
                 }
