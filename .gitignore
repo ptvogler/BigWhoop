@@ -2,8 +2,9 @@
 # Prerequisites
 *.d
 
-# BWC Data Files
+# Data Files
 *.bwc
+*.eas
 
 # Object files
 *.o

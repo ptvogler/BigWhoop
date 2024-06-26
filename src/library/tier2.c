@@ -55,7 +55,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <omp.h>
+#if defined (_OPENMP)
+   #include <omp.h>
+#endif
 #include <time.h>
 
 #include "codestream.h"

@@ -49,16 +49,18 @@
 ||                                                                                                          ||
 \************************************************************************************************************/
 #include <assert.h>
+#if defined BWC_PROFILE
+   #include <inttypes.h>
+#endif 
 #include <math.h>
-#include <omp.h>
+#if defined (_OPENMP)
+   #include <omp.h>
+#endif
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifdef BWC_PROFILE
-   #include <inttypes.h>
-#endif 
 
 #include "bitstream.h"
 #include "constants.h"
