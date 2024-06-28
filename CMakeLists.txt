@@ -131,7 +131,8 @@ message(STATUS "Compiling with C++ standard: ${CMAKE_CXX_STANDARD}")
 # Check if the OpenMP package is available for the current #
 # setup and set the appropriate C/C++ flags.               #
 #----------------------------------------------------------#
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR ${OMP})
+  message(STATUS "Enable OpenMP parallelization")
  find_package(OpenMP)
  if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")

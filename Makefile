@@ -54,6 +54,7 @@
 
 .PHONY: tool
 .PHONY: profiling
+.PHONY: omp
 .PHONY: eas3
 .PHONY: netCDF
 
@@ -79,6 +80,8 @@ BUILD_PREC="Double"
 BUILD_TOOL="False"
 
 BUILD_PROF="False"
+
+BUILD_OMP="False"
 
 BUILD_EAS3="False"
 
@@ -138,6 +141,8 @@ help:
 	@echo   ""
 	@echo	"   profiling                                              Enable Profiling."
 	@echo   ""
+	@echo	"   omp                                              	   Enable OpenMP parallelization."
+	@echo   ""
 	@echo	"   eas3                                                   Adds support for the eas3 file format to the com-"
 	@echo	"                                                          mand line tool."
 	@echo   ""
@@ -166,10 +171,16 @@ tool:
 	$(eval BUILD_TOOL="True")
 
 #*--------------------------------------------------------*#
-# Define target used to activate command line tool build.  #
+# Define target used to activate profiling.  #
 #*--------------------------------------------------------*#
 profiling:
 	$(eval BUILD_PROF="True")
+
+#*--------------------------------------------------------*#
+# Define target used to activate OpenMP parallelization.   #
+#*--------------------------------------------------------*#
+omp:
+	$(eval BUILD_OMP="True")
 
 #*--------------------------------------------------------*#
 # Define targets used to activate file format support.     #
@@ -222,7 +233,7 @@ display:
 # Define the main compile command targets.                 #
 #*--------------------------------------------------------*#
 build_bwc:
-	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DLINK:STRING=${LINK_TYPE}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DPROF=${BUILD_PROF}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
+	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DLINK:STRING=${LINK_TYPE}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DPROF=${BUILD_PROF}" "-DOMP=${BUILD_OMP}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
 
 clean:
 	- /bin/rm -rf build/ bin/ lib/ lib64/ include/library/public

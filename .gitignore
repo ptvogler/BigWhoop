@@ -2,10 +2,6 @@
 # Prerequisites
 *.d
 
-# Data Files
-*.bwc
-*.eas
-
 # Object files
 *.o
 *.ko
@@ -135,9 +131,13 @@ share/python-wheels/
 MANIFEST
 
 # Files and Archives
-.eas
-.npz
-.zip
+*.eas
+*.npz
+*.zip
+*.bwc
+
+# Profiling assets
+valgrind-out.txt
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
