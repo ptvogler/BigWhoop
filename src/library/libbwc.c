@@ -3855,9 +3855,9 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*-----------------------*\
    ! DEFINE FLOAT VARIABLES: !
    \*-----------------------*/
-   double   start, end;
-
    #ifdef BWC_PROFILE
+      double   start, end;
+
       double   bpd = 0;
       double   cpr = 0;
 
@@ -4280,9 +4280,9 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    /*-----------------------*\
    ! DEFINE FLOAT VARIABLES: !
    \*-----------------------*/
-   double   start, end;
-
    #ifdef BWC_PROFILE
+      double   start, end;
+
       double   ttl;
 
       double   cpy;
