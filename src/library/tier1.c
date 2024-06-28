@@ -2836,12 +2836,14 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    uint64   c;
    uint64   cbSizeX, cbSizeY, cbSizeZ;
    uint64   width, height, depth;
+
    int64    buff_size;
-   int64    j;
+   int64    i, j;
+   int64    nThreads;
+
    uint16   cbSizeTS;
    uint16   slope_max, slope_min;
-   int16    i, z;
-   uint8    nThreads;
+   int16    z;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2921,7 +2923,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    ! threads during a parallel run. For a serial run only one !
    ! working buffer is allocated.                             !
    \*--------------------------------------------------------*/
-   for(i = 0; i < nThreads; ++i)
+   for(i = 0; i < (int64)nThreads; ++i)
    {
       memory[i] = calloc(buff_size, sizeof(bwc_coder_stripe));
       if(!memory[i])
@@ -3137,11 +3139,12 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    uint64   c;
    uint64   cbSizeX, cbSizeY, cbSizeZ;
    uint64   width, height, depth;
+
    int64    buff_size;
-   int64    j;
+   int64    i, j;
+   int64    nThreads;
+
    uint16   cbSizeTS;
-   int16    i;
-   uint8    nThreads;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3214,7 +3217,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    ! threads during a parallel run. For a serial run only one !
    ! working buffer is allocated.                             !
    \*--------------------------------------------------------*/
-   for(i = 0; i < nThreads; ++i)
+   for(i = 0; i < (int64)nThreads; ++i)
    {
       memory[i] = calloc(buff_size, sizeof(bwc_coder_stripe));
       if(!memory[i])

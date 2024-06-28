@@ -1624,18 +1624,22 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    uint64   rX1, rY1, rZ1;
    uint64   width, height, depth;
    uint64   x, y, z;
-   uint32   buff_size;
+
+   int64    nThreads;
    int16    i;
+   
+   uint32   buff_size;
+   
    uint16   incr_TS;
    uint16   rTS0;
    uint16   rTS1;
    uint16   dt;
    uint16   t;
+   
    uint8    id;
    uint8    filter_tapsX, filter_tapsY, filter_tapsZ;
    uint8    filter_tapsTS;
    uint8    level;
-   uint8    nThreads;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2161,18 +2165,22 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    uint64   rX1, rY1, rZ1;
    uint64   width, height, depth;
    uint64   x, y, z;
+   
+   int64    nThreads;
+   int64    i;
+   
    uint32   buff_size;
-   int16    i;
+   
    uint16   incr_TS;
    uint16   rTS0;
    uint16   rTS1;
    uint16   dt;
    uint16   t;
+   
    uint8    id;
    uint8    filter_tapsX, filter_tapsY, filter_tapsZ;
    uint8    filter_tapsTS;
    uint8    level;
-   uint8    nThreads;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
