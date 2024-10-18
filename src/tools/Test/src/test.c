@@ -48,6 +48,7 @@
 #include <argp.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -309,7 +310,7 @@ static char doc[] = "\n"\
                     "  Compression:       bwc -c [INPUT] [OPTIONS]\n"\
                     "  Decompression:     bwc -d [INPUT] [OPTIONS]\n"\
                     "  Analysis:          bwc -a [INPUT] -r [REFERENCE]\n"\
-                    "  Information:       bwc -h [INPUT]\n"\
+                    "  Information:       bwc -i [INPUT]\n"\
                     "\n"\
                     "Valid Option Values:\n"\
                     "\n"
@@ -328,7 +329,7 @@ static char doc[] = "\n"\
                     "  <sarr>             One or more strings seperated by commas: sarr = *,*,...\n"
                     "  <sdir>             Strings that can be specified globally or for all\n"
                     "                     spacial and temporal directions individually:\n"
-                    "                     sdir = * or sdir = x/y/z/ts.\n"*/
+                    "                     sdir = * or sdir = x,y,z,ts.\n"*/
 
 //=================================================================================================|
 /**
@@ -369,9 +370,6 @@ static struct argp_option options[] = {
 {"erresilience",      'e',   0,           0,                  "Instrument bitstream to allow "
                                                               "for error resilient decoding of"
                                                               " compressed dataset.\n",         2},
-//--------------------|-----|------------|--------------------|--------------------------------|---|
-{"stream",            's',   0,           OPTION_HIDDEN,      "Stream data to and from <input>"
-                                                              "/<output>.",                     2},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
 {"verbose",           'v',   0,           0,                  "Display compression statistics "
                                                               "and applied compression "
@@ -459,11 +457,11 @@ static struct argp_option options[] = {
 /*=====================================================|==========================================*/
 typedef enum
 {
-  cli_err,                                              //!< Command-line interface error
+  cli_ini,                                              //!< Undefined command line mode
   cli_cmp,                                              //!< Compression run
   cli_dcp,                                              //!< Decompression run
   cli_anl,                                              //!< Analyse distortion of reconstr. file
-  cli_hdr,                                              //!< Display header information
+  cli_inf,                                              //!< Display BWC Header Information
 } cli_mode;
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
@@ -481,13 +479,32 @@ typedef struct
 {
   cli_mode                    mode;                     //!< Current state of the cli tool
 
-  FILE                       *fpIn, *fpOut;             //!< Pointer to input/output file
-  char*                      *in,   *out;               //!< Name of the input/output files
+  FILE                       *fpIn, *fpOut,*fpRef;      //!< Pointer to in/out/ref file
+  char                       *nIn,  *nOut, *nRef;       //!< Name of the in/out/ref file
+  void                       *in,   *out,  *ref;        //!< In/Ou/Ref buffer
 
-  float                       bitrate[10];              //!< Quality layers defined by bitrate.
+  bool                        erresilience;             //!< Flag signalling error resilience
+  bool                        verbose;                  //!< Flag signalling verbose output
 
-  bwc_stream                 *stream;                   //!< Structure defining the BigWhoop I/O
-  bwc_codec                  *codec;                    //!< Structure defining the BigWhoop codec
+  uint64_t                    tileSize[4];              //!< Spatial/Temporal tile size
+  uint8_t                     precSize[4];              //!< Spatial/Temporal precinct size
+  uint8_t                     cblkSize[4];              //!< Spatial/Temporal codeblock size
+
+  //bwc_dwt_filter              dwtKernel[4];           //!< Spatial/Temporal wavelet kernels
+
+  float                       bitrate[10];              //!< Quality layers defined by bitrate
+  uint16_t                    compRatio[10];            //!< Quality layers defined by c. ratio
+  uint8_t                     decompLevel[4];           //!< N.o. Spatiaö/temporal dwt decompositions
+
+  double                      qt_step_size;             //!< Global qunatization step size
+  uint8_t                     Qm;                       //!< Q number format range (m)
+
+  uint8_t                     useLayer;                 //!< Quality layer used for decompression
+
+  uint64_t                    nThreads;                 //!< Number of OpenMP threads
+
+  //bwc_quant_st                quantization_style;       //!< Quantization style
+  //bwc_prog_ord                progression;              //!< Packet progression order
 } cli_arguments;
 
 
@@ -518,24 +535,25 @@ parse_opt(int                key,
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  //uint64_t                buff_LL;
+  int64_t                   buff;
   //uint64_t                multiplier;
 
-  //uint16_t                buffI;
-
   uint8_t                 i;
-  //uint8_t                 length, shift;
 
 
   /*-----------------------*\
   ! DEFINE REAL VARIABLES:  !
   \*-----------------------*/
+  double                  compRatio;
+  double                  qt_step_size;
   float                   bitrate;
 
+
   /*-----------------------*\
-  ! DEFINE REAL VARIABLES:  !
+  ! DEFINE CHAR VARIABLES:  !
   \*-----------------------*/
   char                   *end;
+  char                   *token, *ptr;
 
   /*-----------------------*\
   ! DEFINE STRUCTS:         !
@@ -554,8 +572,6 @@ parse_opt(int                key,
   ! variables to make the code more readable.                !
   \*--------------------------------------------------------*/
   arguments = state->input;
-  codec     = arguments->codec;
-  stream    = arguments->stream;
 
   /*--------------------------------------------------------*\
   ! Parse the cli arguments according to the supplied opt.   !
@@ -564,52 +580,69 @@ parse_opt(int                key,
     {
       case 'c':
         {
-          arguments->mode = bwc_cmp;
-          printf("Compress\n");
-          if(arg[0] == '-')
+          if(arguments->mode == cli_ini)
             {
-              argp_error(state, "No input specified\n");
+              arguments->mode = cli_cmp;
+              arguments->nIn =  arg;
             }
           else
             {
-              arguments->input     = ;
+              argp_error(state, "Arguments define multiple use cases.\n");
             }
           break;
         }
       case 'd':
         {
-          arguments->mode = bwc_dcp;
-          printf("Decompress\n");
+          if(arguments->mode != cli_ini)
+            {
+              arguments->mode = bwc_dcp;
+              arguments->nIn =  arg;
+            }
+          else
+            {
+              argp_error(state, "Arguments define multiple use cases.\n");
+            }
           break;
         }
       case 'a':
         {
-          //arguments->analysis = arg;
+          if(arguments->mode != cli_ini)
+            {
+              arguments->mode = cli_anl;
+              arguments->nIn =  arg;
+            }
+          else
+            {
+              argp_error(state, "Arguments define multiple use cases.\n");
+            }
           break;
         }
-      case 'h':
+      case 'i':
         {
-          //arguments->header = arg;
+          if(arguments->mode != cli_ini)
+            {
+              arguments->mode = cli_inf;
+              arguments->nIn =  arg;
+            }
+          else
+            {
+              argp_error(state, "Arguments define multiple use cases.\n");
+            }
           break;
         }
       case 'o':
         {
-          //arguments->output = arg;
+          arguments->nOut = arg;
           break;
         }
       case 'r':
         {
-          //arguments->reference = arg;
-          break;
-        }
-      case 's':
-        {
-          //arguments->stream = 1;
+          arguments->nRef = arg;
           break;
         }
       case 'v':
         {
-          //arguments->stream = 1;
+          arguments->verbose = true;
           break;
         }
       case 'b':
@@ -627,154 +660,272 @@ parse_opt(int                key,
                 }
               else
                 {
+                  errno = 0;
                   argp_error(state, "The specified bitrate (%f) is "
                                     "out of the supported range.\n", bitrate);
-                  
-                  arguments->mode = cli_err;
-                  errno = 0;
-                  break;
                 }
             }
           break;
         }
       case 'B':
         {
-          // remove_deliminator(arg, end, '/');
+          remove_deliminator(arg, end, '/');
 
-          // for(buff_LL = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
-          //     buff_LL = strtoll(arg, &end, 10), i++)
-          //   {
-          //     arg = end;
-          //     if (errno == ERANGE)
-          //       {
-          //         printf("range error, got ");
-          //         errno = 0;
-          //       }
-
-          //     if(buff_LL > 1 && buff_LL < 10)
-          //       {
-          //         arguments->codeblock[i] = (uint8_t) buff_LL;
-          //       }
-          //     else
-          //       {
-          //         argp_error(state, "The specified codeblock size (%ld) "
-          //                           "is out of the supported range.\n", buff_LL);
-          //       }
-          //   }
-
-          // if(i == 1)
-          //   {
-          //     arguments->codeblock[1] =
-          //     arguments->codeblock[2] =
-          //     arguments->codeblock[3] = arguments->codeblock[0];
-          //   }
-          // else if(i != 4)
-          //   {
-          //     argp_error(state, "The codeblock argument expects either a "
-          //                       "single global or 4 dirctional values\n");
-          //   }
-
-          // if(((arguments->codeblock[0] + arguments->codeblock[1] +
-          //      arguments->codeblock[2] + arguments->codeblock[3]) < 4) || 
-          //    ((arguments->codeblock[0] + arguments->codeblock[1] +
-          //      arguments->codeblock[2] + arguments->codeblock[3]) > 20))
-          //   {
-          //     argp_error(state, "The sum of the specified codeblock sizes "
-          //                       "is outside of the supported range\n");
-          //   }
-          break;
-        }
-      case 'R':
-        {
-          // arguments->compratio = (uint8_t)strtoll(arg, &end, 10);
-          // printf("%d\n", arguments->compratio);
-          break;
-        }
-      case 'D':
-        {
-/*          remove_deliminator(arg, end, '/');
-
-          for(buff_LL = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
-              buff_LL = strtoll(arg, &end, 10), i++)
+          for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
+              buff = strtoll(arg, &end, 10), i++)
             {
               arg = end;
-              if (errno == ERANGE)
-                {
-                  printf("range error, got ");
-                  errno = 0;
-                }
 
-              if(buff_LL >= 1 && buff_LL <= 63)
+              if(buff > 1 && buff < 10 && errno != ERANGE)
                 {
-                  arguments->codeblock[i] = (uint8_t) buff_LL;
+                  arguments->cblkSize[i] = (uint8_t) buff;
                 }
               else
                 {
+                  errno = 0;
                   argp_error(state, "The specified codeblock size (%ld) "
-                                    "is out of the supported range.\n", buff_LL);
+                                    "is out of the supported range.\n", buff);
+                  break;
                 }
             }
 
           if(i == 1)
             {
-              arguments->codeblock[1] =
-              arguments->codeblock[2] =
-              arguments->codeblock[3] = arguments->codeblock[0];
+              arguments->cblkSize[1] =
+              arguments->cblkSize[2] =
+              arguments->cblkSize[3] = arguments->cblkSize[0];
             }
           else if(i != 4)
             {
               argp_error(state, "The codeblock argument expects either a "
                                 "single global or 4 directional values\n");
-            }*/
+            }
+          break;
+        }
+      case 'R':
+        {
+          remove_deliminator(arg, end, ',');
+
+          for(compRatio = strtod(arg, &end), i = 0; arg != end && i < 10;
+              compRatio = strtod(arg, &end), i++)
+            {
+              arg = end;
+
+              if(compRatio > 0 && compRatio < 65536 && errno != ERANGE)
+                {
+                  arguments->compRatio[i] = (uint16_t) compRatio;
+                }
+              else
+                {
+                  errno = 0;
+                  argp_error(state, "The specified bitrate (%d) is "
+                                    "out of the supported range.\n", compRatio);
+                }
+            }
+
+          break;
+        }
+      case 'D':
+        {
+          remove_deliminator(arg, end, '/');
+
+          for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
+              buff = strtoll(arg, &end, 10), i++)
+            {
+              arg = end;
+
+              if(buff > 0 && buff <= 64 && errno != ERANGE)
+                {
+                  arguments->decompLevel[i] = (uint8_t) buff;
+                }
+              else
+                {
+                  errno = 0;
+                  argp_error(state, "The specified decomposition level (%ld) "
+                                    "is out of the supported range.\n", buff);
+                  break;
+                }
+            }
+
+          if(i == 1)
+            {
+              arguments->decompLevel[1] =
+              arguments->decompLevel[2] =
+              arguments->decompLevel[3] = arguments->decompLevel[0];
+            }
+          else if(i != 4)
+            {
+              argp_error(state, "The decomposition level argument expects either a "
+                                "single global or 4 directional values\n");
+            }
           break;
         }
       case 'n':
         {
-          // buff_LL = strtoll(arg, &end, 10);
-          // if((buff_LL < 1) || (buff_LL > 255))
-          //   {
-          //     argp_error(state, "The number of OpenMP threads specified"
-          //                       "is out of the supported range.\n");
-          //   }
-          // else
-          //   {
-          //     arguments->nthreads = (uint8_t)buff_LL;
-          //   }
+          buff = strtoll(arg, &end, 10);
+
+          if (errno == ERANGE)
+            {
+              errno = 0;
+              argp_error(state, "The specified number of OpenMP threads (%ld) "
+                                "is out of the supported range.\n", buff);
+            }
+          else
+          {
+            arguments->nThreads = (uint64_t) buff;
+          }
           break;
         }
       case 'l':
         {
-          printf("l\n");
+          buff = strtoll(arg, &end, 10);
+
+          if (buff > 0 && buff <= 255 && errno != ERANGE)
+            {
+              errno = 0;
+              argp_error(state, "The specified quality layer (%ld) "
+                                "is out of the supported range.\n", buff);
+            }
+          else
+          {
+            arguments->useLayer = (uint8_t) buff;
+          }
           break;
         }
-      case 'k':
+      /*case 'k':
         {
-          printf("k\n");
+          for(token =  strtok_r(str, ",", &ptr), i = 0;
+              token != NULL, i < 4;
+              token = strtok_r(NULL, ",", &ptr), i++)
+            {
+              if(strcasecmp(token, "leGall") == 0)
+                arguments->dwtKernel[i] =  bwc_dwt_5_3;
+              else if (strcasecmp(token, "CDF") == 0)
+                arguments->dwtKernel[i] = bwc_dwt_9_7;
+              else if (strcasecmp(token, "Haar") == 0)
+                arguments->dwtKernel[i] = bwc_dwt_haar;
+              else
+                argp_error(state, "Waveket kernel %s is unknown "
+                                  "to the library.\n", token);
+            }
+
+          if(i == 1)
+            {
+              arguments->dwtKernel[1] =
+              arguments->dwtKernel[2] =
+              arguments->dwtKernel[3] = arguments->dwtKernel[0];
+            }
+          else if(i != 4)
+            {
+              argp_error(state, "The wavelet kernel argument expects either a "
+                                "single global or 4 directional values\n");
+            }
           break;
-        }
+        }*/
       case 'q':
         {
-          printf("q\n");
+          qt_step_size = strtod(arg, &end);
+
+          if(qt_step_size > 0 && qt_step_size < 2 && errno != ERANGE)
+            {
+              arguments->qt_step_size = (double) qt_step_size;
+            }
+          else
+            {
+              errno = 0;
+              argp_error(state, "The specified quantization step size (%f) is "
+                                "out of the supported range.\n", qt_step_size);
+            }
           break;
         }
       case 'Q':
         {
-          printf("Q\n");
+          buff = strtoll(arg, &end, 10);
+          if(buff > 0 && buff < 63 && errno != ERANGE)
+            {
+              arguments->Qm = (uint8_t) buff;
+            }
+          else
+            {
+              errno = 0;
+              argp_error(state, "The specified Q number format range (%ld) "
+                                "is out of the supported range.\n", buff);
+            }
           break;
         }
       case 'e':
         {
-          printf("e\n");
+          arguments->erresilience = true;
           break;
         }
       case 't':
         {
-          printf("t\n");
+          remove_deliminator(arg, end, '/');
+
+          for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
+              buff = strtoll(arg, &end, 10), i++)
+            {
+              arg = end;
+
+              if(buff > 16 && errno != ERANGE)
+                {
+                  arguments->tileSize[i] = (uint64_t) buff;
+                }
+              else
+                {
+                  errno = 0;
+                  argp_error(state, "The specified tile size (%ld) "
+                                    "is out of the supported range.\n", buff);
+                  break;
+                }
+            }
+
+          if(i == 1)
+            {
+              arguments->tileSize[1] =
+              arguments->tileSize[2] =
+              arguments->tileSize[3] = arguments->tileSize[0];
+            }
+          else if(i != 4)
+            {
+              argp_error(state, "The tile argument expects either a "
+                                "single global or 4 directional values\n");
+            }
           break;
         }
       case 'p':
         {
-          printf("p\n");
+          remove_deliminator(arg, end, '/');
+
+          for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
+              buff = strtoll(arg, &end, 10), i++)
+            {
+              arg = end;
+
+              if(buff >= 1 && buff <= 15 && errno != ERANGE)
+                {
+                  arguments->precSize[i] = (uint8_t) buff;
+                }
+              else
+                {
+                  errno = 0;
+                  argp_error(state, "The specified precinct size (%ld) "
+                                    "is out of the supported range.\n", buff);
+                  break;
+                }
+            }
+
+          if(i == 1)
+            {
+              arguments->precSize[1] =
+              arguments->precSize[2] =
+              arguments->precSize[3] = arguments->precSize[0];
+            }
+          else if(i != 4)
+            {
+              argp_error(state, "The precinct argument expects either a "
+                                "single global or 4 directional values\n");
+            }
           break;
         }
 
@@ -784,38 +935,19 @@ parse_opt(int                key,
           break;
         }  
 
-      case ARGP_KEY_ARG:
-      
-          // Too many arguments.
-          if(state->arg_num > 1)
-              argp_usage(state);
-          break;
-
       case ARGP_KEY_END:
-          /*if(!((arguments->analysis  != NULL) &&  (arguments->comp      == NULL)
-                                              &&  (arguments->decomp    == NULL)
-                                              &&  (arguments->header    == NULL)
-                                              &&  (arguments->output    == NULL)
-                                              &&  (arguments->reference != NULL)) &&
-             !((arguments->comp      != NULL) &&  (arguments->analysis  == NULL)
-                                              &&  (arguments->decomp    == NULL)
-                                              &&  (arguments->header    == NULL)
-                                              &&  (arguments->reference == NULL)) &&
-             !((arguments->decomp    != NULL) &&  (arguments->analysis  == NULL)
-                                              &&  (arguments->comp      == NULL)
-                                              &&  (arguments->header    == NULL)
-                                              &&  (arguments->reference == NULL)) &&
-             !((arguments->header    != NULL) &&  (arguments->analysis  == NULL)
-                                              &&  (arguments->comp      == NULL)
-                                              &&  (arguments->decomp    == NULL)
-                                              &&  (arguments->output    == NULL)
-                                              &&  (arguments->reference == NULL)))
+        {
+          if((arguments->mode == cli_ini) ||
+            ((arguments->mode == cli_cmp  ||
+              arguments->mode == cli_dcp  ||
+              arguments->mode == cli_inf) && arguments->nIn == NULL) ||
+             (arguments->mode == cli_anl) && (arguments->nIn == NULL || arguments->nRef == NULL))
             {
               argp_error(state, "The User supplied options do not fit the "
                                 "supported use cases.\n");
-            }*/
+            }
           break;
-
+        }
       default:
           return ARGP_ERR_UNKNOWN;
     }
@@ -846,23 +978,9 @@ int main(int argc, char *argv[])
   cli_arguments   arguments = {0};
 
   /*--------------------------------------------------------*\
-  ! Initialize the arguments structure.                      !
-  \*--------------------------------------------------------*/
-  arguments.stream  = calloc(1, sizeof(bwc_stream));
-  arguments.codec   = calloc(1, sizeof(bwc_codec));
-  if((arguments.stream == NULL) ||
-     (arguments.codec  == NULL))
-    {
-       // memory allocation error
-       fprintf(stderr, MEMERROR);
-       return EXIT_FAILURE;
-    }
-
-  /*--------------------------------------------------------*\
   ! Parse the cli arguments.                                 !
   \*--------------------------------------------------------*/
-  argp_parse(&argp, argc, argv, 0, 0, &arguments);
-  if(arguments.mode == cli_err)
+  if(argp_parse(&argp, argc, argv, 0, 0, &arguments) == EXIT_FAILURE)
     {
       return EXIT_FAILURE;
     }
