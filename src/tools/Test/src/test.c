@@ -271,6 +271,26 @@ typedef struct
 
 /*================================================================================================*/
 /**
+ * @details These macros are used to set and probe the cli_arguments optSet variable
+ */
+/*================================================================================================*/
+#define BITRT   0x8000
+#define CBLKS   0x4000
+#define CMPRT   0x2000
+#define DCLVL   0x1000
+#define DWTKL   0x0800
+#define FLOUT   0x0400
+#define OMPTH   0x0200
+#define PRORD   0x0100
+#define PRECS   0x0090
+#define QFRMT   0x0040
+#define QTSIZ   0x0020
+#define QTSTL   0x0010
+#define TILES   0x0008
+#define USQLY   0x0004
+
+/*================================================================================================*/
+/**
  * @details This macro defines a simple operation to remove a supplied deliminator from a string.
  */
 /*===========================================================================|====================*/
@@ -307,10 +327,10 @@ static char doc[] = "\n"\
                     "\n"\
                     "Available use cases:\n"\
                     "\n"\
-                    "  Compression:       bwc -c [INPUT] [OPTIONS]\n"\
-                    "  Decompression:     bwc -d [INPUT] [OPTIONS]\n"\
-                    "  Analysis:          bwc -a [INPUT] -r [REFERENCE]\n"\
-                    "  Information:       bwc -i [INPUT]\n"\
+                    "  Compression:       bwc -C [INPUT] [OPTIONS]\n"\
+                    "  Decompression:     bwc -D [INPUT] [OPTIONS]\n"\
+                    "  Analysis:          bwc -A [INPUT] -R [REFERENCE]\n"\
+                    "  Information:       bwc -H [INPUT]\n"\
                     "\n"\
                     "Valid Option Values:\n"\
                     "\n"
@@ -323,7 +343,7 @@ static char doc[] = "\n"\
                     "\n"
                     "  <ndir>             Numerical values that can be specified globally or for\n"
                     "                     all spacial and temporal directions individually:\n"
-                    "                     ndir = * or ndir = x/y/z/ts.\n";
+                    "                     ndir = * or ndir = x,y,z,ts.\n";
                     /*"\n"
                     "  <str>              Single string.\n"
                     "  <sarr>             One or more strings seperated by commas: sarr = *,*,...\n"
@@ -344,21 +364,21 @@ static struct argp_option options[] = {
 //====================|=====|============|====================|================================|===|
 {0,                    0,    0,           0,                  " [FILE OPTIONS]\n",              1},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"analysis",          'a',  "<input>",    0,                  "Analyze Peak Signal to Noise"
+{"analysis",          'A',  "<input>",    0,                  "Analyze Peak Signal to Noise"
                                                               " Ratio (PSNR) and Mean Square" 
                                                               " Error (MSE) between input and" 
                                                               " reference file.\n",             1},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"comp",              'c',  "<input>",    0,                  "Compress a numerical dataset.",  1},
+{"comp",              'C',  "<input>",    0,                  "Compress a numerical dataset.",  1},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"decomp",            'd',  "<input>",    0,                  "Decompress a BigWhoop file.",    1},
+{"decomp",            'D',  "<input>",    0,                  "Decompress a BigWhoop file.",    1},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"header",            'h',  "<input>",    0,                  "Display the header information"
+{"header",            'H',  "<input>",    0,                  "Display the header information"
                                                               " of a BigWhoop file.\n",         1},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"output",            'o',  "<output>",   0,                  "Defines output file.",           1},
+{"output",            'O',  "<output>",   0,                  "Defines output file.",           1},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"reference",         'r',  "<input>",    0,                  "Reference file used for PSNR"
+{"reference",         'R',  "<input>",    0,                  "Reference file used for PSNR"
                                                               " and MSE calculation.",          1},
 //====================|=====|============|====================|================================|===|
 //--------------------|-----|------------|--------------------|--------------------------------|---|
@@ -387,13 +407,13 @@ static struct argp_option options[] = {
                                                               "point. Accepts real numbers in "
                                                               "the range of 0 < * < 64.\n",     3},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"codeblock",         'B',  "<ndir>",     0,                  "Codeblock size in log2 format. "
+{"codeblock",         'c',  "<ndir>",     0,                  "Codeblock size in log2 format. "
                                                               "Accepts natural numbers in the "
                                                               "range of 1 <= * <= 10 with the "
                                                               "sum having to lie in the range "
                                                               "of 4 < sum* < 20.\n",            3},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"decomplvl",         'D',  "<ndir>",     0,                  "Number of wavelet decomposi"
+{"decomplvl",         'd',  "<ndir>",     0,                  "Number of wavelet decomposi"
                                                               "tions applied to the data "
                                                               "arrays. Accepts natural numbers"
                                                               " in the range of 1 <= * <= 63."
@@ -420,13 +440,13 @@ static struct argp_option options[] = {
                                                               "Accepts real numbers in the "
                                                               "range of 0 < * < 2.\n",          3},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"qformat",           'Q',  "<num>",      0,                  "Fractional bits of the Q number"
+{"qformat",           'm',  "<num>",      0,                  "Fractional bits of the Q number"
                                                               " format used in the floating-to"
                                                               "-fixed point transfomration. "
                                                               "Accepts natural numbers in the "
                                                               "range of 1 <= * <= 62.\n",       3},
 //--------------------|-----|------------|--------------------|--------------------------------|---|
-{"compratio",         'R',  "<num>",      0,                  "Target ratio between the uncom"
+{"compratio",         'r',  "<num>",      0,                  "Target ratio between the uncom"
                                                               "presssed and compressed file "
                                                               "size. Accepts positive real "
                                                               "numbers.\n",                     3},
@@ -477,7 +497,9 @@ typedef enum
 /*===========================|=========================|==========================================*/
 typedef struct
 {
+  char *args[2];
   cli_mode                    mode;                     //!< Current state of the cli tool
+  uint16_t                    optSet;                   //!< Flag signaling witch opt has been set
 
   FILE                       *fpIn, *fpOut,*fpRef;      //!< Pointer to in/out/ref file
   char                       *nIn,  *nOut, *nRef;       //!< Name of the in/out/ref file
@@ -492,9 +514,8 @@ typedef struct
 
   //bwc_dwt_filter              dwtKernel[4];           //!< Spatial/Temporal wavelet kernels
 
-  float                       bitrate[10];              //!< Quality layers defined by bitrate
-  uint16_t                    compRatio[10];            //!< Quality layers defined by c. ratio
-  uint8_t                     decompLevel[4];           //!< N.o. Spatiaö/temporal dwt decompositions
+  double                      rate[10];                 //!< Quality layers defining rate ctrl.
+  uint8_t                     decompLevel[4];           //!< N.o. Spatial/temporal dwt decompo.
 
   double                      qt_step_size;             //!< Global qunatization step size
   uint8_t                     Qm;                       //!< Q number format range (m)
@@ -516,8 +537,48 @@ typedef struct
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 /*================================================================================================*/
 /**
- * @details This function analyzes one option at a time and sets the corresponding value and
- *          passes arguments in the bwc_codec struct.
+ * @details This function takes the argument string, removes the supplied deliminators and 
+ *          verifies that the values are valid. If decimal is set to true the decimal point
+ *          in a floating point value will be ignored.
+ *
+ * @param[in]   arg   Argument corresponding to the option key.
+ * @param[in]   delim Character used to deliminate between values.
+ * @param[in]   dec   Bool signaling if string contains floating point values.
+ *
+ * @retval -1  Error
+ * @retval  0  OK
+ */
+/*================================================================================================*/
+static error_t
+verify_opt(char *arg, char deliminator, bool decimal)
+{
+  /*-----------------------*\
+  ! DEFINE CHAR VARIABLES:  !
+  \*-----------------------*/
+  char                   *parse;
+
+  remove_deliminator(arg, parse, deliminator);
+
+  for(parse = arg; *parse; parse++)
+    {
+      if(decimal == true)
+        {
+          if(!isdigit(*parse) && *parse != ' ' && *parse != '.')
+            return EXIT_FAILURE;
+        }
+      else
+        {
+          if(!isdigit(*parse) && *parse != ' ')
+            return EXIT_FAILURE;
+        }
+    }
+   return EXIT_SUCCESS;
+}
+
+/*================================================================================================*/
+/**
+ * @details This function analyzes one option at a time and sets the corresponding value in
+ *          the cli arguments struct.
  *
  * @param[in]     key   Option's key corresponding to the field value in the arg_option struct.
  * @param[in]     arg   Argument corresponding to the option key.
@@ -535,9 +596,7 @@ parse_opt(int                key,
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  int64_t                   buff;
-  //uint64_t                multiplier;
-
+  int64_t                 buff;
   uint8_t                 i;
 
 
@@ -567,96 +626,153 @@ parse_opt(int                key,
   \*-----------------------*/
   assert(state);
 
-  /*--------------------------------------------------------*\
-  ! Save frequently used variables/structures to temporary   !
-  ! variables to make the code more readable.                !
-  \*--------------------------------------------------------*/
+  /* Save frequently used variables/structures to         *
+   * temporary variables.                                 */
   arguments = state->input;
 
-  /*--------------------------------------------------------*\
-  ! Parse the cli arguments according to the supplied opt.   !
-  \*--------------------------------------------------------*/
+  /* Parse the cli arguments.                             */
   switch(key)
     {
-      case 'c':
+      /* Ingest compression argument.                         */
+      case 'C':
         {
-          if(arguments->mode == cli_ini)
+          if(arguments->mode != cli_ini)
+            {
+              argp_error(state, "Arguments define multiple use cases.\n");
+            }
+          else if ((arg == NULL) || (arg[0] == '-'))
+            {
+              argp_error(state, "file names that start with an '-'"
+                                " are not supported.\n");
+            }
+          else
             {
               arguments->mode = cli_cmp;
               arguments->nIn =  arg;
             }
-          else
-            {
-              argp_error(state, "Arguments define multiple use cases.\n");
-            }
           break;
         }
-      case 'd':
+
+      /* Ingest decompression argument.                       */
+      case 'D':
         {
           if(arguments->mode != cli_ini)
             {
-              arguments->mode = bwc_dcp;
+              argp_error(state, "Arguments define multiple use cases.\n");
+            }
+          else if ((arg == NULL) || (arg[0] == '-'))
+            {
+              argp_error(state, "file names that start with an '-'"
+                                " are not supported.\n");
+            }
+          else
+            {
+              arguments->mode = cli_dcp;
               arguments->nIn =  arg;
             }
-          else
+          break;
+        }
+
+      /* Ingest analysis argument.                            */
+      case 'A':
+        {
+          if(arguments->mode != cli_ini)
             {
               argp_error(state, "Arguments define multiple use cases.\n");
             }
-          break;
-        }
-      case 'a':
-        {
-          if(arguments->mode != cli_ini)
+          else if ((arg == NULL) || (arg[0] == '-'))
+            {
+              argp_error(state, "file names that start with an '-'"
+                                " are not supported.\n");
+            }
+          else
             {
               arguments->mode = cli_anl;
               arguments->nIn =  arg;
             }
-          else
+
+          break;
+        }
+
+      /* Ingest header info argument.                         */
+      case 'H':
+        {
+          if(arguments->mode != cli_ini)
             {
               argp_error(state, "Arguments define multiple use cases.\n");
             }
-          break;
-        }
-      case 'i':
-        {
-          if(arguments->mode != cli_ini)
+          else if ((arg == NULL) || (arg[0] == '-'))
+            {
+              argp_error(state, "file names that start with an '-'"
+                                " are not supported.\n");
+            }
+          else
             {
               arguments->mode = cli_inf;
               arguments->nIn =  arg;
             }
+
+          break;
+        }
+
+      /* Ingest output argument.                              */
+      case 'O':
+        {
+          if ((arg == NULL) || (arg[0] == '-'))
+            {
+              argp_error(state, "file names that start with an '-'"
+                                " are not supported.\n");
+            }
           else
             {
-              argp_error(state, "Arguments define multiple use cases.\n");
+              arguments->nOut    = arg;
+              arguments->optSet |= FLOUT;
             }
+            
           break;
         }
-      case 'o':
-        {
-          arguments->nOut = arg;
-          break;
-        }
-      case 'r':
+
+      /* Ingest reference argument.                           */
+      case 'R':
         {
           arguments->nRef = arg;
           break;
         }
+
+      /* Ingest verbose argument.                             */
       case 'v':
         {
           arguments->verbose = true;
           break;
         }
+
+      /* Ingest bit rates.                                    */
       case 'b':
         {
-          remove_deliminator(arg, end, ',');
+          if(arguments->optSet & BITRT)
+            {
+              argp_error(state, "The bitrate can only be defined once.\n");
+            }
+          else if(arguments->optSet & CMPRT)
+            {
+              argp_error(state, "The size reduction requires to be specified "
+                                "either by a bit rate or a compression ratio, "
+                                "never both.\n");
+            }
+
+          if(verify_opt(arg, ',', true) == EXIT_FAILURE)
+            {
+              argp_error(state, "Invalid delimitnator in the bitrate option\n");
+            }
 
           for(bitrate = strtod(arg, &end), i = 0; arg != end && i < 10;
               bitrate = strtod(arg, &end), i++)
             {
               arg = end;
 
-              if(bitrate > 0 && bitrate < 64 && errno != ERANGE)
+              if(bitrate > 0 && bitrate <= 64 && errno != ERANGE)
                 {
-                  arguments->bitrate[i] = (float) bitrate;
+                  arguments->rate[i] = (double) bitrate;
                 }
               else
                 {
@@ -665,18 +781,31 @@ parse_opt(int                key,
                                     "out of the supported range.\n", bitrate);
                 }
             }
+
+          arguments->optSet |= BITRT;
           break;
         }
-      case 'B':
+
+      /* Ingest codeblock size.                               */
+      case 'c':
         {
-          remove_deliminator(arg, end, '/');
+          if(arguments->optSet & CBLKS)
+            {
+              argp_error(state, "The codeblock size can only be defined once.\n");
+            }
+
+          if(verify_opt(arg, ',', false) == EXIT_FAILURE)
+            {
+              argp_error(state, "Invalid delimitnator in the codeblock"
+                                " size option.\n");
+            }
 
           for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
               buff = strtoll(arg, &end, 10), i++)
             {
               arg = end;
 
-              if(buff > 1 && buff < 10 && errno != ERANGE)
+              if(buff >= 0 && buff <= 10 && errno != ERANGE)
                 {
                   arguments->cblkSize[i] = (uint8_t) buff;
                 }
@@ -700,11 +829,30 @@ parse_opt(int                key,
               argp_error(state, "The codeblock argument expects either a "
                                 "single global or 4 directional values\n");
             }
+
+          arguments->optSet |= CBLKS;
           break;
         }
-      case 'R':
+
+      /* Ingest compression ratio.                            */
+      case 'r':
         {
-          remove_deliminator(arg, end, ',');
+          if(arguments->optSet & CMPRT)
+            {
+              argp_error(state, "The compression ratio can only be defined once.\n");
+            }
+          else if(arguments->optSet & BITRT)
+            {
+              argp_error(state, "The size reduction requires to be specified "
+                                "either by a bit rate or a compression ratio, "
+                                "never both.\n");
+            }
+
+          if(verify_opt(arg, ',', true) == EXIT_FAILURE)
+            {
+              argp_error(state, "Invalid delimitnator in the compression"
+                                " ratio option \n");
+            }
 
           for(compRatio = strtod(arg, &end), i = 0; arg != end && i < 10;
               compRatio = strtod(arg, &end), i++)
@@ -713,7 +861,7 @@ parse_opt(int                key,
 
               if(compRatio > 0 && compRatio < 65536 && errno != ERANGE)
                 {
-                  arguments->compRatio[i] = (uint16_t) compRatio;
+                  arguments->rate[i] = (double) compRatio;
                 }
               else
                 {
@@ -723,18 +871,30 @@ parse_opt(int                key,
                 }
             }
 
+          arguments->optSet |= CMPRT;
           break;
         }
-      case 'D':
+
+      /* Ingest decomposition level.                          */
+      case 'd':
         {
-          remove_deliminator(arg, end, '/');
+          if(arguments->optSet & DCLVL)
+            {
+              argp_error(state, "The compression ratio can only be defined once.\n");
+            }
+
+          if(verify_opt(arg, ',', false) == EXIT_FAILURE)
+            {
+              argp_error(state, "Invalid delimitnator in the decomposition"
+                                " level option.\n");
+            }
 
           for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
               buff = strtoll(arg, &end, 10), i++)
             {
               arg = end;
 
-              if(buff > 0 && buff <= 64 && errno != ERANGE)
+              if(buff > 0 && buff <= 63 && errno != ERANGE)
                 {
                   arguments->decompLevel[i] = (uint8_t) buff;
                 }
@@ -758,8 +918,12 @@ parse_opt(int                key,
               argp_error(state, "The decomposition level argument expects either a "
                                 "single global or 4 directional values\n");
             }
+
+          arguments->optSet |= DCLVL;
           break;
         }
+
+      /* Ingest number of OpenMP threads.                     */
       case 'n':
         {
           buff = strtoll(arg, &end, 10);
@@ -774,8 +938,12 @@ parse_opt(int                key,
           {
             arguments->nThreads = (uint64_t) buff;
           }
+
+          arguments->optSet |= OMPTH;
           break;
         }
+
+      /* Ingest quality layer to be used for decompression.   */
       case 'l':
         {
           buff = strtoll(arg, &end, 10);
@@ -790,10 +958,19 @@ parse_opt(int                key,
           {
             arguments->useLayer = (uint8_t) buff;
           }
+
+          arguments->optSet |= USQLY;
           break;
         }
+
+      /* Ingest wavelet kernels.                              */
       /*case 'k':
         {
+          if(arguments->optSet & DWTKL)
+            {
+              argp_error(state, "The wavelet kernels can only be defined once.\n");
+            }
+
           for(token =  strtok_r(str, ",", &ptr), i = 0;
               token != NULL, i < 4;
               token = strtok_r(NULL, ",", &ptr), i++)
@@ -820,8 +997,12 @@ parse_opt(int                key,
               argp_error(state, "The wavelet kernel argument expects either a "
                                 "single global or 4 directional values\n");
             }
+
+          arguments->optSet |= DWTKL;
           break;
         }*/
+
+      /* Ingest quantization step size.                       */
       case 'q':
         {
           qt_step_size = strtod(arg, &end);
@@ -836,10 +1017,19 @@ parse_opt(int                key,
               argp_error(state, "The specified quantization step size (%f) is "
                                 "out of the supported range.\n", qt_step_size);
             }
+
+          arguments->optSet |= QTSIZ;
           break;
         }
-      case 'Q':
+
+      /* Ingest Q number format range.                        */
+      case 'm':
         {
+          if(arguments->optSet & QFRMT)
+            {
+              argp_error(state, "The Q format range can only be defined once.\n");
+            }
+
           buff = strtoll(arg, &end, 10);
           if(buff > 0 && buff < 63 && errno != ERANGE)
             {
@@ -851,23 +1041,38 @@ parse_opt(int                key,
               argp_error(state, "The specified Q number format range (%ld) "
                                 "is out of the supported range.\n", buff);
             }
+
+          arguments->optSet |= QFRMT;
           break;
         }
+
+      /* Ingest error resilience setting.                     */
       case 'e':
         {
           arguments->erresilience = true;
           break;
         }
+
+      /* Ingest tile size.                                    */
       case 't':
         {
-          remove_deliminator(arg, end, '/');
+          if(arguments->optSet & TILES)
+            {
+              argp_error(state, "The tile size can only be defined once.\n");
+            }
+
+          if(verify_opt(arg, ',', false) == EXIT_FAILURE)
+            {
+              argp_error(state, "Invalid delimitnator in the tile"
+                                " size option.\n");
+            }
 
           for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
               buff = strtoll(arg, &end, 10), i++)
             {
               arg = end;
 
-              if(buff > 16 && errno != ERANGE)
+              if(buff >= 16 && errno != ERANGE)
                 {
                   arguments->tileSize[i] = (uint64_t) buff;
                 }
@@ -891,18 +1096,31 @@ parse_opt(int                key,
               argp_error(state, "The tile argument expects either a "
                                 "single global or 4 directional values\n");
             }
+
+          arguments->optSet |= TILES;
           break;
         }
+
+      /* Ingest precinct size.                                */
       case 'p':
         {
-          remove_deliminator(arg, end, '/');
+          if(arguments->optSet & PRECS)
+            {
+              argp_error(state, "The precinct size can only be defined once.\n");
+            }
+
+          if(verify_opt(arg, ',', false) == EXIT_FAILURE)
+            {
+              argp_error(state, "Invalid delimitnator in the precinct"
+                                " size option.\n");
+            }
 
           for(buff = strtoll(arg, &end, 10), i = 0; arg != end && i < 4;
               buff = strtoll(arg, &end, 10), i++)
             {
               arg = end;
 
-              if(buff >= 1 && buff <= 15 && errno != ERANGE)
+              if(buff >= 0 && buff <= 15 && errno != ERANGE)
                 {
                   arguments->precSize[i] = (uint8_t) buff;
                 }
@@ -926,40 +1144,54 @@ parse_opt(int                key,
               argp_error(state, "The precinct argument expects either a "
                                 "single global or 4 directional values\n");
             }
+
+          arguments->optSet |= PRECS;
           break;
         }
 
-      case ARGP_KEY_NO_ARGS:
-        {
-          argp_usage (state);
-          break;
-        }  
-
+      /* Check if the user supplied options fit the supported *
+       * use case.                                            */
       case ARGP_KEY_END:
         {
-          if((arguments->mode == cli_ini) ||
-            ((arguments->mode == cli_cmp  ||
-              arguments->mode == cli_dcp  ||
-              arguments->mode == cli_inf) && arguments->nIn == NULL) ||
-             (arguments->mode == cli_anl) && (arguments->nIn == NULL || arguments->nRef == NULL))
+          if(((arguments->mode == cli_cmp                                                         || 
+               arguments->mode == cli_dcp) && (arguments->nIn == NULL || arguments->nRef != NULL))||
+              (arguments->mode == cli_inf  && (arguments->nIn == NULL || arguments->nRef != NULL
+                                                                      || arguments->nOut != NULL))||
+              (arguments->mode == cli_anl  && (arguments->nIn == NULL || arguments->nRef == NULL 
+                                                                      || arguments->nOut != NULL)))
             {
               argp_error(state, "The User supplied options do not fit the "
                                 "supported use cases.\n");
             }
+          else if (arguments->mode == cli_ini)
+            {
+              argp_usage(state);
+            }
           break;
         }
+
+      /* Output standard usage message if no arg is defined.  */
+      case ARGP_KEY_NO_ARGS:
+        if(arguments->mode == cli_ini)
+          argp_usage (state);
+
+      /* Return error if key is unknown.                      */
       default:
-          return ARGP_ERR_UNKNOWN;
+        return ARGP_ERR_UNKNOWN;
     }
   return EXIT_SUCCESS;
 }
 
-// initialize the argp struct. Which will be used to parse and use the args.
+/*================================================================================================*/
+/**
+ * @details Initialize the argp struct. used to parse the command line arguments
+ */
+/*================================================================================================*/
 static struct argp argp = {options, parse_opt, 0, doc};
 
 /*================================================================================================*/
 /**
- * @details This function provides the command-line interface for the BigWhoop compression 
+ * @details This function defines the command-line interface for the BigWhoop compression 
  *          library.
  * 
  * @param[in] argc  Number of strings pointed to by argv
@@ -971,23 +1203,167 @@ static struct argp argp = {options, parse_opt, 0, doc};
 /*================================================================================================*/
 int main(int argc, char *argv[])
 {
-  int i = 0;
+  /*-----------------------*\
+  ! DEFINE INT VARIABLES:   !
+  \*-----------------------*/
+  uint8_t                 i;
+
+  /*-----------------------*\
+  ! DEFINE REAL VARIABLES:  !
+  \*-----------------------*/
+  double                  rtype;
+
+  /*-----------------------*\
+  ! DEFINE CHAR VARIABLES:  !
+  \*-----------------------*/
+  char                    rate[200] = {0};
+
   /*-----------------------*\
   ! DEFINE STRUCTS:         !
   \*-----------------------*/
-  cli_arguments   arguments = {0};
+  cli_arguments           arguments = {0};
 
-  /*--------------------------------------------------------*\
-  ! Parse the cli arguments.                                 !
-  \*--------------------------------------------------------*/
+  /* Parse the command line arguments and invoke the appro- *
+   * priate bwccmdl mode.                                   */
   if(argp_parse(&argp, argc, argv, 0, 0, &arguments) == EXIT_FAILURE)
     {
       return EXIT_FAILURE;
     }
 
-  for(i = 0; i < 10; ++i)
-    printf("bitrate %d:\t%f\n",i,arguments.bitrate[i]);
+  if(arguments.mode == cli_cmp)
+    {
+      /* Set the Q format range.                              */
+      if((arguments.optSet & QFRMT) != 0)
+        {
+          printf("Q Format: %d\n", arguments.Qm);
+        }
 
+      /* Set the wavelet kernels.                             */
+      /*if((arguments.optSet & DWTKL) != 0)
+        {
+          printf("Wavelet Kernel\n");
+        }*/
+
+      /* Set the decompositon level option.                   */
+      if((arguments.optSet & DCLVL) != 0)
+        {
+          printf("Decomposition Level:\t x %d\t y %d\t z %d\t t %d\n", arguments.decompLevel[0],
+                                                                       arguments.decompLevel[1],
+                                                                       arguments.decompLevel[2],
+                                                                       arguments.decompLevel[3]);
+        }
+
+      /* Set the tile size option.                            */
+      if((arguments.optSet & TILES) != 0)
+        {
+          printf("Tile Size:\t x %d\t y %d\t z %d\t t %d\n", arguments.tileSize[0],
+                                                             arguments.tileSize[1],
+                                                             arguments.tileSize[2],
+                                                             arguments.tileSize[3]);
+        }
+
+      /* Set the precinct size option.                        */
+      if((arguments.optSet & PRECS) != 0)
+        {
+          printf("Precinct Size:\t x %d\t y %d\t z %d\t t %d\n", arguments.precSize[0],
+                                                                 arguments.precSize[1],
+                                                                 arguments.precSize[2],
+                                                                 arguments.precSize[3]);
+        }
+
+      /* Set the codeblock size option.                       */
+      if((arguments.optSet & CBLKS) != 0)
+        {
+          printf("Codeblock Size:\t x %d\t y %d\t z %d\t t %d\n", arguments.cblkSize[0],
+                                                                  arguments.cblkSize[1],
+                                                                  arguments.cblkSize[2],
+                                                                  arguments.cblkSize[3]);
+        }
+
+      /* Initialize the rate control string according to the  *
+       * specified bit rate/compression ratio.                */
+      if((arguments.optSet & BITRT) != 0)
+        {
+          rtype = 1.0;
+        }
+      else if((arguments.optSet & CMPRT) != 0)
+        {
+          rtype = 64.0;
+        }
+      else
+        {
+          rtype = 1.0;
+          arguments.rate[0] = 64;
+        }
+
+      for(i = 0; i < 10 && strlen(rate) < 192; ++i)
+        {
+          if(arguments.rate[i] > 0)
+            sprintf(rate + strlen(rate), "%05.3f,", arguments.rate[i]/rtype);
+        }
+      rate[strlen(rate) - 1] = '0';
+      printf("bitrate: %s\n", rate);
+
+
+
+
+
+
+
+
+
+
+
+      if((arguments.optSet & FLOUT) != 0)
+        {
+          printf("File Out\n");
+        }
+      if((arguments.optSet & OMPTH) != 0)
+        {
+          printf("OpenMP Threads\n");
+        }
+      if((arguments.optSet & QTSIZ) != 0)
+        {
+          printf("Quantization Step Size\n");
+        }
+      if((arguments.optSet & USQLY) != 0)
+        {
+          printf("Use Quality Layer\n");
+        }
+    }
+  else if (arguments.mode == cli_dcp)
+    {
+      printf("Decompression\n");
+    }
+  else if (arguments.mode == cli_anl)
+    {
+      printf("Analysis\n");
+    }
+  else if (arguments.mode == cli_inf)
+    {
+      printf("Header Info\n");
+    }
+  else
+    {
+      return EXIT_FAILURE;
+    }
+
+  if((arguments.optSet & FLOUT) != 0)
+    {
+      printf("File Out\n");
+    }
+  if((arguments.optSet & OMPTH) != 0)
+    {
+      printf("OpenMP Threads\n");
+    }
+  if((arguments.optSet & QTSIZ) != 0)
+    {
+      printf("Quantization Step Size\n");
+    }
+  if((arguments.optSet & USQLY) != 0)
+    {
+      printf("Use Quality Layer\n");
+    }
 
 
   //printf("ARG1:    %s", arguments.args[0]);
