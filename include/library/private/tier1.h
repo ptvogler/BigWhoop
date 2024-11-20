@@ -16,7 +16,7 @@
 ||  ------------                                                                                  ||
 ||                                                                                                ||
 ||        This file describes a set of functions that can be used to de-/encode bwc               ||
-||        codeblocks described by the bwc_field structure according to the embedded block         ||
+||        codeblocks described by the bwc_codec structure according to the embedded block         ||
 ||        coding paradigm described by the JPEG 2000 standard. For more information please        ||
 ||        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.                                ||
 ||                                                                                                ||
@@ -156,11 +156,11 @@
   ||            |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]            ||
   ||                                                                                              ||
   \************************************************************************************************/
-  uchar        t1_encode                  (bwc_field                    *const  field,
+  uchar        t1_encode                  (bwc_codec                    *const  codec,
                                            bwc_tile                     *const  tile,
                                            bwc_parameter                *const  parameter);
   //==========|==========================|======================|======|=======|====================
-  uchar        t1_decode                  (bwc_field                    *const  field,
+  uchar        t1_decode                  (bwc_codec                    *const  codec,
                                            bwc_tile                     *const  tile,
                                            bwc_parameter                *const  parameter);
 

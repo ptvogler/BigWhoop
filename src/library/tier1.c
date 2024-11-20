@@ -16,7 +16,7 @@
 ||  ------------                                                                                  ||
 ||                                                                                                ||
 ||        This file describes a set of functions that can be used to de-/encode bwc               ||
-||        codeblocks described by the bwc_field structure according to the embedded block         ||
+||        codeblocks described by the bwc_codec structure according to the embedded block         ||
 ||        coding paradigm described by the JPEG 2000 standard. For more information please        ||
 ||        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.                                ||
 ||                                                                                                ||
@@ -398,9 +398,8 @@ cblkreset_inv(bwc_coder_stripe *const cblk, const uint64 width, const uint64 hei
    uint64   i;
    uint64   limit;
    uint64   cblk_stripe;
-   uint64   x, y, z;
+   uint64   x, y, z, t;
    int64    idx_u, idx_r, idx_d, idx_l;
-   uint16   t;
    uint8    s;
 
    /*-----------------------*\
@@ -533,15 +532,12 @@ cblkcopy_forward(bwc_coder_stripe *const destination, bwc_sample *const source,
    \*-----------------------*/
    bwc_raw  buff, sign_mask;
    uint64   bit_mask, limit;
-   uint64   cblk_width, cblk_height, cblk_depth, cblk_stripe;
+   uint64   cblk_width, cblk_height, cblk_depth, cblk_dt, cblk_stripe;
    uint64   incrX, incrY, incrZ;
-   uint64   i, x, y, z;
-   uint64   X0, Y0, Z0;
-   uint64   X1, Y1, Z1;
+   uint64   i, x, y, z, t;
+   uint64   X0, Y0, Z0, TS0;
+   uint64   X1, Y1, Z1, TS1;
    int64    idx_u, idx_r, idx_d, idx_l;
-   uint16   TS0, TS1; 
-   uint16   cblk_dt;
-   uint16   t;
    uint8    b, Kmax, s;
 
    /*-----------------------*\
@@ -775,15 +771,12 @@ cblkcopy_inverse(bwc_coder_stripe *const source,      bwc_sample *const destinat
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint64   cblk_width, cblk_height, cblk_depth, cblk_stripe;
+   uint64   cblk_width, cblk_height, cblk_depth, cblk_dt, cblk_stripe;
    uint64   bit_shift, buff, limit;
    uint64   incrX, incrY, incrZ;
-   uint64   i, x, y, z;
-   uint64   X0, Y0, Z0;
-   uint64   X1, Y1, Z1;
-   uint16   TS0, TS1; 
-   uint16   cblk_dt;
-   uint16   t;
+   uint64   i, x, y, z, t;
+   uint64   X0, Y0, Z0, TS0;
+   uint64   X1, Y1, Z1, TS1;
    uint8    bitplane;
    uint8    codingpass;
    uint8    s;
@@ -2274,12 +2267,12 @@ compute_convex_hull(bwc_encoded_cblk *const encoded_codeblock, double *const mse
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_encoded_cblk* encode_codeblock(bwc_field *const field, bwc_cblk_access *const access, !
+!   FUNCTION NAME: void encode_codeblock(bwc_codec *const codec, bwc_cblk_access *const access,              !
 !   --------------                                                        bwc_coder_stripe *const codeblock, !
 !                                                                                       const uint64  width, !
 !                                                                                       const uint64 height, !
 !                                                                                       const uint64  depth, !
-!                                                                                       const uint16     dt) !
+!                                                                                       const uint64     dt) !
 !                                                                                                            !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -2307,12 +2300,12 @@ compute_convex_hull(bwc_encoded_cblk *const encoded_codeblock, double *const mse
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static void
-encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
+encode_codeblock(bwc_codec *const codec, bwc_cblk_access  *const access,
                                       bwc_coder_stripe *const codeblock,
                                                     const uint64  width,
                                                     const uint64 height,
                                                     const uint64  depth,
-                                                    const uint16     dt)
+                                                    const uint64     dt)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -2340,7 +2333,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(access);
    assert(codeblock);
    assert(access->subband->control.highband_flag <= 15);
@@ -2359,7 +2352,7 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
    ! info and encoded block structure to temporary variables  !
    ! to make the code more readable.                          !
    \*--------------------------------------------------------*/
-   control       = &field->control;
+   control       = &codec->control;
 
    subb_ctrl     = &access->subband->control;
    subb_inf      = &access->subband->info;
@@ -2595,12 +2588,12 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_encoded_cblk* encode_codeblock(bwc_field *const field, bwc_cblk_access *const access, !
+!   FUNCTION NAME: void decode_codeblock(bwc_codec *const codec, bwc_cblk_access *const access,              !
 !                                                                         bwc_coder_stripe *const codeblock, !
 !                                                                                       const uint64  width, !
 !                                                                                       const uint64 height, !
 !                                                                                       const uint64  depth, !
-!                                                                                       const uint16     dt) !
+!                                                                                       const uint64     dt) !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -2628,12 +2621,12 @@ encode_codeblock(bwc_field *const field, bwc_cblk_access  *const access,
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static void
-decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
+decode_codeblock(bwc_codec *const codec, bwc_cblk_access *const access,
                                      bwc_coder_stripe *const codeblock,
                                                    const uint64  width,
                                                    const uint64 height,
                                                    const uint64  depth,
-                                                   const uint16     dt)
+                                                   const uint64     dt)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -2652,7 +2645,7 @@ decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(access);
    assert(codeblock);
    assert(access->subband->control.highband_flag <= 15);
@@ -2671,7 +2664,7 @@ decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
    ! structure to temporary variables to make the code more   !
    ! readable.                                                !
    \*--------------------------------------------------------*/
-   control       = &field->control;
+   control       = &codec->control;
 
    subb_ctrl     = &access->subband->control;
 
@@ -2828,20 +2821,19 @@ decode_codeblock(bwc_field *const field, bwc_cblk_access *const access,
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter)
+t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64   c;
-   uint64   cbSizeX, cbSizeY, cbSizeZ;
+   uint64   cbSizeX, cbSizeY, cbSizeZ, cbSizeTS;
    uint64   width, height, depth;
 
    int64    buff_size;
    int64    i, j;
    int64    nThreads;
 
-   uint16   cbSizeTS;
    uint16   slope_max, slope_min;
    int16    z;
 
@@ -2857,7 +2849,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
    assert(parameter);
 
@@ -2865,7 +2857,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
    ! Save the minimum and maximum slope values for the cur-   !
@@ -3040,7 +3032,7 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
          ! truncation points (L) and possible slope values (S) in   !
          ! the bwc_encoded_cblk structure.                          !
          \*--------------------------------------------------------*/
-         encode_codeblock(field, &parameter->access[c], working_buffer, 
+         encode_codeblock(codec, &parameter->access[c], working_buffer, 
                                                         cbSizeX, cbSizeY,
                                                         cbSizeZ, cbSizeTS);
 
@@ -3131,20 +3123,18 @@ t1_encode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter)
+t1_decode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64   c;
-   uint64   cbSizeX, cbSizeY, cbSizeZ;
+   uint64   cbSizeX, cbSizeY, cbSizeZ, cbSizeTS;
    uint64   width, height, depth;
 
    int64    buff_size;
    int64    i, j;
    int64    nThreads;
-
-   uint16   cbSizeTS;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3159,7 +3149,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
    assert(parameter);
 
@@ -3167,7 +3157,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
    ! Evaluate the width, height and depth of the current      !
@@ -3332,7 +3322,7 @@ t1_decode(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const par
 
          if(codeblock->encoded_block->Z > 0)
          {
-            decode_codeblock(field, &parameter->access[c], working_buffer, 
+            decode_codeblock(codec, &parameter->access[c], working_buffer, 
                                                            cbSizeX, cbSizeY,
                                                            cbSizeZ, cbSizeTS);
          }

@@ -78,23 +78,17 @@
 ||                |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]                ||
 ||                                                                                                          ||
 \************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!               This function takes an integer value and generates a version with the appropri-              !
-!               ate byte unit in log2 format that is returned to the function caller.                        !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                03.05.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                04.05.2021  Patrick Vogler     B87E7E4     V 0.1.0     clean up                             !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
 #ifdef BWC_PROFILE
+/*================================================================================================*/
+/**
+ * @details Takes an integer value and generates a version with the appropriate byte unit in
+ *          log2 format as return value string.
+ *
+ * @param[in]    integer  Integer value of bytes.
+ *
+ * @retval const char*
+ */
+/*================================================================================================*/
    const char*
    get_size(uint64_t integer)
    {
@@ -144,43 +138,22 @@
    }
 #endif
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uint8 initialize_precinct(bwc_field *const field, bwc_precinct *precinct,                 !
-!   --------------                                         const uint32 dX, const uint32 dY,                 !
-!                                                          const uint32 dZ, const uint32 dTS)                !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                precinct                    bwc_precinct*         - Structure defining a bwc precinct.      !
-!                                                                                                            !
-!                dX, dY, dZ, dTS             unsigned int(32 bit)  - Defines the offset of the codeblock     !
-!                                                                    with regards to the current subband.    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                unsigned int (8 bit)      - Subband gain factor in log2 factor.                             !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                24.05.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Initializes the precinct layout.
+ *
+ * @param[in]    codec    Structure defining the (de)compression codec.
+ * @param[inout] precinct Structure defining the precinct.
+ * @param[in]    dX       Codeblock offset with regard to the current subband in the 1st dimension.
+ * @param[in]    dY       Codeblock offset with regard to the current subband in the 2nd dimension.
+ * @param[in]    dZ       Codeblock offset with regard to the current subband in the 3rd dimension.
+ * @param[in]    dTS      Codeblock offset with regard to the current subband in the 4th dimension.
+ *
+ * @retval uint8_t
+ */
+/*================================================================================================*/
 static uint8
-initialize_precinct(bwc_field *const field, bwc_precinct *precinct, const uint32 dX, const uint32 dY, 
+initialize_precinct(bwc_codec *const codec, bwc_precinct *precinct, const uint32 dX, const uint32 dY, 
                                                                     const uint32 dZ, const uint32 dTS)
 {
    /*-----------------------*\
@@ -202,7 +175,7 @@ initialize_precinct(bwc_field *const field, bwc_precinct *precinct, const uint32
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(precinct);
 
    /*--------------------------------------------------------*\
@@ -210,7 +183,7 @@ initialize_precinct(bwc_field *const field, bwc_precinct *precinct, const uint32
    ! and info structure to temporary variables to make the    !
    ! code more readable.                                      !
    \*--------------------------------------------------------*/
-   control      = &field->control;
+   control      = &codec->control;
 
    prec_control = &precinct->control;
    prec_info    = &precinct->info;
@@ -314,11 +287,11 @@ initialize_precinct(bwc_field *const field, bwc_precinct *precinct, const uint32
                   cblk_info->X0  = dX  + (uint32)MAX(prec_info->X0 , cbSizeX  * (cb_X  + (uint32)floor((float)prec_info->X0 / cbSizeX )));
                   cblk_info->Y0  = dY  + (uint32)MAX(prec_info->Y0 , cbSizeY  * (cb_Y  + (uint32)floor((float)prec_info->Y0 / cbSizeY )));
                   cblk_info->Z0  = dZ  + (uint32)MAX(prec_info->Z0 , cbSizeZ  * (cb_Z  + (uint32)floor((float)prec_info->Z0 / cbSizeZ )));
-                  cblk_info->TS0 = dTS + (uint16)MAX(prec_info->TS0, cbSizeTS * (cb_TS + (uint32)floor((float)prec_info->TS0/ cbSizeTS)));
+                  cblk_info->TS0 = dTS + (uint32)MAX(prec_info->TS0, cbSizeTS * (cb_TS + (uint32)floor((float)prec_info->TS0/ cbSizeTS)));
                   cblk_info->X1  = dX  + (uint32)MIN(prec_info->X1 , cbSizeX  * (cb_X  + (uint32)floor((float)prec_info->X0 / cbSizeX ) + 1));
                   cblk_info->Y1  = dY  + (uint32)MIN(prec_info->Y1 , cbSizeY  * (cb_Y  + (uint32)floor((float)prec_info->Y0 / cbSizeY ) + 1));
                   cblk_info->Z1  = dZ  + (uint32)MIN(prec_info->Z1 , cbSizeZ  * (cb_Z  + (uint32)floor((float)prec_info->Z0 / cbSizeZ ) + 1));
-                  cblk_info->TS1 = dTS + (uint16)MIN(prec_info->TS1, cbSizeTS * (cb_TS + (uint32)floor((float)prec_info->TS0/ cbSizeTS) + 1));
+                  cblk_info->TS1 = dTS + (uint32)MIN(prec_info->TS1, cbSizeTS * (cb_TS + (uint32)floor((float)prec_info->TS0/ cbSizeTS) + 1));
                }
             }
          }
@@ -327,38 +300,17 @@ initialize_precinct(bwc_field *const field, bwc_precinct *precinct, const uint32
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uint8 subband_gain(const uint8 highband_flag)                                             !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function calculates the gain for a specific subband in log2 format according to the    !
-!                number of applied 1-D wavelet transforms. The subband gain is calculated by evaluating the  !
-!                hamming weight of the highband flag. (see https://en.wikipedia.org/wiki/Hamming_weight)     !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                highband_flag               unsigned in (8 bit)   - Flag defining the number and types of   !
-!                                                                    1-D wavelet of transforms applied to    !
-!                                                                    the subband.                            !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                unsigned int (8 bit)      - Subband gain factor in log2 factor.                             !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.05.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Calculates the gain for a specific subband in log2 format according to the number of
+ *          applied 1-D wavelet transforms. The subband gain is calculated by evaluating the
+ *          hamming weight of the highband flag. (see https://en.wikipedia.org/wiki/Hamming_weight)
+ *
+ * @param[in]  highband_flag  Number and types of transforms applied to the subband.
+ *
+ * @retval uint8_t            Subband gain factor in log2 factor.
+ */
+/*================================================================================================*/
 static uint8 subband_gain(const uint8 highband_flag)
 {
    /*-----------------------*\
@@ -385,55 +337,22 @@ static uint8 subband_gain(const uint8 highband_flag)
    return  (temp + (temp >> 4)) & 0x0F;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar initialize_subband(bwc_field *const field, bwc_parameter *const parameter,          !
-!   --------------                                                  bwc_resolution *const resolution,        !
-!                                                                   bwc_subband *const subband,              !
-!                                                                   int32 resolution_level,                  !
-!                                                                   int16 highband_flag)                     !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function initializes the bwc_subband structure with all necessary standard parameters  !
-!                to (de)compress a floating point array with nX * nY * nZ grid points, nTS timesteps and     !
-!                nPar parameters.                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                parameter                   bwc_parameter*        - Structure defining a bwc tile parameter.!
-!                                                                                                            !
-!                resolution                  bwc_resolution*       - Structure defining a bwc resolution     !
-!                                                                    level.                                  !
-!                                                                                                            !
-!                subband                     bwc_subband*          - Structure defining a bwc subband.       !
-!                                                                                                            !
-!                resolution_level            signed int(32 bit)    - Defines the current resolution level.   !
-!                                                                                                            !
-!                highband_flag               signed int(16 bit)    - Defines the type of highband the cur-   !
-!                                                                    rent subband represents.                !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                12.12.2017  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Initializes the bwc_subband structure.
+ *
+ * @param[in]    codec            Structure defining the (de)compression codec.
+ * @param[in]    parameter        Data of given parameter/field.
+ * @param[in]    resolution       Structure defining the resolution level.
+ * @param[in]    subband          Structure defining te subband.
+ * @param[in]    resolution_level Current resolution level index.
+ * @param[in]    highband_flag    Type of highband that the current subband represents.
+ *
+ * @retval unsigned char
+ */
+/*================================================================================================*/
 static uchar
-initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_resolution *const resolution, 
+initialize_subband(bwc_codec *const codec, bwc_parameter *const parameter, bwc_resolution *const resolution, 
                                                                            bwc_subband *const subband, 
                                                                            int32 resolution_level, 
                                                                            int16 highband_flag)
@@ -464,10 +383,10 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(resolution);
    assert(subband);
-   assert(resolution_level <= field->control.nDecomp + 1);
+   assert(resolution_level <= codec->control.nDecomp + 1);
    assert(highband_flag <= DIM_ALL);
 
    /*--------------------------------------------------------*\
@@ -475,7 +394,7 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
    ! trol and info structures to temporary variables to make  !
    ! the code more readable.                                  !
    \*--------------------------------------------------------*/
-   control       = &field->control;
+   control       = &codec->control;
 
    param_control = &parameter->control;
    param_info    = &parameter->info;
@@ -506,11 +425,11 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
    subb_info->X0  = (uint64)ceil( ((float)param_info->X0  / (1 << level_X))  - 0.5 * ((highband_flag & DIM_X)  >> 0));
    subb_info->Y0  = (uint64)ceil( ((float)param_info->Y0  / (1 << level_Y))  - 0.5 * ((highband_flag & DIM_Y)  >> 1));
    subb_info->Z0  = (uint64)ceil( ((float)param_info->Z0  / (1 << level_Z))  - 0.5 * ((highband_flag & DIM_Z)  >> 2));
-   subb_info->TS0 = (uint16)ceil( ((float)param_info->TS0 / (1 << level_TS)) - 0.5 * ((highband_flag & DIM_TS) >> 3));
+   subb_info->TS0 = (uint64)ceil( ((float)param_info->TS0 / (1 << level_TS)) - 0.5 * ((highband_flag & DIM_TS) >> 3));
    subb_info->X1  = (uint64)ceil( ((float)param_info->X1  / (1 << level_X))  - 0.5 * ((highband_flag & DIM_X)  >> 0));
    subb_info->Y1  = (uint64)ceil( ((float)param_info->Y1  / (1 << level_Y))  - 0.5 * ((highband_flag & DIM_Y)  >> 1));
    subb_info->Z1  = (uint64)ceil( ((float)param_info->Z1  / (1 << level_Z))  - 0.5 * ((highband_flag & DIM_Z)  >> 2));
-   subb_info->TS1 = (uint16)ceil( ((float)param_info->TS1 / (1 << level_TS)) - 0.5 * ((highband_flag & DIM_TS) >> 3));
+   subb_info->TS1 = (uint64)ceil( ((float)param_info->TS1 / (1 << level_TS)) - 0.5 * ((highband_flag & DIM_TS) >> 3));
 
    /*--------------------------------------------------------*\
    ! Evaluate the dynamic range (Rb) of the current subband.  !
@@ -523,7 +442,7 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
    ! band.                                                    !
    \*--------------------------------------------------------*/
    subb_control->highband_flag = highband_flag;
-   subb_info->dwt_gain         = get_dwt_energy_gain(field, highband_flag, decomp_level);
+   subb_info->dwt_gain         = get_dwt_energy_gain(codec, highband_flag, decomp_level);
 
    /*--------------------------------------------------------*\
    ! Evaluate the quantization exponent, mantissa, step size  !
@@ -632,11 +551,11 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
                   prec_info->X0  = (uint32)MAX(res_info->X0 , pSizeX  * (p_X  + (uint32)floor(res_info->X0 / pSizeX)));
                   prec_info->Y0  = (uint32)MAX(res_info->Y0 , pSizeY  * (p_Y  + (uint32)floor(res_info->Y0 / pSizeY)));
                   prec_info->Z0  = (uint32)MAX(res_info->Z0 , pSizeZ  * (p_Z  + (uint32)floor(res_info->Z0 / pSizeZ)));
-                  prec_info->TS0 = (uint16)MAX(res_info->TS0, pSizeTS * (p_TS + (uint32)floor(res_info->TS0/ pSizeTS)));
+                  prec_info->TS0 = (uint32)MAX(res_info->TS0, pSizeTS * (p_TS + (uint32)floor(res_info->TS0/ pSizeTS)));
                   prec_info->X1  = (uint32)MIN(res_info->X1 , pSizeX  * (p_X  + (uint32)floor(res_info->X0 / pSizeX) + 1));
                   prec_info->Y1  = (uint32)MIN(res_info->Y1 , pSizeY  * (p_Y  + (uint32)floor(res_info->Y0 / pSizeY) + 1));
                   prec_info->Z1  = (uint32)MIN(res_info->Z1 , pSizeZ  * (p_Z  + (uint32)floor(res_info->Z0 / pSizeZ) + 1));
-                  prec_info->TS1 = (uint16)MIN(res_info->TS1, pSizeTS * (p_TS + (uint32)floor(res_info->TS0/ pSizeTS)+ 1));
+                  prec_info->TS1 = (uint32)MIN(res_info->TS1, pSizeTS * (p_TS + (uint32)floor(res_info->TS0/ pSizeTS)+ 1));
 
                   if((control->nDecomp - control->decompX) < resolution_level)
                   {
@@ -658,15 +577,15 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
 
                   if((control->nDecomp - control->decompTS) < resolution_level)
                   {
-                     prec_info->TS0 = (uint16) ceil(((float)prec_info->TS0 / 2) - 0.5 * ((highband_flag & DIM_TS)  >> 3));
-                     prec_info->TS1 = (uint16) ceil(((float)prec_info->TS1 / 2) - 0.5 * ((highband_flag & DIM_TS)  >> 3));
+                     prec_info->TS0 = (uint32) ceil(((float)prec_info->TS0 / 2) - 0.5 * ((highband_flag & DIM_TS)  >> 3));
+                     prec_info->TS1 = (uint32) ceil(((float)prec_info->TS1 / 2) - 0.5 * ((highband_flag & DIM_TS)  >> 3));
                   }
 
                   /*--------------------------------------------------------*\
                   ! Initialize the precinct structure according to the speci-!
                   ! fied compression parameters.                             !
                   \*--------------------------------------------------------*/
-                  initialize_precinct(field, &subband->precinct[p], (uint32)sb_sX - subb_info->X0, (uint32)sb_sY  - subb_info->Y0,
+                  initialize_precinct(codec, &subband->precinct[p], (uint32)sb_sX - subb_info->X0, (uint32)sb_sY  - subb_info->Y0,
                                                                     (uint32)sb_sZ - subb_info->Z0, (uint32)sb_sTS - subb_info->TS0);
 
                   /*--------------------------------------------------------*\
@@ -682,59 +601,22 @@ initialize_subband(bwc_field *const field, bwc_parameter *const parameter, bwc_r
    return 0;
 }
 
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void fill_buffer(bwc_field *const field, bwc_tile *const tile,                            !
-!   ------------                                  bwc_parameter *const parameter,                            !
-!                                               bwc_sample *const working_buffer,                            !
-!                                                             double *const data,                            !
-!                                                              uint64 param_size,                            !
-!                                                                uint16 param_id)                            !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to fill the working buffer with the appropriate flow field data for   !
-!                the specified tile parameter.                                                               !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                tile                        bwc_tile*             - Structure defining a bwc tile.          !
-!                                                                                                            !
-!                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
-!                                                                                                            !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for a specific tile parameter.     !
-!                                                                                                            !
-!                param_size                  uint64                - Specifies the byte size of one tile     !
-!                                                                    parameter.                              !
-!                                                                                                            !
-!                parameter                   uint16                - Specifies the parameter index for the   !
-!                                                                    current tile parameter.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Fills the working buffer with the flow field data before compression.
+ *
+ * @param[in]    codec          Structure defining the (de)compression codec.
+ * @param[in]    tile           Structure defining a bwc tile.
+ * @param[in]    parameter      Data of given parameter/field.
+ * @param[inout] working_buffer Buffer which stores the flow field for compression.
+ * @param[in]    data           Instance of bwc_stream type with the flow field data.
+ * @param[in]    param_id       Parameter index for the current tile parameter.
+ */
+/*================================================================================================*/
 static void
-fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter,
+fill_buffer(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter,
                                                         bwc_sample *const working_buffer,
-                                                                    bwc_data *const data,
+                                                                  bwc_stream *const data,
                                                                          uint16 param_id)
 {
    /*-----------------------*\
@@ -742,8 +624,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    \*-----------------------*/
    uint64   width, height, depth, dt;
    uint64   param_offset;
-   uint64   x, y, z;
-   uint16   t;
+   uint64   x, y, z, t;
 
    /*-----------------------*\
    ! DEFINE FLOAT VARIABLES: !
@@ -760,12 +641,11 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    bwc_tile_inf     *tile_info;
    bwc_param_ctrl   *param_control;
    bwc_param_inf    *param_info;
-   bwc_cmd_opts_ll  *param;
 
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
    assert(parameter);
    assert(working_buffer);
@@ -776,7 +656,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    ! structures to temporary variables to make the code more  !
    ! readable.                                                !
    \*--------------------------------------------------------*/
-   info          = field->info;
+   info          = &codec->info;
 
    tile_info     = &tile->info;
 
@@ -787,17 +667,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    ! Calculate the offset of the current parameter in the da- !
    ! ta array.                                                !
    \*--------------------------------------------------------*/
-   param_offset = 0;
-   param        = data->info.parameter->root;
-
-   while(param != NULL && param->id < param_id)
-   {
-      if(param->precision == param_info->precision)
-      {
-         param_offset += param->size;
-      }
-      param = param -> next;
-   }
+   param_offset = info->nX * info->nY * info->nZ * info->nTS * param_id;
 
    /*--------------------------------------------------------*\
    ! Associate the working buffer with the data pointer in    !
@@ -824,13 +694,13 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    ! Check if the parameter is single or double precision and !
    ! handle the field accordingly.                            !
    \*--------------------------------------------------------*/
-   if(param_info->precision == 8)
+   if(info->data_prec == bwc_precision_double)
    {
       /*--------------------------------------------------------*\
       ! Safe the field pointer to a temporary variable to make   !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tmp_d = data->field.d;
+      tmp_d = (double *)data->inp;
 
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
@@ -878,7 +748,7 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
       ! Safe the field pointer to a temporary variable to make   !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tmp_f = data->field.f;
+      tmp_f = (float *)data->inp;
 
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
@@ -936,57 +806,22 @@ fill_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const p
    param_control->beta  = 2.0f/(param_info->parameter_max - param_info->parameter_min);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void fill_buffer(bwc_field *const field, bwc_tile *const tile,                            !
-!   ------------                                  bwc_parameter *const parameter,                            !
-!                                               bwc_sample *const working_buffer,                            !
-!                                                             double *const data,                            !
-!                                                              uint64 param_size,                            !
-!                                                                uint16 param_id)                            !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to flush the working buffer to the flow field data memory block.      !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                tile                        bwc_tile*             - Structure defining a bwc tile.          !
-!                                                                                                            !
-!                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
-!                                                                                                            !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for a specific tile parameter.     !
-!                                                                                                            !
-!                param_size                  uint64                - Specifies the byte size of one tile     !
-!                                                                    parameter.                              !
-!                                                                                                            !
-!                parameter                   uint16                - Specifies the parameter index for the   !
-!                                                                    current tile parameter.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Flushes the working buffer to the flow field data memory block after decompression.
+ *
+ * @param[in]    codec          Structure defining the (de)compression codec.
+ * @param[in]    tile           Structure defining a bwc tile.
+ * @param[in]    parameter      Data of given parameter/field.
+ * @param[in]    working_buffer Buffer which stores the flow field during decompression.
+ * @param[inout] data           Instance of bwc_stream type that the flow field data is flushed to.
+ * @param[in]    param_id       Parameter index for the current tile parameter.
+ */
+/*================================================================================================*/
 static void
-flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const parameter,
+flush_buffer(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter,
                                                          bwc_sample *const working_buffer,
-                                                                     bwc_data *const data,
+                                                                   bwc_stream *const data,
                                                                           uint16 param_id)
 {
    /*-----------------------*\
@@ -995,8 +830,7 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    uint64   width, height, depth, dt;
    uint64   nX, nY, nZ;
    uint64   param_offset;
-   uint64   x, y, z;
-   uint16   t;
+   uint64   x, y, z, t;
 
    /*-----------------------*\
    ! DEFINE FLOAT VARIABLES: !
@@ -1010,12 +844,11 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    bwc_sample       *src;
    bwc_gl_inf       *info;
    bwc_param_inf    *param_info;
-   bwc_cmd_opts_ll  *param;
 
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
    assert(parameter);
    assert(working_buffer);
@@ -1026,7 +859,7 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    ! structures to temporary variables to make the code more  !
    ! readable.                                                !
    \*--------------------------------------------------------*/
-   info          =  field->info;
+   info          = &codec->info;
 
    param_info    = &parameter->info;
 
@@ -1038,17 +871,7 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    ! Calculate the offset of the current parameter in the da- !
    ! ta array.                                                !
    \*--------------------------------------------------------*/
-   param_offset = 0;
-   param        = data->info.parameter->root;
-
-   while(param != NULL && param->id < param_id)
-   {
-      if(param->precision == param_info->precision)
-      {
-         param_offset += param->size;
-      }
-      param = param -> next;
-   }
+   param_offset = info->nX * info->nY * info->nZ * info->nTS * param_id;
 
    /*--------------------------------------------------------*\
    ! Calculate the width, height, depth and dt of the current !
@@ -1063,13 +886,13 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    ! Check if the parameter is single or double precision and !
    ! handle the field accordingly.                            !
    \*--------------------------------------------------------*/
-   if(param_info->precision == 8)
+   if(info->data_prec == bwc_precision_double)
    {
       /*--------------------------------------------------------*\
       ! Safe the field pointer to a temporary variable to make   !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tmp_d = data->field.d;
+      tmp_d = (double *)data->out;
 
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
@@ -1111,7 +934,7 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
       ! Safe the field pointer to a temporary variable to make   !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tmp_f = data->field.f;
+      tmp_f = (float *)data->out;
 
       /*--------------------------------------------------------*\
       ! Walk through the tile parameter working buffer.          !
@@ -1149,45 +972,20 @@ flush_buffer(bwc_field *const field, bwc_tile *const tile, bwc_parameter *const 
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void buff_normalize(bwc_field *const field, bwc_parameter *const parameter)               !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to normalize the values v[i] of the current tile parameter to the     !
-!                range of [-1, 1) and scale them to a desired dynamic range:                                 !
-!                                                                                                            !
-!                                              q[i] = [(v[i] - α)/β] * 2^Qm.                                 !
-!                                                                                                            !
-!                Here, α and β define the normalization constants and Qm represents the dynamic range of     !
-!                the Q number format.                                                                        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
-!                                                                                                            !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for a specific tile parameter.     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                24.10.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Used to normalize the values v[i] of the current tile parameter to the range of [-1, 1)
+ *          and scale them to a desired dynamic range:
+ *                                   q[i] = [(v[i] - α)/β] * 2^Qm.
+ *          Here, α and β define the normalization constants and Qm represents the dynamic range
+ *          of the Q number format.
+ *
+ * @param[inout] codec     Structure defining the (de)compression codec.
+ * @param[in]    parameter Data of given parameter/field.
+ */
+/*================================================================================================*/
 static void
-normalize_param(bwc_field *const field, bwc_parameter *const parameter)
+normalize_param(bwc_codec *const codec, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1220,7 +1018,7 @@ normalize_param(bwc_field *const field, bwc_parameter *const parameter)
    ! info structures to temporary variables to make the code  !
    ! more readable.                                           !
    \*--------------------------------------------------------*/
-   control       = &field->control;
+   control       = &codec->control;
 
    param_control = &parameter->control;
    param_info    = &parameter->info;
@@ -1274,45 +1072,20 @@ normalize_param(bwc_field *const field, bwc_parameter *const parameter)
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void denormalize_param(bwc_field *const field, bwc_parameter *const parameter)            !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to scale the decompressed values to their original dynamic range and  !
-!                denormalize the flow field values.                                                          !
-!                                                                                                            !
-!                                              q[i] = [(v[i]/2^Qm) * β] + α.                                 !
-!                                                                                                            !
-!                Here, α and β define the normalization constants and Qm represents the dynamic range of     !
-!                the Q number format.                                                                        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
-!                                                                                                            !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for a specific tile parameter.     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                24.10.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Used to scale the decompressed values to their original dynamic range and denormalize
+ *          the flow field values.
+ *                                   q[i] = [(v[i]/2^Qm) * β] + α.
+ *          Here, α and β define the normalization constants and Qm represents the dynamic range
+ *          of the Q number format.
+ *
+ * @param[inout] codec     Structure defining the (de)compression codec.
+ * @param[in]    parameter Data of given parameter/field.
+ */
+/*================================================================================================*/
 static void
-denormalize_param(bwc_field *const field, bwc_parameter *const parameter)
+denormalize_param(bwc_codec *const codec, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1344,7 +1117,7 @@ denormalize_param(bwc_field *const field, bwc_parameter *const parameter)
    ! tures to temporary variables to make the code more       !
    ! readable.                                                !
    \*--------------------------------------------------------*/
-   control       = &field->control;
+   control       = &codec->control;
 
    param_info    = &parameter->info;
 
@@ -1397,207 +1170,93 @@ denormalize_param(bwc_field *const field, bwc_parameter *const parameter)
    }
 }
 
+/*================================================================================================*/
+/**
+ * @details Allocates an instance of type bwc_codec with the compile-time codec precision.
+ *
+ * @retval bwc_stream*
+ */
+/*================================================================================================*/
+bwc_codec*
+alloc_codec()
+{
+   /*--------------------------------------------------------*\
+   ! Allocate the root compression data structure.            !
+   \*--------------------------------------------------------*/
+   bwc_codec *codec = calloc(1, sizeof(bwc_codec));
+   if(!codec)
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      return NULL;
+   }
+
+   /*--------------------------------------------------------*\
+   ! Save the codec precision in the info structure.          !
+   \*--------------------------------------------------------*/
+#if PREC_BYTE == 8
+   codec->info.codec_prec            = bwc_precision_double;
+#elif PREC_BYTE == 4
+   codec->info.codec_prec            = bwc_precision_single;
+#endif
+
+   return codec;
+}
+
 /************************************************************************************************************\
 ||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
 ||                  |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__                   ||
 ||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
 ||                                                                                                          ||
 \************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_field *bwc_initialize_data(...)                                                       !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function initializes the bwc_data structure with all necessary parameters.             !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                nX ,nY, nZ                  unsigned int(64 bit)  - Number of spatial Datapoints            !
-!                                                                                                            !
-!                nTS                         unsigned int(16 bit)  - Number of Timesteps.                    !
-!                                                                                                            !
-!                nPar                        unsigned int(8 bit)   - Number of Parameters                    !
-!                                                                                                            !
-!                file_extension              char*                 - File extension associated               !
-!                                                                    with the numerical dataset.             !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                bwc_data*                 - Structure used to store a numerical                             !
-!                                            dataset/compressed bitstream.                                   !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                09.06.2021  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-bwc_data*
-bwc_initialize_data(double* field, uint64 const nX, uint64 const nY, uint64 const nZ, uint16 const nTS, uint8 const nPar, char *file_extension)
+/*================================================================================================*/
+/**
+ * @details Allocates and assigns user-owned pointers for (de)compression input and output.
+ *
+ * @param[in] inpbuf Input data. Can be compressed or original flow field data.
+ * @param[in] outbuf Output pointer which must have enough space for given output.
+ * @param[in] mode   Decides the mode to be input for compression or decompression (comp | decomp).
+ *
+ * @retval bwc_stream*
+ */
+/*================================================================================================*/
+bwc_stream*
+bwc_init_stream(void *const inpbuf, void *const outbuf, bwc_mode const mode)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/ 
-   bwc_gl_inf *info;
-   bwc_data   *file;
+   bwc_stream   *stream;
 
-   file = calloc(1, sizeof(bwc_data));
-   if(!file)
+   stream = calloc(1, sizeof(bwc_stream));
+   if(!stream)
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
       return NULL;      
    }
 
-   info = &file->info;
+   stream->inp = inpbuf;
+   stream->out = outbuf;
+   stream->mode = mode;
 
-   info->nX  = nX;
-   info->nY  = nY;
-   info->nZ  = nZ;
-   info->nTS = nTS;
-   info->nPar = nPar;
-   memcpy(&info->f_ext, file_extension, sizeof(char) * 19);
-
-   file->field.d = field;
-
-   return file;
+   return stream;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_add_param(bwc_data* data, char *name, uint16 sample, uchar dim, uint8 precision) !
-!   --------------                                                                                           !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function initializes and adds new parameters to the parameter linked list. The linked  !
-!                list stores the parameter name, its precision, sampling factor and the dimension for which  !
-!                the sampling is active.                                                                     !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                name                        char*                 - Name of parameter(id).                  !
-!                                                                                                            !
-!                sample                      unsigned int(16 bit)  - Sampling factor for parameter(id).      !
-!                                                                                                            !
-!                dim                         unsigned char         - Dimension(s) for which the sampling     !
-!                                                                    factor is active.                       !
-!                                                                                                            !
-!                precision                   unsigned int(8 bit)   - Bit precision of the parameter.         !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                19.10.2017  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                03.12.2019  Patrick Vogler     B87E7E4     V 0.1.0     redefined the function for the       !
-!                                                                       bwc_data structure.                  !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-void
-bwc_add_param(bwc_data* data, char *name, uint8 precision)
-{
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/ 
-   bwc_gl_inf  *info;
-
-   /*-----------------------*\
-   ! DEFINE ASSERTIONS:      !
-   \*-----------------------*/
-   assert(data);
-
-   /*--------------------------------------------------------*\
-   ! Save the global info structure to a temporary variable   !
-   ! to make the code more readable.                          !
-   \*--------------------------------------------------------*/
-   info = &data->info;
-
-   /*--------------------------------------------------------*\
-   ! Check if the specified parameter name has the proper     !
-   ! length.                                                  !
-   \*--------------------------------------------------------*/
-   if((strlen(name) > 24) && name)
-   {
-      fprintf(stderr, "o==========================================================o\n"\
-                      "| WARNING: Invalid parameter name: %-24s|\n"\
-                      "|                                                          |\n"\
-                      "|          Parameter names cannot exceed 24 characters.    |\n"\
-                      "|                                                          |\n"\
-                      "o==========================================================o\n",name);
-   }
-
-   /*--------------------------------------------------------*\
-   ! Check if the parameter structure has already been allo-  !
-   ! cated.                                                   !
-   \*--------------------------------------------------------*/
-   if(info->parameter == NULL)
-   {
-      /*--------------------------------------------------------*\
-      ! If the bwc_add_param function is called for the first    !
-      ! time, allocate the parameter structure and save the root !
-      ! node address.                                            !
-      \*--------------------------------------------------------*/
-      info->parameter       = calloc(1, sizeof(bwc_cmd_opts_ll));
-      info->parameter->root = info->parameter;
-   }
-   else
-   {
-      /*--------------------------------------------------------*\
-      ! If a new parameter is added, allocate the nex linked     !
-      ! list node, save the root node address in its structure   !
-      ! and set the linked list access pointer to the new node.  !
-      \*--------------------------------------------------------*/
-      info->parameter->next       = calloc(1, sizeof(bwc_cmd_opts_ll));
-      info->parameter->next->root = info->parameter->root;
-      info->parameter->next->id   = info->parameter->id + 1;
-      info->parameter             = info->parameter->next;
-   }
-
-   /*--------------------------------------------------------*\
-   ! Save the name of the new parameter its precision in the  !
-   ! structure of the new node.                               !
-   \*--------------------------------------------------------*/
-   strcpy(info->parameter->name, name ? name : "undefined");
-   info->parameter->precision = precision     ? precision : PREC_BYTE;
-
-   /*--------------------------------------------------------*\
-   ! Evaluate the parameter size the information in the       !
-   ! linked list.                                             !
-   \*--------------------------------------------------------*/
-   info->parameter->size = (info->nX * info->nY * info->nZ * info->nTS);
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME:                                                                                           !
-!   --------------                                                                                           !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends a user-defined comment in the bwc_codec structure. Can be used to comment the
+ *          compressed data with user-defined information that helps data interpretation.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ * @param[in]    com   Commentary string.
+ * @param[in]    size  Size of commentary string.
+ *
+ * @retval unsigned char
+ */
+/*================================================================================================*/
 uchar
-bwc_set_com(bwc_data *const  data, char const *const com, uint16 size)
+bwc_set_com(bwc_stream *const  data, char const *const com, uint16 size)
 {
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -1609,8 +1268,9 @@ bwc_set_com(bwc_data *const  data, char const *const com, uint16 size)
    ! Save the global info structure to a temporary variable   !
    ! to make the code more readable.                          !
    \*--------------------------------------------------------*/
+   data->codestream.com = calloc(1, sizeof(bwc_span));
    data->codestream.com->memory = calloc(size, sizeof(char));
-   if(!data->codestream.com->memory) 
+   if(!data->codestream.com->memory)
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
@@ -1625,17 +1285,20 @@ bwc_set_com(bwc_data *const  data, char const *const com, uint16 size)
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME:                                                                                           !
-!   --------------                                                                                           !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the auxiliary information in the bwc_codec structure. Can be used to store and
+ *          retrieve file format specific metadata.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ * @param[in]    aux   Auxiliary information string.
+ * @param[in]    size  Size of auxiliary information string.
+ *
+ * @retval unsigned char
+ */
+/*================================================================================================*/
 uchar
-bwc_set_aux(bwc_data *const  data, char const *const aux, uint32 size)
+bwc_set_aux(bwc_stream *const  data, char const *const aux, uint32 size)
 {
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -1647,193 +1310,34 @@ bwc_set_aux(bwc_data *const  data, char const *const aux, uint32 size)
    ! Save the global info structure to a temporary variable   !
    ! to make the code more readable.                          !
    \*--------------------------------------------------------*/
-   data->codestream.com->memory = calloc(size, sizeof(char));
-   if(!data->codestream.com->memory) 
+   data->codestream.aux = calloc(1, sizeof(bwc_span));
+   data->codestream.aux->memory = calloc(size, sizeof(char));
+   if(!data->codestream.aux->memory)
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
       return 1;
    }
 
-   memcpy(data->codestream.com->memory, aux, size * sizeof(char));
-   data->codestream.com->access   = data->codestream.com->memory;
-   data->codestream.com->size     = size;
-   data->codestream.com->position = 0;
+   memcpy(data->codestream.aux->memory, aux, size * sizeof(char));
+   data->codestream.aux->access   = data->codestream.aux->memory;
+   data->codestream.aux->size     = size;
+   data->codestream.aux->position = 0;
 
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_field *bwc_initialize_data(...)                                                       !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to copy the numerical dataset stored in the bwc_data                  !
-!                structure to a user supplied memory block. A size argument is necessary                     !
-!                to verify that the memory block has the correct size.                                       !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                data                        bwc_data*             - Structure used to store a numerical     !
-!                                                                    dataset/compressed bitstream.           !
-!                                                                                                            !
-!                buffer                      unsigned char*        - Memory block supplied by                !
-!                                                                    the function caller.                    !
-!                                                                                                            !
-!                data                        bwc_data*             - Size of memory block.                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                09.06.2021  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-void
-bwc_get_data(bwc_data* data, uchar* buffer, uint64 size)
-{
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-
-   if(size != (uint64)(data->info.nX * data->info.nY * data->info.nZ * data->info.nTS * data->info.nPar))
-      {
-         fprintf(stderr, "Incorrect buffer size\n");
-      }
-   else
-      {
-         memcpy(buffer, data->field.d, size * sizeof(double));
-      }
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_free_data(bwc_data* file)                                                        !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function deallocates the data structure used to store an numerical dataset/compressed  !
-!                and can be called if an error occurs or once the data is no longer needed is to be closed.  !
-!                The deallocation will be carried out down to the structure levels that have been allocated. !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                                                                                                            !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                file                        bwc_data              - Defines a structure used to store all   !
-!                                                                    the relevant parameters and the data    !
-!                                                                    field of a numerical dataset or com-    !
-!                                                                    pressed codestream.                     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                                                                                                            !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                20.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                04.12.2019  Patrick Vogler     B87E7E4     V 0.1.0     
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-void
-bwc_free_data(bwc_data* data)
-{
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-   bwc_cmd_opts_ll   *param, *temp;
-
-   if(data)
-   {   
-      if(data->info.parameter)
-      {
-         param = data->info.parameter->root;
-
-         while(param != NULL)
-         {
-            temp  = param;
-            param = param -> next;
-            free(temp);
-         }
-      }
-
-      if(data)
-      {
-         if(data->codestream.data)
-         {
-            release_packed_stream(data->codestream.data);
-         }
-         if(data->codestream.aux)
-         {
-            release_packed_stream(data->codestream.aux);
-         }
-         if(data->codestream.com)
-         {
-            release_packed_stream(data->codestream.com);
-         }
-         if(data->fp)
-         {
-            fclose(data->fp);
-         }
-         free(data->codestream.data);
-         free(data->codestream.aux);
-         free(data->codestream.com);
-         free(data->field.d);
-         free(data->field.f);
-         free(data);
-      }
-   }
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar create_field(bwc_field *const field)                                                !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function creates the field structure used to (de)compress a floating point array de-   !
-!                fined by the bwc_initialize function.                                                       !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                unsigned char             - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Creates intrinsics like tile and subband structure in a valid codec instance.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ *
+ * @retval unsigned char
+ */
+/*================================================================================================*/
 uchar
-create_field(bwc_field *const field)
+create_codec(bwc_codec *const codec)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1856,7 +1360,6 @@ create_field(bwc_field *const field)
    \*-----------------------*/
    bwc_gl_ctrl      *control;
    bwc_gl_inf       *info;
-   bwc_cmd_opts_ll  *param;
    bwc_parameter    *parameter;
    bwc_param_ctrl   *param_control;
    bwc_param_inf    *param_info;
@@ -1871,14 +1374,14 @@ create_field(bwc_field *const field)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Calculate the number of tiles in all spatial and tempo-  !
@@ -1890,8 +1393,8 @@ create_field(bwc_field *const field)
    num_tiles_Z  = (int)ceil(((float)info->nZ / control->tileSizeZ));
    num_tiles_TS = (int)ceil(((float)info->nTS/ control->tileSizeTS));
 
-   field->tile  = calloc(control->nTiles, sizeof(bwc_tile));
-   if(!field->tile) 
+   codec->tile  = calloc(control->nTiles, sizeof(bwc_tile));
+   if(!codec->tile) 
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
@@ -1921,7 +1424,7 @@ create_field(bwc_field *const field)
                ! Save the tile and its info and control structure to tem- !
                ! porary variables to make the code more readable.         !
                \*--------------------------------------------------------*/
-               tile         = &field->tile[i];
+               tile         = &codec->tile[i];
                tile_control = &tile->control;
                tile_info    = &tile->info;
 
@@ -1936,11 +1439,11 @@ create_field(bwc_field *const field)
                tile_info->X0  = (uint64)MAX(0, x * control->tileSizeX);
                tile_info->Y0  = (uint64)MAX(0, y * control->tileSizeY);
                tile_info->Z0  = (uint64)MAX(0, z * control->tileSizeZ);
-               tile_info->TS0 = (uint16)MAX(0, t * control->tileSizeTS);
+               tile_info->TS0 = (uint64)MAX(0, t * control->tileSizeTS);
                tile_info->X1  = (uint64)MIN(info->nX , (x + 1) * control->tileSizeX);
                tile_info->Y1  = (uint64)MIN(info->nY , (y + 1) * control->tileSizeY);
                tile_info->Z1  = (uint64)MIN(info->nZ , (z + 1) * control->tileSizeZ);
-               tile_info->TS1 = (uint16)MIN(info->nTS, (t + 1) * control->tileSizeTS);
+               tile_info->TS1 = (uint64)MIN(info->nTS, (t + 1) * control->tileSizeTS);
 
                /*--------------------------------------------------------*\
                ! Initialize the tile header size.                         !
@@ -1965,23 +1468,8 @@ create_field(bwc_field *const field)
                   return 1;
                }
 
-               /*--------------------------------------------------------*\
-               ! Initialize the parameter information linked listed.      !
-               \*--------------------------------------------------------*/
-               param = info->parameter->root;
-
                for(j = 0; j < info->nPar; ++j)
                {
-                  /*--------------------------------------------------------*\
-                  ! Check if there is a node in the parameter information    !
-                  ! linked list corresponding to the current paramter.       !
-                  \*--------------------------------------------------------*/
-                  if(!param && (param->id == j))
-                  {
-                     fprintf(stderr, MEMERROR);
-                     return 1;
-                  }
-
                   /*--------------------------------------------------------*\
                   ! Save the parameter and its info and control structure to !
                   ! temporary variables to make the code more readable.      !
@@ -1989,13 +1477,6 @@ create_field(bwc_field *const field)
                   parameter     = &tile->parameter[j];
                   param_control = &parameter->control;
                   param_info    = &parameter->info;
-
-                  /*--------------------------------------------------------*\
-                  ! Save the corresponding parameter name and its sampling   !
-                  ! factors and precision in the info and control structures.!
-                  \*--------------------------------------------------------*/
-                  param_info->name      = param->name;
-                  param_info->precision = param->precision;
 
                   /*--------------------------------------------------------*\
                   ! Initialize the number of codeblocks for the current      !
@@ -2053,11 +1534,11 @@ create_field(bwc_field *const field)
                      res_info->X0  = (uint64)ceil((float)param_info->X0 / (1 << MIN(control->nDecomp -r, control->decompX)));
                      res_info->Y0  = (uint64)ceil((float)param_info->Y0 / (1 << MIN(control->nDecomp -r, control->decompY)));
                      res_info->Z0  = (uint64)ceil((float)param_info->Z0 / (1 << MIN(control->nDecomp -r, control->decompZ)));
-                     res_info->TS0 = (uint16)ceil((float)param_info->TS0/ (1 << MIN(control->nDecomp -r, control->decompTS)));
+                     res_info->TS0 = (uint64)ceil((float)param_info->TS0/ (1 << MIN(control->nDecomp -r, control->decompTS)));
                      res_info->X1  = (uint64)ceil((float)param_info->X1 / (1 << MIN(control->nDecomp -r, control->decompX)));
                      res_info->Y1  = (uint64)ceil((float)param_info->Y1 / (1 << MIN(control->nDecomp -r, control->decompY)));
                      res_info->Z1  = (uint64)ceil((float)param_info->Z1 / (1 << MIN(control->nDecomp -r, control->decompZ)));
-                     res_info->TS1 = (uint16)ceil((float)param_info->TS1/ (1 << MIN(control->nDecomp -r, control->decompTS)));
+                     res_info->TS1 = (uint64)ceil((float)param_info->TS1/ (1 << MIN(control->nDecomp -r, control->decompTS)));
 
                      /*--------------------------------------------------------*\
                      ! Calculate the number of precincts to cover tile t in pa- !
@@ -2154,7 +1635,7 @@ create_field(bwc_field *const field)
                      {
                         if(r == 0 || ((l & highband_flag) == l && l != 0))
                         {
-                           if(initialize_subband(field, parameter, resolution, &resolution->subband[m], r, l))
+                           if(initialize_subband(codec, parameter, resolution, &resolution->subband[m], r, l))
                            {
                               return 1;
                            }
@@ -2199,12 +1680,6 @@ create_field(bwc_field *const field)
                         }
                      }
                   }
-
-                  /*--------------------------------------------------------*\
-                  ! Advance the parameter information linked listed to the   !
-                  ! next node.                                               !
-                  \*--------------------------------------------------------*/
-                  param = param->next;
                }
 
                /*--------------------------------------------------------*\
@@ -2235,41 +1710,15 @@ create_field(bwc_field *const field)
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void kill_compression(bwc_field *const field)                                             !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function deallocates the compression field structure used to define and control the    !
-!                bwc codec and can be called if an error occurs during the (de-)compression stage or once    !
-!                the codec has finished. The deallocation will be carried out down to the structure levels   !
-!                that have been allocated.                                                                   !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                                                                                                            !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                19.10.2017  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Deallocates the (de)compression codec structure and contained resources.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ */
+/*================================================================================================*/
 void
-bwc_kill_compression(bwc_field *const field)
+bwc_free_codec(bwc_codec *const codec)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -2285,109 +1734,94 @@ bwc_kill_compression(bwc_field *const field)
    bwc_gl_ctrl       *control;
    bwc_gl_inf        *info;
 
-   if(field)
+   if(codec)
    {
       /*--------------------------------------------------------*\
       ! Save the global control and info structure to temporary  !
       ! variables to make the code more readable.                !
       \*--------------------------------------------------------*/
-      control = &field->control;
-      info    =  field->info;
+      control = &codec->control;
+      info    = &codec->info;
 
-      if(field->tile)
+      if(codec->tile)
       {
          for(i = 0; i < control->nTiles; ++i)
          {
-            if(field->tile[i].parameter)
+            if(codec->tile[i].parameter)
             {
                for(j = 0; j < info->nPar; ++j)
                {
-                  if(field->tile[i].parameter[j].resolution)
+                  if(codec->tile[i].parameter[j].resolution)
                   {
                      for(r = 0; r < control->nDecomp + 1; ++r)
                      {
-                        if(field->tile[i].parameter[j].resolution[r].subband)
+                        if(codec->tile[i].parameter[j].resolution[r].subband)
                         {
-                           for(l = 0; l < field->tile[i].parameter[j].resolution[r].control.number_of_subbands; ++l)
+                           for(l = 0; l < codec->tile[i].parameter[j].resolution[r].control.number_of_subbands; ++l)
                            {
-                              if(field->tile[i].parameter[j].resolution[r].subband[l].precinct)
+                              if(codec->tile[i].parameter[j].resolution[r].subband[l].precinct)
                               {
-                                 for(k = 0; k < field->tile[i].parameter[j].resolution[r].control.number_of_precincts; ++k)
+                                 for(k = 0; k < codec->tile[i].parameter[j].resolution[r].control.number_of_precincts; ++k)
                                  {
-                                    if(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock)
+                                    if(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock)
                                     {
-                                       for(c = 0; c < field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.number_of_codeblocks; ++c)
+                                       for(c = 0; c < codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.number_of_codeblocks; ++c)
                                        {
-                                          if(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].encoded_block)
+                                          if(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].encoded_block)
                                           {
-                                             free(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].encoded_block->data);
+                                             free(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].encoded_block->data);
                                           }
-                                          free(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].control.memory);
-                                          free(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].encoded_block);
+                                          free(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].control.memory);
+                                          free(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock[c].encoded_block);
                                        }
                                     }
-                                    if(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.number_of_codeblocks)
+                                    if(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.number_of_codeblocks)
                                     {
-                                       kill_tagtree(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.tag_inclusion);
-                                       kill_tagtree(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.tag_msbs);
+                                       kill_tagtree(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.tag_inclusion);
+                                       kill_tagtree(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].control.tag_msbs);
                                     }
-                                    free(field->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock);
+                                    free(codec->tile[i].parameter[j].resolution[r].subband[l].precinct[k].codeblock);
                                  }
                               }
-                              free(field->tile[i].parameter[j].resolution[r].subband[l].precinct);
+                              free(codec->tile[i].parameter[j].resolution[r].subband[l].precinct);
                            }
                         }
-                        free(field->tile[i].parameter[j].resolution[r].subband);
-                        free(field->tile[i].parameter[j].resolution[r].packet);
+                        free(codec->tile[i].parameter[j].resolution[r].subband);
+                        free(codec->tile[i].parameter[j].resolution[r].packet);
                      }
                   }
-                  free(field->tile[i].parameter[j].resolution);
-                  free(field->tile[i].parameter[j].access);
+                  free(codec->tile[i].parameter[j].resolution);
+                  free(codec->tile[i].parameter[j].access);
                }
             }
-            free(field->tile[i].packet_sequence);
-            free(field->tile[i].parameter);
+            free(codec->tile[i].packet_sequence);
+            free(codec->tile[i].parameter);
          }
       }
       free(control->bitrate);
-      free(field->tile);
-      free(field);
+      free(codec->tile);
+      free(codec);
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_field *bwc_initialize_field(bwc_data *const data)                                     !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function initializes the bwc_field structure with all necessary standard parameters    !
-!                to (de)compress a floating point array with nX * nY * nZ grid points, nTS timesteps and     !
-!                nPar parameters.                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                nX ,nY, nZ                  unsigned int(64 bit)  - Structure used to store a numerical     !
-!                                                                    dataset/compressed bitstream.           !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                bwc_field*                  Defines the (de)compression data structure.                     !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-bwc_field*
-bwc_initialize_field(bwc_data *const data)
+/*================================================================================================*/
+/**
+ * @details Configures the bwc_codec structure for compression with given dimensions and precision.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ * @param[in]    nX    Field data size in first dimension.
+ * @param[in]    nY    Field data size in two dimension.
+ * @param[in]    nZ    Field data size in three dimension.
+ * @param[in]    nTS   Field data size in fourth dimension.
+ * @param[in]    nPar  Number of parameters.
+ * @param[in]    prec  Data precision.
+ *
+ * @retval bwc_codec*
+ */
+/*================================================================================================*/
+bwc_codec*
+configure_codec(bwc_codec *const codec, uint64 const nX, uint64 const nY, uint64 const nZ,
+                uint64 const nTS, uint8 const nPar, bwc_precision const prec)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -2407,23 +1841,18 @@ bwc_initialize_field(bwc_data *const data)
    bwc_gl_inf    *info;
 
    /*--------------------------------------------------------*\
-   ! Allocate the root compression data structure.            !
-   \*--------------------------------------------------------*/
-   bwc_field *field = calloc(1, sizeof(bwc_field));
-   if(!field) 
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      bwc_kill_compression(field);
-      return NULL;
-   }
-
-   /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info = &data->info;
+   control = &codec->control;
+   info    = &codec->info;
+
+   info->nX  = nX;
+   info->nY  = nY;
+   info->nZ  = nZ;
+   info->nTS = nTS;
+   info->nPar = nPar;
+   info->data_prec = prec;
 
    /*--------------------------------------------------------*\
    ! Set all tile sizes to their maximum allowable value. The !
@@ -2480,11 +1909,6 @@ bwc_initialize_field(bwc_data *const data)
    control->guard_bits         = 2;
 
    /*--------------------------------------------------------*\
-   ! Save the codec precision in the info structure.          !
-   \*--------------------------------------------------------*/
-   info->precision             = PREC_BYTE;
-
-   /*--------------------------------------------------------*\
    ! Calculate the possible decomposition levels for all      !
    ! spatial and temporal dimensions.                         !
    \*--------------------------------------------------------*/
@@ -2515,7 +1939,7 @@ bwc_initialize_field(bwc_data *const data)
    \*--------------------------------------------------------*/
    if(initialize_gain_lut()) 
    {
-      bwc_kill_compression(field);
+      bwc_free_codec(codec);
       return NULL;
    }
 
@@ -2525,7 +1949,7 @@ bwc_initialize_field(bwc_data *const data)
    ! tion (10.19) (epsilon = 6, mu = 16) from JPEG2000 by     !
    ! by David S. Taubman and Michael W. Marcellin (p.437).    !
    \*--------------------------------------------------------*/
-   delta = (bwc_float)(1/(pow(2, 2 + PREC_BIT) * sqrt(get_dwt_energy_gain(field, 0, control->nDecomp))));
+   delta = (bwc_float)(1/(pow(2, 2 + PREC_BIT) * sqrt(get_dwt_energy_gain(codec, 0, control->nDecomp))));
 
    for(control->qt_exponent = 0; delta < 1; ++control->qt_exponent, delta *= 2);
    control->qt_mantissa  = (uint16)floor(0.5f + ((delta - 1.0f) * (1 << 16)));
@@ -2549,41 +1973,65 @@ bwc_initialize_field(bwc_data *const data)
       }
    }
 
-   return field;
+   return codec;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_error_resilience(bwc_field *const field)                                     !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function sets the error resilience marker in the bwc_field structure if an error       !
-!                resilient compression approach is to be employed.                                           !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                13.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Allocates the bwc_codec structure for compression with given dimensions and precision.
+ *
+ * @param[in] nX   Field data size in first dimension.
+ * @param[in] nY   Field data size in two dimension.
+ * @param[in] nZ   Field data size in three dimension.
+ * @param[in] nTS  Field data size in fourth dimension.
+ * @param[in] nPar Number of parameters.
+ * @param[in] prec Data precision.
+ *
+ * @retval bwc_codec*
+ */
+/*================================================================================================*/
+bwc_codec*
+bwc_alloc_coder(uint64 const nX, uint64 const nY, uint64 const nZ, uint64 const nTS,
+                uint8 const nPar, bwc_precision const prec)
+{
+   /*--------------------------------------------------------*\
+   ! Allocate and configure the compression data structure.   !
+   \*--------------------------------------------------------*/
+   bwc_codec *codec = alloc_codec();
+   codec = configure_codec(codec, nX, nY, nZ, nTS, nPar, prec);
+   codec->mode = comp;
+
+   return codec;
+}
+
+/*================================================================================================*/
+/**
+ * @details Allocates the bwc_codec structure for decompression.
+ *
+ * @retval bwc_codec*
+ */
+/*================================================================================================*/
+bwc_codec*
+bwc_alloc_decoder()
+{
+   /*--------------------------------------------------------*\
+   ! Allocate the root compression data structure.            !
+   \*--------------------------------------------------------*/
+   bwc_codec *codec = alloc_codec();
+   codec->mode = decomp;
+
+   return codec;
+}
+
+/*================================================================================================*/
+/**
+ * @details Turns on the error resilience marker in the bwc_codec structure.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ */
+/*================================================================================================*/
 void
-bwc_set_error_resilience(bwc_field *const field)
+bwc_set_error_resilience(bwc_codec *const codec)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2593,16 +2041,16 @@ bwc_set_error_resilience(bwc_field *const field)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
-   ! Amend the codeblock style in the bwc_field structure     !
+   ! Amend the codeblock style in the bwc_codec structure     !
    ! according to the specified value.                        !
    \*--------------------------------------------------------*/
    control->error_resilience ^= 0x01;
@@ -2614,41 +2062,16 @@ bwc_set_error_resilience(bwc_field *const field)
    control->CSsgc ^= (0x01 << 0);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)         !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the quantization style in the bwc_field structure according to the     !
-!                specified value.                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                quantization_style          bwc_quant_st          - Quantization style used during compres- !
-!                                                                    sion.                                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the quantization style in the bwc_codec structure.
+ *
+ * @param[inout] codec              Structure defining the compression coder.
+ * @param[in]    quantization_sytle Quantization style employed during compression.
+ */
+/*================================================================================================*/
 void
-set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
+set_quant_style(bwc_codec *const codec, bwc_quant_st quantization_style)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2658,17 +2081,17 @@ set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert((quantization_style == bwc_qt_derived) || (quantization_style == bwc_qt_none));
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
-   ! Amend the quantization style in the bwc_field structure  !
+   ! Amend the quantization style in the bwc_codec structure  !
    ! according to the specified value.                        !
    \*--------------------------------------------------------*/
    control->quantization_style = quantization_style;
@@ -2680,41 +2103,16 @@ set_quant_style(bwc_field *const field, bwc_quant_st quantization_style)
    control->CSsgc |= (0x01 << 1);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_quant_step_size(bwc_field *const field, double delta)                        !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the quantization step size in the bwc_field structure according to     !
-!                the specified value.                                                                        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                delta                       double                - Quantization step size used during      !
-!                                                                    compression.                            !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                16.04.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the quantization step size in the bwc_codec structure.
+ *
+ * @param[inout] codec Structure defining the compression coder.
+ * @param[in]    delta Quantization step size employed during compression.
+ */
+/*================================================================================================*/
 void
-set_quant_step_size(bwc_field *const field, double delta)
+set_quant_step_size(bwc_codec *const codec, double delta)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2724,13 +2122,13 @@ set_quant_step_size(bwc_field *const field, double delta)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
    ! Check if the quantization step size lies within the ac-  !
@@ -2738,15 +2136,14 @@ set_quant_step_size(bwc_field *const field, double delta)
    \*--------------------------------------------------------*/
    if((delta <= 0) || (delta >= 2))
    {
-      fprintf(stderr, "o==========================================================o\n"\
-                      "| WARNING: Invalid quantization step size                  |\n"\
-                      "|                                                          |\n"\
-                      "|          The quantization step size does not lie within  |\n"\
-                      "|          the acceptable range of:                        |\n"\
-                      "|                                                          |\n"\
-                      "|                        0 < step size < 2                 |\n"\
-                      "|                                                          |\n"\
-                      "o==========================================================o\n");
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                      "   WARNING: Invalid quantization step size                    \n"\
+                      "                                                              \n"\
+                      "            The quantization step size does not lie within    \n"\
+                      "            the acceptable range of:                          \n"\
+                      "                                                              \n"\
+                      "                          0 < step size < 2                   \n"\
+                      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
       return;
    }
@@ -2784,42 +2181,16 @@ set_quant_step_size(bwc_field *const field, double delta)
    control->CSsgc |= (0x01 << 2);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_progression(bwc_field *const field, bwc_prog_ord progression)                !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the progression order in the bwc_field structure according to the      !
-!                specified value.                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                progression                 bwc_prog_ord          - Progression orders employed during com- !
-!                                                                    pression (CPRL, LRCP, PCRL, RLCP,       !
-!                                                                    RPCL).                                  !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the progression order in the bwc_codec structure.
+ *
+ * @param[inout] codec       Structure defining the compression coder.
+ * @param[in]    progression Progression orders employed during compression.
+ */
+/*================================================================================================*/
 void
-set_progression(bwc_field *const field, bwc_prog_ord progression)
+set_progression(bwc_codec *const codec, bwc_prog_ord progression)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -2829,7 +2200,7 @@ set_progression(bwc_field *const field, bwc_prog_ord progression)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert((progression == bwc_prog_CPRL) || (progression == bwc_prog_LRCP) ||
           (progression == bwc_prog_PCRL) || (progression == bwc_prog_RLCP) ||
           (progression == bwc_prog_RPCL));
@@ -2838,10 +2209,10 @@ set_progression(bwc_field *const field, bwc_prog_ord progression)
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
-   ! Amend the progression order in the bwc_field structure   !
+   ! Amend the progression order in the bwc_codec structure   !
    ! according to the specified value.                        !
    \*--------------------------------------------------------*/
    control->progression        = progression;
@@ -2853,46 +2224,19 @@ set_progression(bwc_field *const field, bwc_prog_ord progression)
    control->CSsgc |= (0x01 << 3);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_kernels(bwc_field *const field, bwc_dwt_filter KernelX,                      !
-!   --------------                                              bwc_dwt_filter KernelY,                      !
-!                                                               bwc_dwt_filter KernelZ,                      !
-!                                                               bwc_dwt_filter KernelTS)                     !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the wavelet kernels in the bwc_field structure according to the        !
-!                specified values.                                                                           !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                KernelX, KernelY, KernelZ   bwc_dwt_filter        - Wavelet kernels used for spatial        !
-!                                                                    decomposition.                          !
-!                                                                                                            !
-!                KernelT                     bwc_dwt_filter        - Wavelet kernel used for temporal        !
-!                                                                    decomposition.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the wavelet kernels in the bwc_codec structure.
+ *
+ * @param[inout] codec    Structure defining the compression coder.
+ * @param[in]    KernelX  Wavelet kernel used in first dimemsion in log2 exponent format.
+ * @param[in]    KernelY  Wavelet kernel used in first dimemsion in log2 exponent format.
+ * @param[in]    KernelZ  Wavelet kernel used in third dimemsion in log2 exponent format.
+ * @param[in]    KernelTS Wavelet kernel used in fourth dimemsion in log2 exponent format.
+ */
+/*================================================================================================*/
 void
-set_kernels(bwc_field *const field, bwc_dwt_filter KernelX, bwc_dwt_filter KernelY, 
+set_kernels(bwc_codec *const codec, bwc_dwt_filter KernelX, bwc_dwt_filter KernelY, 
                                     bwc_dwt_filter KernelZ, bwc_dwt_filter KernelTS)
 {
    /*-----------------------*\
@@ -2903,16 +2247,16 @@ set_kernels(bwc_field *const field, bwc_dwt_filter KernelX, bwc_dwt_filter Kerne
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
-   ! Amend the wavelet kernels in the bwc_field structure ac- !
+   ! Amend the wavelet kernels in the bwc_codec structure ac- !
    ! cording to the specified values. For all unspecified     !
    ! (NULL) values the corresponding wavelet kernel is set to !
    ! bwc_dwt_9_7/bwc_dwt_haar.                                !
@@ -2929,44 +2273,19 @@ set_kernels(bwc_field *const field, bwc_dwt_filter KernelX, bwc_dwt_filter Kerne
    control->CSsgc |= (0x01 << 4);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY,                 !
-!   --------------                                             uint8 decompZ, uint8 decompTS)                !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the decomposition levels in the bwc_field structure according to the   !
-!                specified values.                                                                           !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                decompX, decompY, decompZ   unsigned int(8 bit)   - Number of spatial wavelet decomposition !
-!                                                                    levels used during compression.         !
-!                                                                                                            !
-!                decompTS                    unsigned int(8 bit)   - Number of temporal wavelet decomposi-   !
-!                                                                    tion level used during compression.     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the decomposition levels in the bwc_codec structure.
+ *
+ * @param[inout] codec    Structure defining the compression coder.
+ * @param[in]    decompX  Number of wavelet decomposition levels in first dimemsion in log2 exponent format.
+ * @param[in]    decompY  Number of wavelet decomposition levels in first dimemsion in log2 exponent format.
+ * @param[in]    decompZ  Number of wavelet decomposition levels in third dimemsion in log2 exponent format.
+ * @param[in]    decompTS Number of wavelet decomposition levels in fourth dimemsion in log2 exponent format.
+ */
+/*================================================================================================*/
 void
-bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY, uint8 decompZ, uint8 decompTS)
+bwc_set_decomp(bwc_codec *const codec, uint8 decompX, uint8 decompY, uint8 decompZ, uint8 decompTS)
 {
    /*-----------------------*\
    ! DEFINE FLOAT VARIABLES: !
@@ -2987,14 +2306,14 @@ bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY, uint8 decom
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Calculate the possible decomposition levels for all      !
@@ -3030,14 +2349,13 @@ bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY, uint8 decom
    if((control->decompX > 63) || (control->decompY  > 63) ||
       (control->decompZ > 63) || (control->decompTS > 31))
    {
-      fprintf(stderr, "o==========================================================o\n"\
-                      "| WARNING: Invalid decomposition level value               |\n"\
-                      "|                                                          |\n"\
-                      "|          The maximum acceptable decomposition level is   |\n"\
-                      "|          63 for all spatial and 31 for the temporal      |\n"\
-                      "|          dimensions.                                     |\n"\
-                      "|                                                          |\n"\
-                      "o==========================================================o\n");
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                      "   WARNING: Invalid decomposition level value                 \n"\
+                      "                                                              \n"\
+                      "            The maximum acceptable decomposition level is     \n"\
+                      "            63 for all spatial and 31 for the temporal        \n"\
+                      "            dimensions.                                       \n"\
+                      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
       /*--------------------------------------------------------*\
       ! Reset the decomposition levels to their standard values. !
@@ -3056,7 +2374,7 @@ bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY, uint8 decom
    \*--------------------------------------------------------*/
    if(initialize_gain_lut()) 
    {
-      bwc_kill_compression(field);
+      bwc_free_codec(codec);
       return;
    }
 
@@ -3066,7 +2384,7 @@ bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY, uint8 decom
    ! tion (10.19) (epsilon = 6, mu = 16) from JPEG2000 by     !
    ! by David S. Taubman and Michael W. Marcellin (p.437).    !
    \*--------------------------------------------------------*/
-   delta = 1/(pow(2, 2 + PREC_BIT) * sqrt(get_dwt_energy_gain(field, 0, control->nDecomp)));
+   delta = 1/(pow(2, 2 + PREC_BIT) * sqrt(get_dwt_energy_gain(codec, 0, control->nDecomp)));
 
    for(control->qt_exponent = 0; delta < 1; ++control->qt_exponent, delta *= 2);
    control->qt_mantissa  = (uint16)floor(0.5f + ((delta - 1.0f) * (1 << 16)));
@@ -3097,41 +2415,19 @@ bwc_set_decomp(bwc_field *const field, uint8 decompX, uint8 decompY, uint8 decom
    control->CSsgc |= (0x01 << 5);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_precincts(bwc_field *const field, uint8 pX, uint8 pY, uint8 pZ, uint8 pTS)   !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the precinct size in the bwc_field structure according to the          !
-!                specified values.                                                                           !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                px, py, pz, pTS             unsigned int(8 bit)   - Spatial and temporal precinct dimensions!
-!                                                                    in log2 exponent format.                !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.05.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the precinct size in the bwc_codec structure.
+ *
+ * @param[inout]   codec   Structure defining the compression coder.
+ * @param[in]      pX      Precinct size in first dimemsion in log2 exponent format.
+ * @param[in]      pY      Precinct size in first dimemsion in log2 exponent format.
+ * @param[in]      pZ      Precinct size in third dimemsion in log2 exponent format.
+ * @param[in]      pTS     Precinct size in fourth dimemsion in log2 exponent format.
+ */
+/*================================================================================================*/
 void
-bwc_set_precincts(bwc_field *const field, uint8 pX, uint8 pY, uint8 pZ, uint8 pTS)
+bwc_set_precincts(bwc_codec *const codec, uint8 pX, uint8 pY, uint8 pZ, uint8 pTS)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3142,14 +2438,14 @@ bwc_set_precincts(bwc_field *const field, uint8 pX, uint8 pY, uint8 pZ, uint8 pT
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Check if the precinct sizes are specified for a valid    !
@@ -3172,13 +2468,12 @@ bwc_set_precincts(bwc_field *const field, uint8 pX, uint8 pY, uint8 pZ, uint8 pT
       ((control->precSizeTS < 1) && (info->nTS  >> 1))  ||
       (control->precSizeX > 15) || (control->precSizeY > 15) || (control->precSizeZ > 15) || (control->precSizeTS > 15))
    {
-      fprintf(stderr, "o==========================================================o\n"\
-                      "| WARNING: Invalid precinct size                           |\n"\
-                      "|                                                          |\n"\
-                      "|          The maximum acceptable precinct size is 2^15,   |\n"\
-                      "|          the smallest valid precinct size is 2^1.        |\n"\
-                      "|                                                          |\n"\
-                      "o==========================================================o\n");
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                      "   WARNING: Invalid precinct size                             \n"\
+                      "                                                              \n"\
+                      "            The maximum acceptable precinct size is 2^15,     \n"\
+                      "            the smallest valid precinct size is 2^1.          \n"\
+                      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
       /*--------------------------------------------------------*\
       ! Reset the codeblock sizes to their standard values.      !
@@ -3198,41 +2493,19 @@ bwc_set_precincts(bwc_field *const field, uint8 pX, uint8 pY, uint8 pZ, uint8 pT
    control->CSsgc |= (0x01 << 6);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_codeblocks(bwc_field *const field, uint8 cbX, uint8 cbY,                     !
-!   --------------                                                 uint8 cbZ, uint8 cbTS)                    !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the codeblock size in the bwc_field structure according to the         !
-!                specified values.                                                                           !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                cbx, cby, cbz, cbTS         unsigned int(8 bit)   - Spatial and temporal codeblock dimen-   !
-!                                                                    sions in log2 exponent format.          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the codeblock size in the bwc_codec structure.
+ *
+ * @param[inout]   codec   Structure defining the compression coder.
+ * @param[in]      cbX     Codeblock size in first dimemsion in log2 exponent format.
+ * @param[in]      cbY     Codeblock size in first dimemsion in log2 exponent format.
+ * @param[in]      cbZ     Codeblock size in third dimemsion in log2 exponent format.
+ * @param[in]      cbTS    Codeblock size in fourth dimemsion in log2 exponent format.
+ */
+/*================================================================================================*/
 void
-bwc_set_codeblocks(bwc_field *const field, uint8 cbX, uint8 cbY, uint8 cbZ, uint8 cbTS)
+bwc_set_codeblocks(bwc_codec *const codec, uint8 cbX, uint8 cbY, uint8 cbZ, uint8 cbTS)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3243,14 +2516,14 @@ bwc_set_codeblocks(bwc_field *const field, uint8 cbX, uint8 cbY, uint8 cbZ, uint
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Check if the codeblock sizes are specified for a valid   !
@@ -3271,15 +2544,14 @@ bwc_set_codeblocks(bwc_field *const field, uint8 cbX, uint8 cbY, uint8 cbZ, uint
      ((control->cbX + control->cbY + control->cbZ + control->cbTS) < 4) || 
      ((control->cbX + control->cbY + control->cbZ + control->cbTS) > 20))
    {
-      fprintf(stderr, "o==========================================================o\n"\
-                      "| WARNING: Invalid codeblock size                          |\n"\
-                      "|                                                          |\n"\
-                      "|          The maximum acceptable codeblock size is 2^20   |\n"\
-                      "|          with a maximum allowable number of datapoints   |\n"\
-                      "|          in each dimension of 2^10. The smallest valid   |\n"\
-                      "|          codeblock size is 2^4.                          |\n"\
-                      "|                                                          |\n"\
-                      "o==========================================================o\n");
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                      "   WARNING: Invalid codeblock size                            \n"\
+                      "                                                              \n"\
+                      "            The maximum acceptable codeblock size is 2^20     \n"\
+                      "            with a maximum allowable number of datapoints     \n"\
+                      "            in each dimension of 2^10. The smallest valid     \n"\
+                      "            codeblock size is 2^4.                            \n"\
+                      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
       /*--------------------------------------------------------*\
       ! Reset the codeblock sizes to their standard values.      !
@@ -3299,40 +2571,16 @@ bwc_set_codeblocks(bwc_field *const field, uint8 cbX, uint8 cbY, uint8 cbZ, uint
    control->CSsgc |= (0x01 << 7);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_qm(bwc_field *const field, uint8 Qm)                                         !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the Q number formate range in the bwc_field structure according to the !
-!                specified value.                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                Qm                          unsigned int(8 bit)   - Q number formate range (m).             !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the Q number formate range in the bwc_codec structure.
+ *
+ * @param[inout]   codec   Structure defining the compression coder.
+ * @param[in]      Qm      Q number formate range (m).
+ */
+/*================================================================================================*/
 void
-bwc_set_qm(bwc_field *const field, uint8 Qm)
+bwc_set_qm(bwc_codec *const codec, uint8 Qm)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3342,31 +2590,30 @@ bwc_set_qm(bwc_field *const field, uint8 Qm)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
    ! Check if the Q number formate range is valid and amend   !
-   ! the bwc_field structure accordingly.                     !
+   ! the bwc_codec structure accordingly.                     !
    \*--------------------------------------------------------*/
-   if((int8)(PREC_BIT - Qm) < 2)
+   if((int8)(PREC_BIT - Qm) < 1)
    {
-      fprintf(stderr, "o==========================================================o\n"\
-                      "| WARNING: Invalid Q number formate range                  |\n"\
-                      "|                                                          |\n"\
-                      "|          The specified Q number formate range is larger  |\n");
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                      "   WARNING: Invalid Q number formate range                    \n"\
+                      "                                                              \n"\
+                      "            The specified Q number formate range is larger    \n");
       #ifdef BWC_SINGLE_PRECISION
-         fprintf(stderr, "|          than the permitted 30 bits.                     |\n");
+         fprintf(stderr, "            than the permitted 30 bits.                       \n");
       #else
-         fprintf(stderr, "|          than the permitted 62 bits.                     |\n");
+         fprintf(stderr, "            than the permitted 62 bits.                       \n");
       #endif
-      fprintf(stderr, "|                                                          |\n"\
-                      "o==========================================================o\n");
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
    }
    else
    {
@@ -3380,54 +2627,25 @@ bwc_set_qm(bwc_field *const field, uint8 Qm)
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_set_tiles(bwc_field *const field, uint32 tilesX, uint32 tilesY, uint32 tilesZ,   !
-!   --------------                                                           uint32 tilesTS, uchar instr)    !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function amends the tileSize and num_Tiles values in the bwc_field structure according !
-!                to the specified values. The NUMBEROF and SIZEOF constants can be used to either specify    !
-!                the tile sizes or the number of tiles in each spatial and temporal directions.              !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                tilesX, tilesY, tilesZ      unsigned int(32 bit)  - Variables defining the size of          !
-!                                                                    a spatial tile.                         !
-!                                                                                                            !
-!                tilesTS                     unsigned int(32 bit)  - Variables defining the size of          !
-!                                                                    a temporal tile.                        !
-!                                                                                                            !
-!                instr                       bwc_tile_instr        - Constants used to instruct the          !
-!                                                                    bwc_set_tiles function.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Amends the tileSize and num_Tiles values in the bwc_codec structure.
+ *
+ * @param[inout]   codec   Structure defining the compression coder.
+ * @param[in]      tilesX  Spatial tile size/number in first dimension.
+ * @param[in]      tilesY  Spatial tile size/number in second dimension.
+ * @param[in]      tilesZ  Spatial tile size/number in third dimension.
+ * @param[in]      tilesTS Spatial tile size/number in fourth dimension.
+ * @param[in]      instr   Instructs interpretation of parameters as 'size' or 'number'.
+ */
+/*================================================================================================*/
 void
-bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tilesZ, uint16 tilesTS, bwc_tile_instr instr)
+bwc_set_tiles(bwc_codec *const codec, uint64 tilesX, uint64 tilesY, uint64 tilesZ, uint64 tilesTS, bwc_tile_instr instr)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint64   num_tiles_X, num_tiles_Y, num_tiles_Z;
-   uint16   num_tiles_TS;
+   uint64   num_tiles_X, num_tiles_Y, num_tiles_Z, num_tiles_TS;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -3438,15 +2656,15 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(instr == bwc_tile_sizeof || instr == bwc_tile_numbof);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Check if the size of one tile or the overall number of   !
@@ -3462,17 +2680,16 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
          (control->tileSizeZ  < 16 && control->tileSizeZ  > info->nZ)|| 
          (control->tileSizeTS < 16 && control->tileSizeTS > info->nTS))
       {
-         fprintf(stderr,"o==========================================================o\n"\
-                        "| WARNING: Invalid Tile Dimensions                         |\n"\
-                        "|                                                          |\n"\
-                        "|          One or more of the specified tile dimensions    |\n"\
-                        "|          has a value that falls outside of its valid     |\n"\
-                        "|          range. Please verify that all tile dimension    |\n"\
-                        "|          are within the range of:                        |\n"\
-                        "|                                                          |\n"\
-                        "|               16 ≤ Tile_Size_Xi ≤ Grid_Points_Xi         |\n"\
-                        "|                                                          |\n"\
-                        "o==========================================================o\n");
+         fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                        "   WARNING: Invalid Tile Dimensions                           \n"\
+                        "                                                              \n"\
+                        "            One or more of the specified tile dimensions      \n"\
+                        "            has a value that falls outside of its valid       \n"\
+                        "            range. Please verify that all tile dimension      \n"\
+                        "            are within the range of:                          \n"\
+                        "                                                              \n"\
+                        "                 16 ≤ Tile_Size_Xi ≤ Grid_Points_Xi           \n"\
+                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
          return;
       }
@@ -3495,7 +2712,7 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
       num_tiles_X     = (uint64)ceil(((float)info->nX / control->tileSizeX));
       num_tiles_Y     = (uint64)ceil(((float)info->nY / control->tileSizeY));
       num_tiles_Z     = (uint64)ceil(((float)info->nZ / control->tileSizeZ));
-      num_tiles_TS    = (uint16)ceil(((float)info->nTS/ control->tileSizeTS));
+      num_tiles_TS    = (uint64)ceil(((float)info->nTS/ control->tileSizeTS));
       control->nTiles = num_tiles_X * num_tiles_Y * num_tiles_Z * num_tiles_TS;
 
       /*--------------------------------------------------------*\
@@ -3504,16 +2721,15 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
       \*--------------------------------------------------------*/
       if(((double)num_tiles_X * num_tiles_Y * num_tiles_Z * num_tiles_TS) > 0xFFFFFFFFFFFFFFFF)
       {
-         fprintf(stderr,"o==========================================================o\n"\
-                        "| WARNING: Invalid Tile Dimensions                         |\n"\
-                        "|                                                          |\n"\
-                        "|          The number of tiles exceeds its maxmum allowa-  |\n"\
-                        "|          ble value. Please adjust all tile dimension so  |\n"\
-                        "|          that the number of tiles falls within the range |\n"\
-                        "|          of:                                             |\n"\
-                        "|                      Number_of_Tiles < 2^64              |\n"\
-                        "|                                                          |\n"\
-                        "o==========================================================o\n");
+         fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                        "   WARNING: Invalid Tile Dimensions                           \n"\
+                        "                                                              \n"\
+                        "            The number of tiles exceeds its maxmum allowa-    \n"\
+                        "            ble value. Please adjust all tile dimension so    \n"\
+                        "            that the number of tiles falls within the range   \n"\
+                        "            of:                                               \n"\
+                        "                        Number_of_Tiles < 2^64                \n"\
+                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
          /*--------------------------------------------------------*\
          ! Reset the tile sizes to their standard values.           !
@@ -3534,15 +2750,14 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
       \*--------------------------------------------------------*/
       if(((double)tilesX * tilesY * tilesZ * tilesTS) > 0xFFFFFFFFFFFFFFFF)
       {
-         fprintf(stderr,"o==========================================================o\n"\
-                        "| WARNING: Invalid Number Of Tiles                         |\n"\
-                        "|                                                          |\n"\
-                        "|          The number of tiles exceeds its maxmum allowa-  |\n"\
-                        "|          ble value of:                                   |\n"\
-                        "|                                                          |\n"\
-                        "|                      Number_of_Tiles < 2^64              |\n"\
-                        "|                                                          |\n"\
-                        "o==========================================================o\n");
+         fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                        "   WARNING: Invalid Number Of Tiles                           \n"\
+                        "                                                              \n"\
+                        "            The number of tiles exceeds its maxmum allowa-    \n"\
+                        "            ble value of:                                     \n"\
+                        "                                                              \n"\
+                        "                        Number_of_Tiles < 2^64                \n"\
+                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
          return;
       }
@@ -3557,7 +2772,7 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
       control->tileSizeX  = (info->nX  >> 1) ? (tilesX  ? (uint64)ceil(((float)info->nX / tilesX))  : info->nX)  : info->nX;
       control->tileSizeY  = (info->nY  >> 1) ? (tilesY  ? (uint64)ceil(((float)info->nY / tilesY))  : info->nY)  : info->nY;
       control->tileSizeZ  = (info->nZ  >> 1) ? (tilesZ  ? (uint64)ceil(((float)info->nZ / tilesZ))  : info->nZ)  : info->nZ;
-      control->tileSizeTS = (info->nTS >> 1) ? (tilesTS ? (uint16)ceil(((float)info->nTS/ tilesTS)) : info->nTS) : info->nTS;
+      control->tileSizeTS = (info->nTS >> 1) ? (tilesTS ? (uint64)ceil(((float)info->nTS/ tilesTS)) : info->nTS) : info->nTS;
 
       /*--------------------------------------------------------*\
       ! Check if the tile sizes have valid values.               !
@@ -3567,18 +2782,17 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
          (control->tileSizeZ  < 16 && control->tileSizeZ  > info->nZ)|| 
          (control->tileSizeTS < 16 && control->tileSizeTS > info->nTS))
       {
-         fprintf(stderr,"o==========================================================o\n"\
-                        "| WARNING: Invalid Number Of Tiles                         |\n"\
-                        "|                                                          |\n"\
-                        "|          One or more of the tile dimensions has a value  |\n"\
-                        "|          that falls outside of its valid range. Please   |\n"\
-                        "|          verify that the number of tiles for all dimen-  |\n"\
-                        "|          sions are set so that the corresponding tile    |\n"\
-                        "|          sizes fall within the range of:                 |\n"\
-                        "|                                                          |\n"\
-                        "|                16 ≤ Tile_Size_Xi ≤ Grid_Points_Xi        |\n"\
-                        "|                                                          |\n"\
-                        "o==========================================================o\n");
+         fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                        "   WARNING: Invalid Number Of Tiles                           \n"\
+                        "                                                              \n"\
+                        "            One or more of the tile dimensions has a value    \n"\
+                        "            that falls outside of its valid range. Please     \n"\
+                        "            verify that the number of tiles for all dimen-    \n"\
+                        "            sions are set so that the corresponding tile      \n"\
+                        "            sizes fall within the range of:                   \n"\
+                        "                                                              \n"\
+                        "                  16 ≤ Tile_Size_Xi ≤ Grid_Points_Xi          \n"\
+                        ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 
          /*--------------------------------------------------------*\
          ! Reset the tile sizes to their standard values.           !
@@ -3597,7 +2811,7 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
       num_tiles_X     = (uint64)ceil(((float)info->nX / control->tileSizeX));
       num_tiles_Y     = (uint64)ceil(((float)info->nY / control->tileSizeY));
       num_tiles_Z     = (uint64)ceil(((float)info->nZ / control->tileSizeZ));
-      num_tiles_TS    = (uint16)ceil(((float)info->nTS/ control->tileSizeTS));
+      num_tiles_TS    = (uint64)ceil(((float)info->nTS/ control->tileSizeTS));
       control->nTiles = num_tiles_X * num_tiles_Y * num_tiles_Z * num_tiles_TS;
    }
 
@@ -3608,45 +2822,111 @@ bwc_set_tiles(bwc_field *const field, uint64 tilesX, uint64 tilesY, uint64 tiles
    control->CSsgc |= (0x01 << 9);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_create_compression(bwc_field *field, char *rate_control)                         !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function creates the field structure used to compress a floating point array defined   !
-!                by the bwc_initialize function. For a compression run, the rate_control and instr arguments !
-!                need to be passed to the function to properly set up the lossy compression stage. Here, the !
-!                instr parameter defines whether rate control is defined by a BITRATE - a floating point val-!
-!                ue defining the average number of bits per datapoint - and ACCURACY - an integer value de-  !
-!                fining the exponent of the maximum allowable error (i.e. 15 for err = 1e-15).               !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                rate_control                char*                 - Variable defining the bitrate.          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                                                                                           !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                05.12.2019  Patrick vogler     B87E7E4     V 0.1.0     streamlined function arguments       !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Opens the header of a compressed data set and parses it into an
+ *          instance of type bwc_header.
+ *
+ * @param[in]   inpbuf   Pointer to compressed data set.
+ *
+ * @retval bwc_header*
+ */
+/*================================================================================================*/
+bwc_header* bwc_open_header(void *const inpbuf)
+{
+   /*-----------------------*\
+   ! DEFINE STRUCTS:         !
+   \*-----------------------*/ 
+   bwc_codec*  codec;
+   bwc_stream* data;
+   bitstream* stream;
+   bwc_header* header;
+
+   /*--------------------------------------------------------*\
+   ! Initialize a codec, stream, and bitstream for parsing.   !
+   \*--------------------------------------------------------*/
+   data = bwc_init_stream(inpbuf, NULL, decomp);
+   codec = bwc_alloc_decoder();
+   stream = init_bitstream(data->inp, 10, 'd');
+
+   /*--------------------------------------------------------*\
+   ! Parse the main header into the codec structure.          !
+   \*--------------------------------------------------------*/
+   parse_main_header(codec, data, stream);
+   if(!codec)
+   {
+      return NULL;
+   }
+
+   /*--------------------------------------------------------*\
+   ! Allocate header and copy info and control structures.    !
+   \*--------------------------------------------------------*/
+   header = calloc(1, sizeof(bwc_header));
+   header->info = codec->info;
+   header->control = codec->control;
+
+   /*--------------------------------------------------------*\
+   ! Shallow copy aux data to span.                           !
+   \*--------------------------------------------------------*/
+   if (data->codestream.aux)
+   {
+     header->aux.memory = data->codestream.aux->memory;
+     header->aux.size = data->codestream.aux->size;
+   }
+
+   /*--------------------------------------------------------*\
+   ! Shallow copy com data to span.                           !
+   \*--------------------------------------------------------*/
+   if (data->codestream.com)
+   {
+     header->com.memory = data->codestream.com->memory;
+     header->com.size = data->codestream.com->size;
+   }
+
+   free(stream);
+   free(data);
+   free(codec);
+
+   return header;
+}
+
+/*================================================================================================*/
+/**
+ * @details Closes the header information in the bwc_header pointer.
+ *
+ * @param[in]   header   Instance of type bwc_header.
+ */
+/*================================================================================================*/
+void bwc_close_header(bwc_header *const header)
+{
+   if (header)
+   {
+     if (header->aux.memory)
+     {
+       free(header->aux.memory);
+     }
+     if (header->com.memory)
+     {
+       free(header->com.memory);
+     }
+     free(header);
+   }
+}
+
+/*================================================================================================*/
+/**
+ * @details Creates the codec structure used to compress floating point data in a previously
+ *          initialized instance of the bwc_stream structure.
+ *
+ * @param[inout]   codec          Pointer to the returned codec structure.
+ * @param[in]      stream         Stream data structure containing the relevant floating point data.
+ * @param[in]      rate_control   The bitrates of several quality layers as string variable.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
 uchar
-bwc_create_compression(bwc_field *field, char *rate_control)
+bwc_create_compression(bwc_codec *codec, bwc_stream *stream, char *rate_control)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -3673,14 +2953,15 @@ bwc_create_compression(bwc_field *field, char *rate_control)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
+   assert(stream);
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   info    = field->info;
-   control = &field->control;
+   info    = &codec->info;
+   control = &codec->control;
    
    /*--------------------------------------------------------*\
    ! Allocate the array used to hold the quality layer bit-   !
@@ -3767,10 +3048,10 @@ bwc_create_compression(bwc_field *field, char *rate_control)
    control->bitrate = realloc(control->bitrate, control->nLayers * sizeof(float));
 
    /*--------------------------------------------------------*\
-   ! Create the field structure used to compress a floating   !
+   ! Create the codec structure used to compress a floating   !
    ! point array defined by the bwc_initialize function.      !
    \*--------------------------------------------------------*/
-   if(create_field(field))
+   if(create_codec(codec))
    {
       return 1;
    }
@@ -3778,17 +3059,17 @@ bwc_create_compression(bwc_field *field, char *rate_control)
    /*--------------------------------------------------------*\
    ! Evaluate the size of the main header.                    !
    \*--------------------------------------------------------*/
-   /*control->headerSize =  108 + info->nPar * (25 + control->nTiles * 2 * PREC_BYTE)
-                              + control->nLayers * 4;
+   control->headerSize = 111 + info->nPar * control->nTiles * 2 * PREC_BYTE
+                             + control->nLayers * 4;
 
-   if(field->aux != NULL)
+   if(stream->codestream.aux != NULL)
    {
-      control->headerSize += 6 + field->aux->size;
+      control->headerSize += 6 + stream->codestream.aux->size;
    }
 
-   if(field->com != NULL)
+   if(stream->codestream.com != NULL)
    {
-      control->headerSize += 6 + field->com->size;
+      control->headerSize += 6 + stream->codestream.com->size;
    }
 
    if(control->headerSize >= 0xFFFFFFFF)
@@ -3803,46 +3084,29 @@ bwc_create_compression(bwc_field *field, char *rate_control)
                      "o==========================================================o\n");
 
       return 1;
-   }*/
+   }
 
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar bwc_compress(bwc_field *const field, bwc_float *const data)                         !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                Description needed.                                                                         !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar
-bwc_compress(bwc_field *const field, bwc_data *const data)
+/*================================================================================================*/
+/**
+ * @details Compress the data of a readily initialized bwc_stream structure using the coder
+ *          defined by the codec variable.
+ *
+ * @param[inout]   codec          Pointer to the returned codec structure.
+ * @param[in]      stream         Stream data structure containing the relevant floating point data.
+ *
+ * @retval size_t
+ */
+/*================================================================================================*/
+size_t
+bwc_compress(bwc_codec *const codec, bwc_stream *const stream)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
+   size_t   compressed_size = 0;
    uint64   buff_size  = 0;
    uint64   i;
    uint16   p;
@@ -3883,8 +3147,8 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
-   assert(data);
+   assert(codec);
+   assert(stream);
 
    /*--------------------------------------------------------*\
    ! Initialize the compression time measurement.             !
@@ -3901,40 +3165,8 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
-
-   /*--------------------------------------------------------*\
-   ! Evaluate the size of the main header.                    !
-   \*--------------------------------------------------------*/
-   control->headerSize =  108 + info->nPar * (25 + control->nTiles * 2 * PREC_BYTE)
-                              + control->nLayers * 4;
-
-   if(data->codestream.aux != NULL)
-   {
-      field->aux           = data->codestream.aux;
-      control->headerSize += 6 + field->aux->size;
-   }
-
-   if(data->codestream.com != NULL)
-   {
-      field->com           = data->codestream.com;
-      control->headerSize += 6 + field->com->size;
-   }
-
-   if(control->headerSize >= 0xFFFFFFFF)
-   {
-      fprintf(stderr,"o==========================================================o\n"\
-                     "| ERROR: Main header exceeds maximum size limit            |\n"\
-                     "|                                                          |\n"\
-                     "|        Appending the auxiliary information to the main   |\n"\
-                     "|        header would exceed its maximum size limit of     |\n"\
-                     "|        4294967295 bytes.                                 |\n"\
-                     "|                                                          |\n"\
-                     "o==========================================================o\n");
-
-      return 1;
-   }
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Evaluate the working buffer size and allocate it accord- !
@@ -3948,7 +3180,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
-      return 1;
+      return 0;
    }
 
    /*--------------------------------------------------------*\
@@ -3961,7 +3193,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
       ! Save the tile structure in a temporary variable to make  !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tile = &field->tile[i];
+      tile = &codec->tile[i];
 
       for(p = 0; p < info->nPar; ++p)
       {
@@ -3982,7 +3214,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         fill_buffer(field, tile, parameter, working_buffer, data, p);
+         fill_buffer(codec, tile, parameter, working_buffer, stream, p);
          #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
@@ -4005,7 +3237,7 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         normalize_param(field, parameter);
+         normalize_param(codec, parameter);
          #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
@@ -4026,10 +3258,10 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         if(forward_wavelet_transform(field, parameter))
+         if(forward_wavelet_transform(codec, parameter))
          {
             free(working_buffer);
-            return 1;
+            return 0;
          }
          #ifdef BWC_PROFILE
             #if defined (_OPENMP)
@@ -4051,10 +3283,10 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         if(t1_encode(field, tile, parameter))
+         if(t1_encode(codec, tile, parameter))
          {
             free(working_buffer);
-            return 1;
+            return 0;
          }
          #ifdef BWC_PROFILE
             #if defined (_OPENMP)
@@ -4082,10 +3314,10 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
             start = (double)clock();
          #endif
       #endif
-      if(t2_encode(field, tile))
+      if(t2_encode(codec, tile))
       {
          free(working_buffer);
-         return 1;
+         return 0;
       }
       #ifdef BWC_PROFILE
          #if defined (_OPENMP)
@@ -4107,11 +3339,11 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          start = (double)clock();
       #endif
    #endif
-   data->codestream.data = assemble_codestream(field);
-   if(!data->codestream.data)
+   compressed_size = assemble_codestream(codec, stream);
+   if(compressed_size == 0)
    {
       free(working_buffer);
-      return 1;
+      return 0;
    }
    #ifdef BWC_PROFILE
       #if defined (_OPENMP)
@@ -4138,8 +3370,8 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
          ttl = ((double)clock() - ttl)/CLOCKS_PER_SEC;
       #endif
 
-      nfs = (uint64)(info->nX * info->nY * info->nZ * info->nTS * info->nPar * info->precision);
-      css = (uint64)data->codestream.data->size;
+      nfs = (uint64)(info->nX * info->nY * info->nZ * info->nTS * info->nPar * info->data_prec);
+      css = (uint64)compressed_size;
 
 
       cpr = (double)nfs/css;
@@ -4161,119 +3393,60 @@ bwc_compress(bwc_field *const field, bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Return to the function caller.                           !
    \*--------------------------------------------------------*/
-   return 0;
+   return compressed_size;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar bwc_create_compression(bwc_field *field_ptr, char *rate_control, uchar instr)       !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function parses the supplied bwc codestream and sets up the field structure used to    !
-!                decompress the numerical dataset.                                                           !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                rate_control (opt)          char*                 - Variable defining the bitrate/accuracy. !
-!                                                                                                            !
-!                instr (opt)                 bwc_rate_instr        - Constants used to instruct the rate     !
-!                                                                    control information.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                                                                                           !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-bwc_field *
-bwc_create_decompression(bwc_data *const data, uint8 layer)
+/*================================================================================================*/
+/**
+ * @details Creates the codec structure used to decompress floating point data in a previously
+ *          initialized instance of the bwc_stream structure.
+ *
+ * @param[inout]   codec          Pointer to the returned codec structure.
+ * @param[in]      stream         Stream data structure containing the relevant floating point data.
+ * @param[in]      layer          Number of quality layers.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
+uchar
+bwc_create_decompression(bwc_codec *const codec, bwc_stream *const stream, uint8 layer)
 {
-   /*-----------------------*\
-   ! DEFINE STRUCTS:         !
-   \*-----------------------*/
-   bwc_field         *field;
-
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(data);
+   assert(codec);
+   assert(stream);
 
    /*--------------------------------------------------------*\
-   ! Parse the codestream and setup the field codestream.     !
+   ! Parse the stream and setup the codec.                  !
    \*--------------------------------------------------------*/
-   field  = parse_codestream(data, layer);
-   if(!field)
+   parse_codestream(codec, stream, layer);
+   if(!codec)
    {
-      return NULL;
+      return 1;
    }
 
-   /*--------------------------------------------------------*\
-   ! If successful, return the field structure to the func-   !
-   ! tion caller.                                             !
-   \*--------------------------------------------------------*/
-   return field;
+   return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar bwc_create_compression(bwc_field *field, float rate_control, uchar instr)           !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function creates the field structure used to compress a floating point array defined   !
-!                by the bwc_initialize function at a prescribed bitrate or accuracy. In this context, the    !
-!                bitrate is a floating point value defining the average number of bits per datapoint and     !
-!                the accuracy is an integer value defining the exponent of the maximum allowable error       !
-!                (i.e. 15 for err = 1e-15).                                                                  !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                rate_control                float                 - Variable defining the bitrate/accuracy. !
-!                                                                                                            !
-!                instr                       unsigned char         - Constants used to instruct the rate     !
-!                                                                    control information.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                                                                                           !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                15.03.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Decompress the data of a readily initialized bwc_stream structure using the coder
+ *          defined by the codec variable.
+ *
+ * @param[inout]   codec          Pointer to the returned codec structure.
+ * @param[in]      stream         Stream data structure containing the relevant floating point data.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
 uchar
-bwc_decompress(bwc_field *const field, bwc_data *const data)
+bwc_decompress(bwc_codec *const codec, bwc_stream *const stream)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64   buff_size;
-   uint64   single_size, double_size;
    uint64   i;
    uint16   p;
 
@@ -4300,13 +3473,12 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    bwc_tile          *tile;
    bwc_parameter     *parameter;
    bwc_sample        *working_buffer;
-   bwc_cmd_opts_ll   *param;
 
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
-   assert(data);
+   assert(codec);
+   assert(stream);
 
    /*--------------------------------------------------------*\
    ! Initialize the decompression time measurement.           !
@@ -4323,42 +3495,8 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
-
-   /*--------------------------------------------------------*\
-   ! Calculate the field size after subsampling and allocate  !
-   ! the field memory blocks.                                 !
-   \*--------------------------------------------------------*/
-   if(data->info.parameter)
-   {
-      param       = data->info.parameter->root;
-      double_size =
-      single_size = 0;
-
-      while(param != NULL)
-      {
-         if(param->precision == 8)
-         {
-            double_size += param->size;
-         }
-         else if (param->precision == 4)
-         {
-            single_size += param->size;
-         }
-
-         param = param -> next;
-      }
-   }
-
-   data->field.d = calloc(double_size, sizeof(double));
-   data->field.f = calloc(single_size, sizeof(float));
-   if(!data->field.d || !data->field.f)
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return 1;
-   }
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Evaluate the working buffer size and allocate it accord- !
@@ -4385,7 +3523,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
       ! Save the tile structure in a temporary variable to make  !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tile          = &field->tile[i];
+      tile          = &codec->tile[i];
 
       for(p = 0; p < info->nPar; ++p)
       {
@@ -4411,7 +3549,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         if(t1_decode(field, tile, parameter))
+         if(t1_decode(codec, tile, parameter))
          {
             free(working_buffer);
             return 1;
@@ -4436,7 +3574,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         if(inverse_wavelet_transform(field, parameter))
+         if(inverse_wavelet_transform(codec, parameter))
          {
             free(working_buffer);
             return 1;
@@ -4462,7 +3600,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         denormalize_param(field, parameter);
+         denormalize_param(codec, parameter);
          #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();
@@ -4485,7 +3623,7 @@ bwc_decompress(bwc_field *const field, bwc_data *const data)
                start = (double)clock();
             #endif
          #endif
-         flush_buffer(field, tile, parameter, working_buffer, data, p);
+         flush_buffer(codec, tile, parameter, working_buffer, stream, p);
          #ifdef BWC_PROFILE
             #if defined (_OPENMP)
                end = omp_get_wtime();

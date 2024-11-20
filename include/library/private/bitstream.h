@@ -92,7 +92,7 @@
   \************************************************************************************************/
   uint64       bytes_used                 (bitstream             const  *const  stream);
   //==========|==========================|======================|======|======|=====================
-  bitstream*   init_stream                (uchar                        *const  memory, 
+  bitstream*   init_bitstream             (uchar                        *const  memory,
                                            uint32                const          size, 
                                            char                  const          instr);
   //==========|==========================|======================|======|======|=====================
@@ -117,8 +117,10 @@
   //==========|==========================|======================|======|======|=====================
   uchar        get_bit                    (bitstream                    *const  stream);
   //==========|==========================|======================|======|======|=====================
-  uchar        terminate_stream           (bitstream                           *stream, 
-                                           bwc_stream                   *const  packed_stream);
+  uchar        shrink_to_fit              (bitstream                    *const  stream);
   //==========|==========================|======================|======|======|=====================
-  void         release_packed_stream      (bwc_stream                   *const  stream);
+  uchar        transfer_to_span           (bitstream                    *const  stream,
+                                           bwc_span                     *const  span);
+  //==========|==========================|======================|======|======|=====================
+  void         release_packed_stream      (bwc_span                     *const  stream);
 #endif

@@ -1421,7 +1421,7 @@ initialize_gain_lut()
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_float get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)  !
+!   FUNCTION NAME: bwc_float get_dwt_energy_gain(bwc_codec *const codec, uchar highband_flag, uint16 level)  !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -1434,7 +1434,7 @@ initialize_gain_lut()
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                highband_flag               uchar                 - Defines the subband for which Gb is     !
@@ -1459,7 +1459,7 @@ initialize_gain_lut()
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 bwc_float
-get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
+get_dwt_energy_gain(bwc_codec *const codec, uchar highband_flag, uint16 level)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1480,15 +1480,15 @@ get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
-   assert(level <= field->control.nDecomp + 1);
+   assert(codec);
+   assert(level <= codec->control.nDecomp + 1);
    assert(highband_flag <= DIM_ALL);
 
    /*--------------------------------------------------------*\
    ! Save the global control structure to a temporary varia-  !
    ! ble to make the code more readable.                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    /*--------------------------------------------------------*\
    ! Evaluate the number of decompositions in each temporal & !
@@ -1576,7 +1576,7 @@ get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar forward_discrete_wavelet_transform(bwc_field *const field,                          !
+!   FUNCTION NAME: uchar forward_discrete_wavelet_transform(bwc_codec *const codec,                          !
 !   --------------                                          bwc_parameter *const parameter)                  !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -1594,7 +1594,7 @@ get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
@@ -1614,27 +1614,21 @@ get_dwt_energy_gain(bwc_field *const field, uchar highband_flag, uint16 level)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter)
+forward_wavelet_transform(bwc_codec *const codec, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint64   incr_X, incr_Y, incr_Z;
-   uint64   rX0, rY0, rZ0;
-   uint64   rX1, rY1, rZ1;
-   uint64   width, height, depth;
-   uint64   x, y, z;
+   uint64   incr_X, incr_Y, incr_Z, incr_TS;
+   uint64   rX0, rY0, rZ0, rTS0;
+   uint64   rX1, rY1, rZ1, rTS1;
+   uint64   width, height, depth, dt;
+   uint64   x, y, z, t;
 
    int64    nThreads;
    int16    i;
    
    uint32   buff_size;
-   
-   uint16   incr_TS;
-   uint16   rTS0;
-   uint16   rTS1;
-   uint16   dt;
-   uint16   t;
    
    uint8    id;
    uint8    filter_tapsX, filter_tapsY, filter_tapsZ;
@@ -1652,7 +1646,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(parameter);
 
    /*-----------------------*\
@@ -1670,7 +1664,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    ! Save the global control and parameter info structure to  !
    ! temporary variables to make the code more readable.      !
    \*--------------------------------------------------------*/
-   control       = &field->control;
+   control       = &codec->control;
    param_info    = &parameter->info;
 
    /*--------------------------------------------------------*\
@@ -1777,8 +1771,8 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
          rY1  = (uint64)parameter->resolution[control->nDecomp - level].info.Y1;
          rZ0  = (uint64)parameter->resolution[control->nDecomp - level].info.Z0;
          rZ1  = (uint64)parameter->resolution[control->nDecomp - level].info.Z1;
-         rTS0 = (uint16)parameter->resolution[control->nDecomp - level].info.TS0;
-         rTS1 = (uint16)parameter->resolution[control->nDecomp - level].info.TS1;
+         rTS0 = (uint64)parameter->resolution[control->nDecomp - level].info.TS0;
+         rTS1 = (uint64)parameter->resolution[control->nDecomp - level].info.TS1;
 
          if(level < control->decompX  && (rX1 - rX0) > 1)
          {
@@ -2117,7 +2111,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar inverse_discrete_wavelet_transform(bwc_field *const field,                          !
+!   FUNCTION NAME: uchar inverse_discrete_wavelet_transform(bwc_codec *const codec,                          !
 !   --------------                                          bwc_parameter *const parameter)                  !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -2135,7 +2129,7 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
@@ -2155,27 +2149,21 @@ forward_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter)
+inverse_wavelet_transform(bwc_codec *const codec, bwc_parameter *const parameter)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint64   incr_X, incr_Y, incr_Z;
-   uint64   rX0, rY0, rZ0;
-   uint64   rX1, rY1, rZ1;
-   uint64   width, height, depth;
-   uint64   x, y, z;
+   uint64   incr_X, incr_Y, incr_Z, incr_TS;
+   uint64   rX0, rY0, rZ0, rTS0;
+   uint64   rX1, rY1, rZ1, rTS1;
+   uint64   width, height, depth, dt;
+   uint64   x, y, z, t;
    
    int64    nThreads;
    int64    i;
    
    uint32   buff_size;
-   
-   uint16   incr_TS;
-   uint16   rTS0;
-   uint16   rTS1;
-   uint16   dt;
-   uint16   t;
    
    uint8    id;
    uint8    filter_tapsX, filter_tapsY, filter_tapsZ;
@@ -2193,7 +2181,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(parameter);
 
    /*-----------------------*\
@@ -2211,7 +2199,7 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
    ! Save the global control and parameter info structure to  !
    ! temporary variables to make the code more readable.      !
    \*--------------------------------------------------------*/
-   control    = &field->control;
+   control    = &codec->control;
    param_info = &parameter->info;
 
    /*--------------------------------------------------------*\
@@ -2318,8 +2306,8 @@ inverse_wavelet_transform(bwc_field *const field, bwc_parameter *const parameter
          rY1  = (uint64)parameter->resolution[control->nDecomp - level].info.Y1;
          rZ0  = (uint64)parameter->resolution[control->nDecomp - level].info.Z0;
          rZ1  = (uint64)parameter->resolution[control->nDecomp - level].info.Z1;
-         rTS0 = (uint16)parameter->resolution[control->nDecomp - level].info.TS0;
-         rTS1 = (uint16)parameter->resolution[control->nDecomp - level].info.TS1;
+         rTS0 = (uint64)parameter->resolution[control->nDecomp - level].info.TS0;
+         rTS1 = (uint64)parameter->resolution[control->nDecomp - level].info.TS1;
 
          if(level < control->decompTS && (rTS1 - rTS0) > 1)
          {

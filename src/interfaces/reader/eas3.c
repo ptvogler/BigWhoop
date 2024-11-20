@@ -76,7 +76,25 @@
 #include <string.h>
 
 #include "eas3.h"
-#include "bwccmdl.h"
+
+
+/************************************************************************************************************\
+||                                      _  _ ____ ____ ____ ____ ____                                       ||
+||                                      |\/| |__| |    |__/ |  | [__                                        ||
+||                                      |  | |  | |___ |  \ |__| ___]                                       ||
+||                                                                                                          ||
+\************************************************************************************************************/
+#define MEMERROR "o##########################################################o\n"\
+                 "|                   ERROR: Out of memory                   |\n"\
+                 "o##########################################################o\n"
+
+#define RDERROR   "o##########################################################o\n"\
+                  "|      ERROR: Invalid Number of Bytes Read from File.      |\n"\
+                  "o##########################################################o\n"
+ 
+#define WRTERROR  "o##########################################################o\n"\
+                  "|      ERROR: Invalid Number of Bytes Written to File.     |\n"\
+                  "o##########################################################o\n"
 
 /************************************************************************************************************\
 ||                ___  ____ _ _  _ ____ ___ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                ||
@@ -84,454 +102,48 @@
 ||                |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]                ||
 ||                                                                                                          ||
 \************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uint32 bytes_used(bitstream *const stream)                                                !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to evaluate the number of bytes that have already been                !
-!                written to the allocated bitstream memory block.                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure that                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                unsigned int(32 bit)      - Number of bites that have been written to the                   !
-!                                            bitstream.                                                      !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                13.05.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uint64 
-bytes_used(bitstream const *const stream)
-{
-  if(stream->T == 0xFF)
-  {
-    return stream->L + 1;
-  }
-  else
-  {
-    return stream->L;
-  }
+/*================================================================================================*/
+/**
+ * @details Enqueues a chunck of size length to the auxilliary information.
+ */
+/*================================================================================================*/
+#define aux_enqueue(aux, chunck, chunck_len)      \
+{                                                 \
+   if (aux.pos + chunck_len > aux.len)            \
+   {                                              \
+      while(aux.pos + chunck_len > aux.len)       \
+      {                                           \
+        aux.len += aux.len / 2;                   \
+      }                                           \
+      aux.ptr = realloc(aux.ptr, aux.len);        \
+   }                                              \
+   memcpy(aux.ptr + aux.pos, chunck, chunck_len); \
+   aux.pos += chunck_len;                         \
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bitstream* bwc_init_stream(uchar* memory, uint32 size, char instr)                        !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to initialize a bwc bitstream. For encoding, a null pointer           !
-!                is passed as a memory handle and the function will allocate a memory block with the         !
-!                specified stream size. For decoding, a valid memory handle, passed by the function          !
-!                caller, will be stored in the bitstream structure. The byte buffer counter t,               !
-!                stream size Lmax and size increment are initialized with their appropriate values.          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                size                        unsigned int(32 bit)  - Initial size of the bwc stream.         !
-!                                                                                                            !
-!                memory                      unsigned char         - Memory handle for the bwc stream memory !
-!                                                                    block.                                  !
-!                                                                                                            !
-!                instr                       char                  - Constant used to instruct the field     !
-!                                                                    initialization.                         !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                bitstream*                - Memory handle for the initialized bwc stream.                   !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                19.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-bitstream* 
-init_stream(uchar* memory, uint32 size, char instr)
-{
-  /*-----------------------*\
-  ! DEFINE STRUCTS:         !
-  \*-----------------------*/
-  bitstream  *stream;
-
-  /*-----------------------*\
-  ! DEFINE ASSERTIONS:      !
-  \*-----------------------*/
-  assert(instr == 'c' || instr == 'd');
-
-  /*--------------------------------------------------------*\
-  ! Allocate the bwc stream structure.                       !
-  \*--------------------------------------------------------*/
-  stream = calloc(1, sizeof(bitstream));
-  if(!stream)
-  {
-    // memory allocation error
-    fprintf(stderr, MEMERROR);
-    return NULL;
-  }
-
-  /*--------------------------------------------------------*\
-  ! Evaluate if a valid memory handle has been passed by the !
-  ! function caller.                                         !
-  \*--------------------------------------------------------*/
-  if(!memory)
-  {
-    /*--------------------------------------------------------*\
-    ! If no valid memory handle has been passed, allocate a    !
-    ! memory block with the specifiec stream size.             !
-    \*--------------------------------------------------------*/
-    stream->memory = calloc(size, sizeof(uchar));
-    if(!stream->memory)
-    {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return NULL;
-    }
-  }
-  else
-  {
-    /*--------------------------------------------------------*\
-    ! If a valid memory handle has been passed for decoding,   !
-    ! save the memory handle in the bwc stream structure.      !
-    \*--------------------------------------------------------*/
-    stream->memory = memory;
-  }
-   
-  /*--------------------------------------------------------*\
-  ! Initialize the byte buffer counter, stream size and size !
-  ! increment for the current stream.                        !
-  \*--------------------------------------------------------*/
-  stream->t         = (instr == 'c') ? 8 : 0;
-  stream->Lmax      = size;
-  stream->size_incr = (uint64)(size / 2);
-
-  /*--------------------------------------------------------*\
-  ! Return the stream memory handle.                         !
-  \*--------------------------------------------------------*/
-  return stream;
+/*================================================================================================*/
+/**
+ * @details Dequeues a chunck of size length from the auxilliary information.
+ */
+/*================================================================================================*/
+#define aux_dequeue(aux, chunck, chunck_len)         \
+{                                                    \
+   if(aux.pos + chunck_len <= aux.len) {             \
+      memcpy(chunck, aux.ptr + aux.pos, chunck_len); \
+      aux.pos += chunck_len;                         \
+   } else {                                          \
+      fprintf(stderr, MEMERROR);                     \
+   }                                                 \
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_emit_chunck(bitstream *const stream, const uchar* string, const uint64 length)   !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to write an additional chunck of size length to a bwc bitstream.      !
-!                                                                                        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                chunck                      unsigned char*        - Memory handle for a data block that is  !
-!                                                                    to be written to the bwc bitstream.     !
-!                                                                                                            !
-!                size                        unsigned int(64 bit)  - Size of the data block.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-void
-emit_chunck(bitstream *const stream, const uchar* chunck, const uint64 size)
-{
-  /*-----------------------*\
-  ! DEFINE INT VARIABLES:   !
-  \*-----------------------*/
-  uint64             Lreq; 
-
-  /*-----------------------*\
-  ! DEFINE ASSERTIONS:      !
-  \*-----------------------*/
-  assert(stream);
-  assert(chunck);
-
-  /*--------------------------------------------------------*\
-  ! Evaluate the memory block size if the current chunck of  !
-  ! data is written to the stream.                           !
-  \*--------------------------------------------------------*/
-  Lreq = (bytes_used(stream) + size);
-
-  /*--------------------------------------------------------*\
-  ! Check if the enough memory has been allocated for the    !
-  ! stream to store the additional data chunck.              !
-  \*--------------------------------------------------------*/
-  if(Lreq > stream->Lmax)
-  {
-    /*--------------------------------------------------------*\
-    ! If the stream is not large enough, check if this is due  !
-    ! to an error encountered in a previous writing operation  !
-    \*--------------------------------------------------------*/
-    if(!stream->error)
-    {
-      /*--------------------------------------------------------*\
-      ! If the error flag is not set, increase the stream size   !
-      ! until it is large enough to store the additional data    !
-      ! chunck.                                                  !
-      \*--------------------------------------------------------*/
-      while(Lreq > stream->Lmax)
-      {
-        stream->Lmax      += stream->size_incr + size;
-        stream->size_incr  = (uint64)(stream->Lmax / 2);
-      }
-
-      /*--------------------------------------------------------*\
-      ! Reallocate the stream data block.                        !
-      \*--------------------------------------------------------*/
-      stream->memory     = realloc(stream->memory, stream->Lmax);
-      if(!stream->memory)
-      {
-        // memory allocation error
-        stream->error |= 1;
-        stream->Lmax   = 0;
-        return;
-      }
-    }
-    else
-    {
-      /*--------------------------------------------------------*\
-      ! Exit to function caller if error flag has been set.      !
-      \*--------------------------------------------------------*/
-      return;
-    }
-  }
-
-  /*--------------------------------------------------------*\
-  ! Copy the additional data to the stream memory block.     !
-  \*--------------------------------------------------------*/
-  memcpy(stream->memory + stream->L, chunck, size);
-
-  /*--------------------------------------------------------*\
-  ! Increment the number of bytes written to the stream with !
-  ! the size of the newly added data chunck.                 !
-  \*--------------------------------------------------------*/
-  stream->L += size;
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                size                        unsigned int(64 bit)  - Size of the data block.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar*                    - Data chunck requested by the function caller.                   !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar*
-get_chunck(bitstream *const stream, const uint64 size)
-{
-  /*-----------------------*\
-  ! DEFINE CHAR VARIABLES:  !
-  \*-----------------------*/
-  uchar             *tmp;
-
-  /*-----------------------*\
-  ! DEFINE ASSERTIONS:      !
-  \*-----------------------*/
-  assert(stream);
-
-  /*--------------------------------------------------------*\
-  ! Check if the number of bytes to be read from the stream  !
-  ! does not exceed the number of bytes still present in its !
-  ! memory block.                                            !
-  \*--------------------------------------------------------*/
-  if(bytes_used(stream) + size <= stream->Lmax)
-  {
-    /*--------------------------------------------------------*\
-    ! Allocate a temporary array used to store the bytes that  !
-    ! are extracted from the stream.                           !
-    \*--------------------------------------------------------*/
-    tmp = calloc(size, sizeof(uchar));
-    if(!tmp)
-    {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return NULL;
-    }
-
-    /*--------------------------------------------------------*\
-    ! Copy the bytes requested from the function caller from   !
-    ! the stream to the temporary data block.                  !
-    \*--------------------------------------------------------*/
-    memcpy(tmp, stream->memory + stream->L, size);
-
-    /*--------------------------------------------------------*\
-    ! Increment the number of bytes read from the bitstream.   !
-    \*--------------------------------------------------------*/
-    stream->L += size;
-
-    /*--------------------------------------------------------*\
-    ! Return the temporary data block to the function caller.  !
-    \*--------------------------------------------------------*/
-    return tmp;
-  }
-  else
-  {
-    /*--------------------------------------------------------*\
-    ! If the requested block size exceeds the information left !
-    ! in the bitstream, set the bitstream error flag and       !
-    ! return a NULL pointer.                                   !
-    \*--------------------------------------------------------*/
-    stream->error |= 1;
-    return NULL;
-  }
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar
-terminate_stream(bitstream *stream, bwc_stream *const packed_stream)
-{
-  /*-----------------------*\
-  ! DEFINE ASSERTIONS:      !
-  \*-----------------------*/
-  assert(stream);
-
-  if(packed_stream)
-  {
-    if(stream->error)
-    {
-      return 1;
-    }
-    else if(stream->L != stream->Lmax)
-    {
-      stream->Lmax   = stream->L;
-      stream->memory = realloc(stream->memory, stream->Lmax);
-      if(!stream->memory)
-      {
-        // memory allocation error
-        fprintf(stderr, MEMERROR);
-        stream->Lmax = 0;
-        return 1;
-      }
-    }
-
-    packed_stream->memory   = stream->memory;
-    packed_stream->access   = stream->memory;
-    packed_stream->size     = stream->L;
-    packed_stream->position = 0;
-  }
-  else
-  {
-    free(stream->memory);
-  }
-  
-  free(stream);
-  return 0;
-}
-
-/*----------------------------------------------------------------------------------------------------------*\
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                    This function converts the endianess of half, single or double precision values.        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                    Variable                 Type                   Description                             !
-!                    --------                 ----                   -----------                             !
-!                    value                    void*                - Memory address of the parame-           !
-!                                                                    ter to be converted.                    !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                    Type                                            Description                             !
-!                    ----                                            -----------                             !
-!                    -                                               -                                       !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                    Date        Author             Change Id   Release     Description                      !
-!                    ----        ------             ---------   -------     -----------                      !
-!                    30.04.2019  Patrick Vogler     B87D120     V 0.1.0     function created                 !
-!                    21.11.2019  Patrick Vogler     B87E7E4     V 0.1.0     functionality expanded           !
-!                                                                           to 32 bit integers               !
-!                    21.11.2019  Patrick Vogler     B87E7E4     V 0.1.0     functionality expanded           !
-!                                                                           to 16 bit integers               !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Converts the endianess of half, single, or double precision values.
+ *
+ * @param[inout]   value     Pointer to the parameter to be converted.
+ * @param[in]      accuracy  Precision/accuracy of the pointed parameter.
+ */
+/*================================================================================================*/
 static void
 endian_conversion(void          *value,
                   uint8_t const  accuracy)
@@ -585,49 +197,129 @@ endian_conversion(void          *value,
     }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar read_eas3_header(bwc_data *const data)                                              !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function opens an eas3 file and checks it for its validity. Once the specified file    !
-!                has been verified, its header and flow field data is read and stored in the bwc_data        !
-!                structure.                                                                                  !
-!                                                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                filename                    char*                 - Defines the filename of the eas3 file   !
-!                                                                    that is to be opened and read.          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                file                      - Defines a structure used to store all                           !
-!                                            the relevant parameters and the data                            !
-!                                            field of an eas3 file.                                          !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                20.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-static uchar
-read_eas3_header(bwc_data *const data)
+/*================================================================================================*/
+/**
+ * @details Deallocates the provided eas3_data structure including all contained data.
+ *
+ * @param[in]   data     Pointer to eas3_data structure to be filled.
+ */
+/*================================================================================================*/
+void
+eas3_free_data(eas3_data* data)
+{
+  /*-----------------------*\
+  ! DEFINE STRUCTS:         !
+  \*-----------------------*/
+  eas3_param_names *param, *temp;
+  
+  if(data != NULL)
+  {
+    if (data->param_names != NULL)
+      {
+        param = data->param_names->root;
+  
+        while(param != NULL)
+          {
+            temp  = param;
+            param = param -> next;
+            free(temp);
+          }
+      }
+
+    if (data->field.d != NULL)
+      free(data->field.d);
+
+    if (data->field.f != NULL)
+      free(data->field.f);
+
+    if(data->aux.ptr != NULL)
+      free(data->aux.ptr);
+
+    free(data);
+  }
+}
+
+/*================================================================================================*/
+/**
+ * @details Adds a parameter name to the linked list inside the eas3_data structure.
+ *
+ * @param[in]   data     Pointer to eas3_data structure to be filled.
+ * @param[in]   name     Name to be added to the linked list.
+ */
+/*================================================================================================*/
+void
+eas3_add_param_name(eas3_data *const data, char *name)
+{
+   eas3_param_names *param_names;
+   assert(data);
+   param_names = data->param_names;
+   /*--------------------------------------------------------*\
+   ! Check if the specified parameter name has the proper     !
+   ! length.                                                  !
+   \*--------------------------------------------------------*/
+   if((strlen(name) > 24) && name)
+   {
+      fprintf(stderr, "o==========================================================o\n"\
+                      "| WARNING: Invalid parameter name: %-24s|\n"\
+                      "|                                                          |\n"\
+                      "|          Parameter names cannot exceed 24 characters.    |\n"\
+                      "|                                                          |\n"\
+                      "o==========================================================o\n",name);
+   }
+
+   /*--------------------------------------------------------*\
+   ! Check if the parameter structure has already been allo-  !
+   ! cated.                                                   !
+   \*--------------------------------------------------------*/
+   if(data->param_names == NULL)
+   {
+      /*--------------------------------------------------------*\
+      ! If eas3_add_param_name function is called for the first  !
+      ! time, allocate the parameter structure and save the root !
+      ! node address.                                            !
+      \*--------------------------------------------------------*/
+      data->param_names       = calloc(1, sizeof(eas3_param_names));
+      data->param_names->root = data->param_names;
+   }
+   else
+   {
+      /*--------------------------------------------------------*\
+      ! If a new parameter is added, allocate the nex linked     !
+      ! list node, save the root node address in its structure   !
+      ! and set the linked list access pointer to the new node.  !
+      \*--------------------------------------------------------*/
+      data->param_names->next       = calloc(1, sizeof(eas3_param_names));
+      data->param_names->next->root = data->param_names->root;
+      data->param_names->next->id   = data->param_names->id + 1;
+      data->param_names             = data->param_names->next;
+   }
+
+   /*--------------------------------------------------------*\
+   ! Save the name of the new parameter its precision in the  !
+   ! structure of the new node.                               !
+   \*--------------------------------------------------------*/
+   strcpy(data->param_names->name, name ? name : "undefined");
+}
+
+/*================================================================================================*/
+/**
+ * @details Parses the uncompressed output from bwc_stream into the eas3_data.
+ *
+ * @param[in]      stream   Pointer to uncompressed data set.
+ * @param[inout]   data     Pointer to eas3_data structure to be filled.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
+uchar
+bwc_to_eas3(bwc_stream *const stream, eas3_data *const data)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64   Lread;
+   uint64   size;
    uint64   i;
-   uint8    precision;
 
    /*-----------------------*\
    ! DEFINE CHAR VARIABLES:  !
@@ -638,14 +330,119 @@ read_eas3_header(bwc_data *const data)
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
-   bwc_gl_inf        *info;
-   bitstream         *aux;
-   eas3_std_params    params;
+   eas3_std_params *params;
+
+   params = &data->params;
+
+   data->aux.ptr = calloc(stream->codestream.aux->size, sizeof(uchar));
+   data->aux.pos = 0;
+   data->aux.len = stream->codestream.aux->size;
+   if(!data->aux.ptr)
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      free(data->aux.ptr);
+      return 1;
+   }
+   memcpy(data->aux.ptr, stream->codestream.aux->memory,
+          stream->codestream.aux->size);
+   
+   aux_dequeue(data->aux, (uchar*)params, 176);
+
+   endian_conversion(&params->nts, 8);
+   endian_conversion(&params->npar, 8);
+   endian_conversion(&params->ndim1, 8);
+   endian_conversion(&params->ndim2, 8);
+   endian_conversion(&params->ndim3, 8);
+   endian_conversion(&params->accuracy, 8);
+   if(params->accuracy != 1 && params->accuracy != 2)
+   {
+      fprintf(stderr, "o##########################################################o\n"\
+                      "| ERROR: The accuracy of the specified dataset is not sup- |\n"\
+                      "|        ported by the compression algorithm.              |\n"\
+                      "o##########################################################o\n");
+      return 1;
+   }
+
+   buffer_char = calloc(params->nts, sizeof(uint64));
+   if(!buffer_char)
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      free(buffer_char);
+      return 1;
+   }
+   aux_dequeue(data->aux, buffer_char, params->nts * sizeof(uint64));
+
+   if(params->attribute_mode == EAS3_ALL_ATTR)
+   {
+      buffer_char = realloc(buffer_char, params->nts * ATTRLEN * sizeof(char));
+      if(!buffer_char)
+      {
+         // memory allocation error
+         fprintf(stderr, MEMERROR);
+         free(buffer_char);
+         return 1;
+      }
+      aux_dequeue(data->aux, buffer_char, params->nts * ATTRLEN * sizeof(char));
+
+      for(i = 0; i < params->npar; ++i)
+      {
+         aux_dequeue(data->aux, param_name, ATTRLEN * sizeof(char));
+         eas3_add_param_name(data, param_name);
+         memset(param_name, 0, ATTRLEN + 1);
+      }
+   }
+
+   size = params->ndim1 * params->ndim2 * params->ndim3 *
+          params->nts * params->npar;
+
+   if(params->accuracy == 1)
+   {
+     data->field.d = NULL;
+     data->field.f = calloc(size, sizeof(float));
+     memcpy(data->field.f, stream->out, size*sizeof(float));
+   }
+   else if(params->accuracy == 2)
+   {
+     data->field.f = NULL;
+     data->field.d = calloc(size, sizeof(double));
+     memcpy(data->field.d, stream->out, size*sizeof(double));
+   }
+
+   return 0;
+}
+
+/*================================================================================================*/
+/**
+ * @details Reads the header from an open eas3 file pointer parsing the header information into
+ *          the eas3_data structure argument.
+ *
+ * @param[in]      fp       Readily opened file pointer.
+ * @param[inout]   data     Structure to store eas3 data.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
+static uchar
+read_eas3_header(FILE *const fp, eas3_data *const data)
+{
+   /*-----------------------*\
+   ! DEFINE INT VARIABLES:   !
+   \*-----------------------*/
+   uint64   Lread;
+   uint64   i;
 
    /*-----------------------*\
-   ! DEFINE FILE POINTER:    !
+   ! DEFINE CHAR VARIABLES:  !
    \*-----------------------*/
-   FILE    *fp;
+   uchar   *buffer_char;
+   char     param_name[ATTRLEN + 1] = {};
+
+   /*-----------------------*\
+   ! DEFINE STRUCTS:         !
+   \*-----------------------*/
+   eas3_std_params   *params;
 
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -653,11 +450,10 @@ read_eas3_header(bwc_data *const data)
    assert(data);
 
    /*--------------------------------------------------------*\
-   ! Save the file pointer and data info structure in tempo-  !
-   ! rary variables to make the code more readable.           !
+   ! Save the eas3_std_params structure in temporary          !
+   ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   fp   = data->fp;
-   info = &data->info;
+   params = &data->params;
 
    /*--------------------------------------------------------*\
    ! Allocate the character buffer used to store chunks of    !
@@ -699,25 +495,15 @@ read_eas3_header(bwc_data *const data)
    }
  
    /*--------------------------------------------------------*\
-   ! Allocate the auxiliary information packed stream.        !
-   \*--------------------------------------------------------*/
-   data->codestream.aux = calloc(1, sizeof(bwc_stream));
-   if(!data->codestream.aux)
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      free(buffer_char);
-      return 1;
-   }
-
-   /*--------------------------------------------------------*\
    ! Initialize the stream for the auxiliary information mem- !
    ! ory block. The initial size of the auxiliary memory      !
    ! block has been chosen arbitrarily and should be large    !
    ! enough to prevent excessive reallocation.                !
    \*--------------------------------------------------------*/
-   aux = init_stream(NULL, AUX_SIZE, 'c');
-   if(!aux)
+   data->aux.ptr = calloc(AUX_SIZE, sizeof(uchar));
+   data->aux.pos = 0;
+   data->aux.len = AUX_SIZE;
+   if(!data->aux.ptr)
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
@@ -730,7 +516,7 @@ read_eas3_header(bwc_data *const data)
    ! present the eas3 standard parameters. The information    !
    ! is stored in the eas3_std_params structure.              !
    \*--------------------------------------------------------*/
-   if(fread(&params, sizeof(uint64), 22, fp) != 22)
+   if(fread(params, sizeof(uint64), 22, fp) != 22)
    {
       // invalid read
       fprintf(stderr, RDERROR);
@@ -741,7 +527,7 @@ read_eas3_header(bwc_data *const data)
    /*--------------------------------------------------------*\
    ! Check if the specified file is of the EAS3 type.         !
    \*--------------------------------------------------------*/
-   if(params.file_type == EAS2_TYPE)
+   if(params->file_type == EAS2_TYPE)
    {       
       // invalid file format
       fprintf(stderr, "o##########################################################o\n"\
@@ -752,49 +538,28 @@ read_eas3_header(bwc_data *const data)
    }
 
    /*--------------------------------------------------------*\
-   ! Emit a file format hash to the aux stream to identify it !
-   ! as a eas3 auxiliary information block. This hash can be  !
-   ! used to properly handle decompression into an eas3 file  !
-   ! or conversion to other file formats.                     !
-   \*--------------------------------------------------------*/
-   // emit_symbol(aux, hash("eas3"), 8);
-
-   /*--------------------------------------------------------*\
    ! Emit the standard parameters to the auxiliary informa-   !
    ! tion information memory block.                           !
    \*--------------------------------------------------------*/
-   emit_chunck(aux, (uchar*)&params, 176);
+   aux_enqueue(data->aux, (uchar*)params, 176);
 
    /*--------------------------------------------------------*\
    ! Convert the parameters required for the bwc compression  !
    ! stage to little endian and store them in the file info   !
    ! structure.                                               !
    \*--------------------------------------------------------*/
-   endian_conversion(&params.nzs, 8);
-   info->nTS = (uint16)params.nzs;
+   endian_conversion(&params->nts, 8);
 
-   endian_conversion(&params.npar, 8);
-   info->nPar = (uint8)params.npar;
+   endian_conversion(&params->npar, 8);
 
-   endian_conversion(&params.ndim1, 8);
-   info->nX = (uint64)params.ndim1;
+   endian_conversion(&params->ndim1, 8);
 
-   endian_conversion(&params.ndim2, 8);
-   info->nY = (uint64)params.ndim2;
+   endian_conversion(&params->ndim2, 8);
 
-   endian_conversion(&params.ndim3, 8);
-   info->nZ = (uint64)params.ndim3;
+   endian_conversion(&params->ndim3, 8);
 
-   endian_conversion(&params.accuracy, 8);
-   if(params.accuracy == 1)
-   {
-      precision = 4;
-   }
-   else if(params.accuracy == 2)
-   {
-      precision = 8;
-   }
-   else
+   endian_conversion(&params->accuracy, 8);
+   if(params->accuracy != 1 && params->accuracy != 2)
    {
       fprintf(stderr, "o##########################################################o\n"\
                       "| ERROR: The accuracy of the specified dataset is not sup- |\n"\
@@ -807,20 +572,20 @@ read_eas3_header(bwc_data *const data)
    ! Convert the size parameters, used to load the rest of the!
    ! header, to little endian.                                !
    \*--------------------------------------------------------*/
-   endian_conversion(&params.size_time,      8);
-   endian_conversion(&params.size_parameter, 8);
-   endian_conversion(&params.size_dim1,      8);
-   endian_conversion(&params.size_dim2,      8);
-   endian_conversion(&params.size_dim3,      8);
-   endian_conversion(&params.udef_char_size, 8);
-   endian_conversion(&params.udef_int_size,  8);
-   endian_conversion(&params.udef_real_size, 8);
+   endian_conversion(&params->size_time,      8);
+   endian_conversion(&params->size_parameter, 8);
+   endian_conversion(&params->size_dim1,      8);
+   endian_conversion(&params->size_dim2,      8);
+   endian_conversion(&params->size_dim3,      8);
+   endian_conversion(&params->udef_char_size, 8);
+   endian_conversion(&params->udef_int_size,  8);
+   endian_conversion(&params->udef_real_size, 8);
 
    /*--------------------------------------------------------*\
    ! Allocate the time step array. If successful, read the    !
    ! timesteps from the file stream.                          !
    \*--------------------------------------------------------*/
-   buffer_char = realloc(buffer_char, info->nTS * sizeof(uint64));
+   buffer_char = realloc(buffer_char, params->nts * sizeof(uint64));
    if(!buffer_char)
    {
       // memory allocation error
@@ -828,7 +593,7 @@ read_eas3_header(bwc_data *const data)
       return 1;
    }
 
-   if(fread(buffer_char, sizeof(uint64), info->nTS, fp) != info->nTS)
+   if(fread(buffer_char, sizeof(uint64), params->nts, fp) != params->nts)
    {
       // invalid read
       fprintf(stderr, RDERROR);
@@ -840,19 +605,19 @@ read_eas3_header(bwc_data *const data)
    ! Emit the time step array to the auxiliary information    !
    ! memory block.                                            !
    \*--------------------------------------------------------*/
-   emit_chunck(aux, buffer_char, info->nTS * sizeof(uint64));
+   aux_enqueue(data->aux, buffer_char, params->nts * sizeof(uint64));
 
    /*--------------------------------------------------------*\
    ! Check if any attributes have been specified in the eas3  !
    ! file.                                                    !
    \*--------------------------------------------------------*/
-   if(params.attribute_mode == EAS3_ALL_ATTR)
+   if(params->attribute_mode == EAS3_ALL_ATTR)
    {
       /*--------------------------------------------------------*\
       ! Allocate the buffer character array. If successful, read !
       ! the timestep attributes from the file stream.            !
       \*--------------------------------------------------------*/
-      buffer_char = realloc(buffer_char, info->nTS * ATTRLEN * sizeof(char));
+      buffer_char = realloc(buffer_char, params->nts * ATTRLEN * sizeof(char));
       if(!buffer_char)
       {
          // memory allocation error
@@ -861,7 +626,7 @@ read_eas3_header(bwc_data *const data)
          return 1;
       }
 
-      if(fread(buffer_char, sizeof(char), info->nTS * ATTRLEN, fp) != (info->nTS * ATTRLEN))
+      if(fread(buffer_char, sizeof(char), params->nts * ATTRLEN, fp) != (params->nts * ATTRLEN))
       {
          // invalid read
          fprintf(stderr, RDERROR);
@@ -873,9 +638,9 @@ read_eas3_header(bwc_data *const data)
       ! Emit the timestep attribute array to the auxiliary infor-!
       ! mation memory block.                                     !
       \*--------------------------------------------------------*/
-      emit_chunck(aux, buffer_char, info->nTS * ATTRLEN * sizeof(char));
+      aux_enqueue(data->aux, buffer_char, params->nts * ATTRLEN * sizeof(char));
 
-      for(i = 0; i < info->nPar; ++i)
+      for(i = 0; i < params->npar; ++i)
       {
          /*--------------------------------------------------------*\
          ! Read the parameter name from the file stream and add all !
@@ -890,13 +655,9 @@ read_eas3_header(bwc_data *const data)
             return 1;
          }
 
-         bwc_add_param(data, param_name, precision);
+         aux_enqueue(data->aux, param_name, ATTRLEN * sizeof(char));
+         eas3_add_param_name(data, param_name);
 
-         /*--------------------------------------------------------*\
-         ! Read the parameter name from the file stream and add all !
-         ! the necessary parameter information to the paramter      !
-         ! linked list.                                             |
-         \*--------------------------------------------------------*/
          memset(param_name, 0, ATTRLEN + 1);
       }
    }
@@ -906,15 +667,15 @@ read_eas3_header(bwc_data *const data)
    ! the eas3 file header.                                    !
    \*--------------------------------------------------------*/
    Lread  = 0;
-   Lread += (params.attribute_mode == EAS3_ALL_ATTR) ? 3 * ATTRLEN                                         : 0;
-   Lread += (params.gmode_time     >  EAS3_NO_G)     ? params.size_time      * sizeof(uint64)              : 0;
-   Lread += (params.gmode_param    >  EAS3_NO_G)     ? params.size_parameter * sizeof(uint64)              : 0;
-   Lread += (params.gmode_dim1     >  EAS3_NO_G)     ? params.size_dim1      * sizeof(uint64)              : 0;
-   Lread += (params.gmode_dim2     >  EAS3_NO_G)     ? params.size_dim2      * sizeof(uint64)              : 0;
-   Lread += (params.gmode_dim3     >  EAS3_NO_G)     ? params.size_dim3      * sizeof(uint64)              : 0;
-   Lread += (params.udef_param     == EAS3_ALL_UDEF) ? params.udef_char_size * sizeof(char)   * UDEFLEN +
-                                                       params.udef_int_size  * sizeof(uint64)           +
-                                                       params.udef_real_size * sizeof(double)              : 0;
+   Lread += (params->attribute_mode == EAS3_ALL_ATTR) ? 3 * ATTRLEN                                         : 0;
+   Lread += (params->gmode_time     >  EAS3_NO_G)     ? params->size_time      * sizeof(uint64)              : 0;
+   Lread += (params->gmode_param    >  EAS3_NO_G)     ? params->size_parameter * sizeof(uint64)              : 0;
+   Lread += (params->gmode_dim1     >  EAS3_NO_G)     ? params->size_dim1      * sizeof(uint64)              : 0;
+   Lread += (params->gmode_dim2     >  EAS3_NO_G)     ? params->size_dim2      * sizeof(uint64)              : 0;
+   Lread += (params->gmode_dim3     >  EAS3_NO_G)     ? params->size_dim3      * sizeof(uint64)              : 0;
+   Lread += (params->udef_param     == EAS3_ALL_UDEF) ? params->udef_char_size * sizeof(char)   * UDEFLEN +
+                                                       params->udef_int_size  * sizeof(uint64)           +
+                                                       params->udef_real_size * sizeof(double)              : 0;
 
    /*--------------------------------------------------------*\
    ! Reallocate the buffer character array to allow for the   !
@@ -944,7 +705,7 @@ read_eas3_header(bwc_data *const data)
    ! Emit the remaining header information the the auxiliary  !
    ! information stream.                                      !
    \*--------------------------------------------------------*/
-   emit_chunck(aux, buffer_char, Lread);
+   aux_enqueue(data->aux, buffer_char, Lread);
    
    /*--------------------------------------------------------*\
    ! Free the buffer character array.                         !
@@ -956,52 +717,35 @@ read_eas3_header(bwc_data *const data)
    ! ful, the address to the aux memory block stored is       !
    ! stored in the file structure alongside its size.         !
    \*--------------------------------------------------------*/
-   if(terminate_stream(aux, data->codestream.aux))
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return 1;
-   }
+    if(data->aux.pos != data->aux.len)
+    {
+      data->aux.len = data->aux.pos;
+      data->aux.ptr = realloc(data->aux.ptr, data->aux.len);
+      if(!data->aux.ptr)
+      {
+        // memory allocation error
+        fprintf(stderr, MEMERROR);
+        data->aux.len = 0;
+        return 1;
+      }
+    }
 
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar read_eas3_header(bwc_data *const data)                                              !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function opens an eas3 file and checks it for its validity. Once the specified file    !
-!                has been verified, its header and flow field data is read and stored in the bwc_data        !
-!                structure.                                                                                  !
-!                                                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                filename                    char*                 - Defines the filename of the eas3 file   !
-!                                                                    that is to be opened and read.          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                file                      - Defines a structure used to store all                           !
-!                                            the relevant parameters and the data                            !
-!                                            field of an eas3 file.                                          !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                20.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Writes the header information from the eas3_data structure into the open eas3
+ *          file pointer.
+ *
+ * @param[in]      fp       Readily opened file pointer.
+ * @param[inout]   data     Structure to store eas3 data.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
 static uchar
-write_eas3_header(bwc_data *const data)
+write_eas3_header(FILE *const fp, eas3_data *const data)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1016,27 +760,13 @@ write_eas3_header(bwc_data *const data)
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
-   bwc_gl_inf        *info;
-   bitstream         *aux;
    eas3_std_params   *params;
-   bwc_cmd_opts_ll   *param;
+   eas3_param_names  *param_names;
 
-   /*-----------------------*\
-   ! DEFINE FILE POINTER:    !
-   \*-----------------------*/
-   FILE    *fp;
-   
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
    assert(data);
-
-   /*--------------------------------------------------------*\
-   ! Save the file pointer and data info structure in tempo-  !
-   ! rary variables to make the code more readable.           !
-   \*--------------------------------------------------------*/
-   fp   = data->fp;
-   info = &data->info;
 
    /*--------------------------------------------------------*\
    ! Write the valid EAS3 identifier to the specified file.   !
@@ -1048,17 +778,22 @@ write_eas3_header(bwc_data *const data)
       return 1;
    }
 
-   /*--------------------------------------------------------*\
-   ! Initialize the auxiliary information stream.             !
-   \*--------------------------------------------------------*/
-   aux = init_stream(data->codestream.aux->memory, 
-                     data->codestream.aux->size,   'd');
+   // Rewind aux
+   data->aux.pos = 0;
 
    /*--------------------------------------------------------*\
    ! Get the standard parameters from the auxiliary informa-  !
    ! memory block and write them to the file stream.          !
    \*--------------------------------------------------------*/
-   params = (eas3_std_params*)get_chunck(aux, 176);
+   params = calloc(1, sizeof(eas3_std_params));
+   if(!params)
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      free(params);
+      return 1;
+   }
+   aux_dequeue(data->aux, params, sizeof(eas3_std_params));
 
    if(fwrite(params, sizeof(uint64), 22, fp) != 22)
    {
@@ -1071,7 +806,13 @@ write_eas3_header(bwc_data *const data)
    ! Convert the size parameters, used to write the rest of   !
    ! the header, to little endian.                            !
    \*--------------------------------------------------------*/
+   endian_conversion(&params->file_type,      8);
    endian_conversion(&params->accuracy,       8);
+   endian_conversion(&params->nts,            8);
+   endian_conversion(&params->npar,           8);
+   endian_conversion(&params->ndim1,          8);
+   endian_conversion(&params->ndim2,          8);
+   endian_conversion(&params->ndim3,          8);
    endian_conversion(&params->size_time,      8);
    endian_conversion(&params->size_parameter, 8);
    endian_conversion(&params->size_dim1,      8);
@@ -1081,12 +822,14 @@ write_eas3_header(bwc_data *const data)
    endian_conversion(&params->udef_int_size,  8);
    endian_conversion(&params->udef_real_size, 8);
 
+   data->params = *params;
+
    /*--------------------------------------------------------*\
    ! Allocate the buffer character array. If successful, get  !
    ! the timestep array from the auxiliary information block  !
    ! and write it to the file stream.                         !
    \*--------------------------------------------------------*/
-   buffer_char = get_chunck(aux, info->nTS * sizeof(uint64));
+   buffer_char = calloc(data->params.nts * sizeof(uint64), sizeof(uchar));
    if(!buffer_char)
    {
       // memory allocation error
@@ -1094,8 +837,9 @@ write_eas3_header(bwc_data *const data)
       free(buffer_char);
       return 1;
    }
+   aux_dequeue(data->aux, buffer_char, data->params.nts * sizeof(uint64));
 
-   if(fwrite(buffer_char, sizeof(uint64), info->nTS, fp) != info->nTS)
+   if(fwrite(buffer_char, sizeof(uint64), data->params.nts, fp) != data->params.nts)
    {
       // invalid read
       fprintf(stderr, WRTERROR);
@@ -1115,7 +859,7 @@ write_eas3_header(bwc_data *const data)
       ! the timestep attribute array from the auxiliary informa- !
       ! tion block and write it to the file stream.              !
       \*--------------------------------------------------------*/
-      buffer_char = get_chunck(aux, info->nTS * ATTRLEN);
+      buffer_char = calloc(data->params.nts * ATTRLEN, sizeof(uchar));
       if(!buffer_char)
       {
          // memory allocation error
@@ -1123,8 +867,9 @@ write_eas3_header(bwc_data *const data)
          free(buffer_char);
          return 1;
       }
+      aux_dequeue(data->aux, buffer_char, data->params.nts * ATTRLEN);
 
-      if(fwrite(buffer_char, sizeof(uchar), info->nTS * ATTRLEN, fp) != (info->nTS * ATTRLEN))
+      if(fwrite(buffer_char, sizeof(uchar), data->params.nts * ATTRLEN, fp) != (data->params.nts * ATTRLEN))
       {
          // invalid read
          fprintf(stderr, WRTERROR);
@@ -1136,17 +881,17 @@ write_eas3_header(bwc_data *const data)
       /*--------------------------------------------------------*\
       ! Loop through the parameter array and...                  !
       \*--------------------------------------------------------*/
-      if(data->info.parameter)
+      if(data->param_names)
       {
-         param = data->info.parameter->root;
+         param_names = data->param_names->root;
 
-         while(param != NULL)
+         while(param_names != NULL)
          {
             /*--------------------------------------------------------*\
             ! ... write the parameter name from the info structure to  !
             ! the file stream.                                         !
             \*--------------------------------------------------------*/
-            if(fwrite(param->name, sizeof(char), ATTRLEN, fp) != ATTRLEN)
+            if(fwrite(param_names->name, sizeof(char), ATTRLEN, fp) != ATTRLEN)
             {
                // invalid read
                fprintf(stderr, WRTERROR);
@@ -1154,7 +899,7 @@ write_eas3_header(bwc_data *const data)
                return 1;
             }
 
-            param = param -> next;
+            param_names = param_names->next;
          }
       }
    }
@@ -1179,7 +924,7 @@ write_eas3_header(bwc_data *const data)
    ! the remaining eas header bytes from the auxiliary infor- !
    ! mation block and write it to the file stream.            !
    \*--------------------------------------------------------*/
-   buffer_char = get_chunck(aux, Lwrite);
+   buffer_char = calloc(Lwrite, sizeof(uchar));
    if(!buffer_char)
    {
       // memory allocation error
@@ -1187,6 +932,7 @@ write_eas3_header(bwc_data *const data)
       free(buffer_char);
       return 1;
    }
+   aux_dequeue(data->aux, buffer_char, Lwrite);
 
    if(fwrite(buffer_char, sizeof(uchar), Lwrite, fp) != Lwrite)
    {
@@ -1198,10 +944,8 @@ write_eas3_header(bwc_data *const data)
    free(buffer_char);
 
    /*--------------------------------------------------------*\
-   ! Free the auxiliary information memory block stream and   !
-   ! params structure.                                        !
+   ! Free the params structure.                               !
    \*--------------------------------------------------------*/
-   free(aux);
    free(params);
 
    return 0;
@@ -1213,41 +957,17 @@ write_eas3_header(bwc_data *const data)
 ||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
 ||                                                                                                          ||
 \************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_data* read_eas3(const char* const filename)                                           !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function opens an eas3 file and checks it for its validity. Once the specified file    !
-!                has been verified, its header and flow field data is read and stored in the bwc_data        !
-!                structure.                                                                                  !
-!                                                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                filename                    char*                 - Defines the filename of the eas3 file   !
-!                                                                    that is to be opened and read.          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                file                      - Defines a structure used to store all                           !
-!                                            the relevant parameters and the data                            !
-!                                            field of an eas3 file.                                          !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                20.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-bwc_data*
+/*================================================================================================*/
+/**
+ * @details Opens an eas3 file and checks it for its validity. Then, it reads header and flow
+ *          field data and returns a filled instance of the eas3_data structure.
+ *
+ * @param[in]      filename Name of the eas3 file.
+ *
+ * @retval eas3_data*
+ */
+/*================================================================================================*/
+eas3_data*
 read_eas3(char *const filename)
 {
    /*-----------------------*\
@@ -1256,16 +976,17 @@ read_eas3(char *const filename)
    uint64   Lfield;
    uint64   i;
    uint32   root;
+   FILE    *fp;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
-   bwc_data          *data;
+   eas3_data          *data;
 
    /*--------------------------------------------------------*\
    ! Allocate the data structure.                             !
    \*--------------------------------------------------------*/
-   data = calloc(1,  sizeof(bwc_data));
+   data = calloc(1,  sizeof(eas3_data));
    if(!data)
    {
       // memory allocation error
@@ -1274,22 +995,15 @@ read_eas3(char *const filename)
    }
 
    /*--------------------------------------------------------*\
-   ! Set the file identifier used to select the appropriate   !
-   ! write operation during decompression.                    !
-   \*--------------------------------------------------------*/   
-   strncpy(data->info.f_ext, "eas", 4);
-
-   /*--------------------------------------------------------*\
    ! Open the specified file for reading. If the file doesn't !
    ! exist, exit the bwc command-line tool.                   !
    \*--------------------------------------------------------*/
-   if((data->fp = fopen(filename, "rb")) == NULL)
+   if((fp = fopen(filename, "rb")) == NULL)
    {
       // error opening file
       fprintf(stderr, "o##########################################################o\n"\
                       "|   ERROR: Could not open or read %-25s|\n"\
                       "o##########################################################o\n", filename);
-      bwc_free_data(data);
       return NULL;
    }
 
@@ -1297,10 +1011,10 @@ read_eas3(char *const filename)
    ! Parse the eas3 header and store the information in the   !
    ! data structure.                                          !
    \*--------------------------------------------------------*/
-   if(read_eas3_header(data))
+   if(read_eas3_header(fp, data))
    {
       //error reading eas3 header
-      bwc_free_data(data);
+      eas3_free_data(data);
    }
 
    /*--------------------------------------------------------*\
@@ -1308,19 +1022,19 @@ read_eas3(char *const filename)
    ! file and store the information in the bwc_gl_data struc- !
    ! ture.                                                    !
    \*--------------------------------------------------------*/
-   root   = ftell(data->fp);
-   fseek(data->fp, 0L,   SEEK_END); 
-   Lfield = (ftell(data->fp) - root) / sizeof(double);
-   fseek(data->fp, root, SEEK_SET);
+   root   = ftell(fp);
+   fseek(fp, 0L,   SEEK_END);
+   Lfield = (ftell(fp) - root) / sizeof(double);
+   fseek(fp, root, SEEK_SET);
 
    /*--------------------------------------------------------*\
    ! Check if the file_size coincide with the specified dimen-!
    ! sions, timesteps number of parameters or bitdepth speci- !
    ! fied in the eas3 file header.                            !
    \*--------------------------------------------------------*/
-   if(Lfield != data->info.nX   * data->info.nY  * 
-                data->info.nZ   * data->info.nTS * 
-                                  data->info.nPar)
+   if(Lfield != data->params.ndim1 * data->params.ndim2  *
+                data->params.ndim3 * data->params.nts *
+                                     data->params.npar)
    {
       // error in file size
       fprintf(stderr, "o##########################################################o\n"\
@@ -1329,11 +1043,11 @@ read_eas3(char *const filename)
                       "|        and number of parameters specified in the file    |\n"\
                       "|        header.                                           |\n"\
                       "o##########################################################o\n");
-      bwc_free_data(data);
+      eas3_free_data(data);
       return NULL;
    }
 
-   if(data->info.parameter->precision == 4)
+   if(data->params.accuracy == 1)
    {
       /*--------------------------------------------------------*\
       ! Allocate the real field that will hold the numerical     !
@@ -1341,22 +1055,22 @@ read_eas3(char *const filename)
       \*--------------------------------------------------------*/
       data->field.d = NULL;
       data->field.f = calloc(Lfield, sizeof(float));
-      if(!data->field.d)
+      if(!data->field.f)
       {
          // memory allocation error
          fprintf(stderr, MEMERROR);
-         bwc_free_data(data);
+         eas3_free_data(data);
          return NULL;
       }
 
       /*--------------------------------------------------------*\
       ! Read the flow field data from the specified eas3 file.   !
       \*--------------------------------------------------------*/
-      if(fread(data->field.f, sizeof(float), Lfield, data->fp) != Lfield)
+      if(fread(data->field.f, sizeof(float), Lfield, fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, RDERROR);
-         bwc_free_data(data);
+         eas3_free_data(data);
          return NULL;
       }
 
@@ -1369,7 +1083,7 @@ read_eas3(char *const filename)
          endian_conversion(&data->field.f[i], 4);
       }
    }
-   else if(data->info.parameter->precision == 8)
+   else if(data->params.accuracy == 2)
    {
       /*--------------------------------------------------------*\
       ! Allocate the real field that will hold the numerical     !
@@ -1381,18 +1095,18 @@ read_eas3(char *const filename)
       {
          // memory allocation error
          fprintf(stderr, MEMERROR);
-         bwc_free_data(data);
+         eas3_free_data(data);
          return NULL;
       }
 
       /*--------------------------------------------------------*\
       ! Read the flow field data from the specified eas3 file.   !
       \*--------------------------------------------------------*/
-      if(fread(data->field.d, sizeof(double), Lfield, data->fp) != Lfield)
+      if(fread(data->field.d, sizeof(double), Lfield, fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, RDERROR);
-         bwc_free_data(data);
+         eas3_free_data(data);
          return NULL;
       }
 
@@ -1410,53 +1124,30 @@ read_eas3(char *const filename)
    ! Close the file pointer and return the bwc_data structure !
    ! to the function caller.                                  !
    \*--------------------------------------------------------*/
-   fclose(data->fp);
-   data->fp = NULL;
+   fclose(fp);
+   fp = NULL;
    return data;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar write_eas3(bwc_data *const file, char *const filename)                              !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function creates a valid eas3 file from the information stored in the bwc_data         !
-!                structure.                                                                                  !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                filename                    char*                 - Defines the filename of the eas3 file   !
-!                                                                    that is to be opened and read.          !
-!                                                                                                            !
-!                file                        bwc_data*            - Defines a structure used to store all    !
-!                                                                   the relevant parameters and the data     !
-!                                                                   field of an eas3 file.                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                20.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Opens an eas3 file and writes the content from the provided eas3_data structure.
+ *
+ * @param[in]      data     Data to be written into the eas3 file.
+ * @param[in]      filename Name of the eas3 file.
+ *
+ * @retval uchar
+ */
+/*================================================================================================*/
 uchar
-write_eas3(bwc_data *const data, char *const filename)
+write_eas3(eas3_data *const data, char *const filename)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64   Lfield;
    uint64   i;
+   FILE    *fp;
    
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
@@ -1468,7 +1159,7 @@ write_eas3(bwc_data *const data, char *const filename)
    ! exist, discard its content. If the file cannot be creat- !
    ! ed, exit the bwc command-line tool.                      !
    \*--------------------------------------------------------*/
-   if((data->fp = fopen(filename, "wb")) == NULL)
+   if((fp = fopen(filename, "wb")) == NULL)
    {
       // error opening file
       fprintf(stderr, "o##########################################################o\n"\
@@ -1480,7 +1171,7 @@ write_eas3(bwc_data *const data, char *const filename)
    /*--------------------------------------------------------*\
    ! Write the eas3 header to the specified file.             !
    \*--------------------------------------------------------*/
-   if(write_eas3_header(data))
+   if(write_eas3_header(fp, data))
    {
       //error reading eas3 header
       return 1;
@@ -1490,10 +1181,10 @@ write_eas3(bwc_data *const data, char *const filename)
    ! Calculate the size of the data field used for the endian !
    ! conversion and write operations.                         !
    \*--------------------------------------------------------*/
-   Lfield = data->info.nX  * data->info.nY  * 
-            data->info.nZ  * data->info.nTS * data->info.nPar;
+   Lfield = data->params.ndim1  * data->params.ndim2  *
+            data->params.ndim3  * data->params.nts * data->params.npar;
 
-   if(data->info.parameter->precision == 4)
+   if(data->params.accuracy == 1)
    {
       /*--------------------------------------------------------*\
       ! Convert the flow field data from big endian to endian.   !
@@ -1506,14 +1197,14 @@ write_eas3(bwc_data *const data, char *const filename)
       /*--------------------------------------------------------*\
       ! Write the flow field data to the specified eas3 file.    !
       \*--------------------------------------------------------*/
-      if(fwrite(data->field.f, sizeof(float), Lfield, data->fp) != Lfield)
+      if(fwrite(data->field.f, sizeof(float), Lfield, fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, WRTERROR);
          return 1;
       }
    }
-   else if(data->info.parameter->precision == 8)
+   else if(data->params.accuracy == 2)
    {
       /*--------------------------------------------------------*\
       ! Convert the flow field data from big endian to endian.   !
@@ -1526,7 +1217,7 @@ write_eas3(bwc_data *const data, char *const filename)
       /*--------------------------------------------------------*\
       ! Write the flow field data to the specified eas3 file.    !
       \*--------------------------------------------------------*/
-      if(fwrite(data->field.d, sizeof(double), Lfield, data->fp) != Lfield)
+      if(fwrite(data->field.d, sizeof(double), Lfield, fp) != Lfield)
       {
          // invalid read
          fprintf(stderr, WRTERROR);
@@ -1537,7 +1228,7 @@ write_eas3(bwc_data *const data, char *const filename)
    /*--------------------------------------------------------*\
    ! Close the file pointer and return to the function caller.!
    \*--------------------------------------------------------*/
-   fclose(data->fp);
-   data->fp = NULL;
+   fclose(fp);
+   fp = NULL;
    return 0;
 }

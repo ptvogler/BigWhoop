@@ -99,7 +99,7 @@
 
     uchar                      *access;                   // Pointer used to parse packed stream.
     uchar                      *memory;                   // Memory handle for the packed stream.
-  } bwc_stream;
+  } bwc_span;
 
   /*----------------------------------------------------------------------------------------------*\
   !                                                                                                !
@@ -138,29 +138,6 @@
     bwc_tagtree_node           *nodes;                    // Pointer to the tagtree nodes.
   } bwc_tagtree;
 
-
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure defines a linked list which stores the size, index, and bit pre-        !
-  !         cision  The string name is used to store the parameter name supplied by the            !
-  !         function caller.                                                                       !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  typedef struct opt
-  {
-    char                        name[24];                 // Parameter name.
-    uint8                       id;                       // Parameter index.
-
-    uint64                      size;                     // Parameter size after sub-sampling.
-    uint8                       precision;                // Parameter precision.
-
-    struct opt                 *next;                     // Next element in linked-list.
-    struct opt                 *root;                     // Linked-list root.
-  } bwc_cmd_opts_ll;
-
   /*----------------------------------------------------------------------------------------------*\
   !                                                                                                !
   !   DESCRIPTION:                                                                                 !
@@ -178,12 +155,8 @@
 
     uint8                       nPar;                     // Number of parameters.
 
-    uint8                       precision;                // Flag defining codec precision.
-
-    uint8                       codec_prec;               // Encoder/decoder bit precision.
-    char                        f_ext[20];                // Uncompressed data set file extension.
-
-    bwc_cmd_opts_ll            *parameter;                // Command options linked-list.
+    bwc_precision               data_prec;                // Data type of uncompressed field data.
+    bwc_precision               codec_prec;               // Encoder/decoder bit precision.
   } bwc_gl_inf;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -197,22 +170,17 @@
   \*----------------------------------------------------------------------------------------------*/
   typedef struct
   {
-    bwc_gl_inf                  info;                     // Gloabal info structure.
-    FILE                       *fp;                       // File point to (un)compr. data-set.
-
     struct codestream
     {
-      bwc_stream               *data;                     // Data codestream block.
-      bwc_stream               *aux;                      // Auxiliary info. codestream block.
-      bwc_stream               *com;                      // Comment codestream block.
+      bwc_span               *aux;                      // Auxiliary info. codestream block.
+      bwc_span               *com;                      // Comment codestream block.
     }codestream;
 
-    struct field
-    {
-      double                   *d;                        // Double precision numerical data-set.
-      float                    *f;                        // Single precision numerical data-set.
-    }field;
-  } bwc_data;
+    void                     *inp;                      // User managed buffer for input
+    void                     *out;                      // User managed buffer for output
+
+    bwc_mode                  mode;                     // Flag to signal (de-)compression
+  } bwc_stream;
 
   /*----------------------------------------------------------------------------------------------*\
   !                                                                                                !
@@ -420,8 +388,8 @@
   \*----------------------------------------------------------------------------------------------*/
   typedef struct
   {
-    bwc_stream                  header;                   // Packed stream header.
-    bwc_stream                  body;                     // Packed stream body.
+    bwc_span                  header;                   // Packed stream header.
+    bwc_span                  body;                     // Packed stream body.
     uint8                       e;                        // Indicator for packet cb. contributions.
 
     uint32                      size;                     // Codestream packet size.
@@ -528,13 +496,8 @@
   \*----------------------------------------------------------------------------------------------*/
   typedef struct
   {
-    uint64                      size;                     // Parameter size.
-    char                       *name;                     // Parameter name.
-
     uint64                      X0, Y0, Z0, TS0;          // Tile parameter starting point.
     uint64                      X1, Y1, Z1, TS1;          // Tile parameter end point.
-
-    uint8                       precision;                // Tile parameter precision.
 
     bwc_float                   parameter_min;            // Min. value of tile parameter.
     bwc_float                   parameter_max;            // Max. value of tile parameter.
@@ -696,26 +659,32 @@
     bwc_prog_ord                progression;              // Packet progression order.
   } bwc_gl_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters defining and controling a bwc        !
-  !         (de-)compression run.                                                                  !
-  !                                                                                                !
-  !         The meter structure is used to store measurements, including important time            !
-  !         measurements, for a particular compression run.                                        !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Structure that is used to probe header information from a compressed data set.
+ */
+/*================================================================================================*/
   typedef struct
   {
-    bwc_gl_inf                 *info;                     // Gloabal info structure
+    bwc_gl_inf                  info;                     // Global info structure
+    bwc_gl_ctrl                 control;                  // Global control structure
+    bwc_span                    aux;                      // Auxiliary info. codestream block.
+    bwc_span                    com;                      // Comment codestream block.
+  } bwc_header;
+
+/*================================================================================================*/
+/**
+ * @details Structure holding all the necessary parameters defining and controlling a bwc
+ *          (de-)compression run.
+ */
+/*================================================================================================*/
+  typedef struct
+  {
+    bwc_gl_inf                  info;                     // Global info structure
     bwc_gl_ctrl                 control;                  // Global control structure
 
     bwc_tile                   *tile;                     // Structure defining bwc tile.
 
-    bwc_stream                  *aux;                      // Auxiliary info. codestream block.
-    bwc_stream                  *com;                      // Comment codestream block.
-  } bwc_field;
+    bwc_mode                    mode;                     // Flag to signal (de-)compression
+  } bwc_codec;
 #endif

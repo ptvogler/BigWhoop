@@ -104,7 +104,7 @@ can_read(bitstream *const stream, const uint64 length)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void codestream_write_header(bitstream *const stream, bwc_field *const field)             !
+!   FUNCTION NAME: void codestream_write_header(bitstream *const stream, bwc_codec *const codec)             !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -116,7 +116,7 @@ can_read(bitstream *const stream, const uint64 length)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                stream                      bitstream*           - Structure used to assemble a bwc bit-    !
@@ -138,7 +138,8 @@ can_read(bitstream *const stream, const uint64 length)
 \*----------------------------------------------------------------------------------------------------------*/
 static void
 codestream_write_header(bitstream   *const stream,
-                        bwc_field   *const field)
+                        bwc_codec   *const codec,
+                        bwc_stream  *const data)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -155,33 +156,27 @@ codestream_write_header(bitstream   *const stream,
    \*-----------------------*/
    bwc_gl_ctrl      *control;
    bwc_gl_inf       *info;
-   bwc_tile         *tile;
-   bwc_parameter    *parameter;
-   bwc_stream       *aux;
-   bwc_stream       *com;
+   bwc_span       *aux;
+   bwc_span       *com;
    
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
    assert(stream);
-   assert(field);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Save the global as well as the subband control and info  !
    ! structure to temporary variables to make the code more   !
    ! readable.                                                !
    \*--------------------------------------------------------*/
-   info          =  field->info;
-   control       = &field->control;
+   info          = &codec->info;
+   control       = &codec->control;
 
-   tile          = &field->tile[0];
-
-   parameter     = &tile->parameter[0];
-
-   aux           = field->aux;
-   com           = field->com;
+   aux           = data->codestream.aux;
+   com           = data->codestream.com;
    
-   Linf = 40 + info->nPar * 25;
+   Linf = 31;
    Lctr = 50 + control->nLayers * 4;
    Leoh = info->nPar * control->nTiles * 2 * PREC_BYTE;
    Lcss = control->codestreamSize;
@@ -193,16 +188,10 @@ codestream_write_header(bitstream   *const stream,
    emit_symbol(stream, info->nX,                                       8);
    emit_symbol(stream, info->nY,                                       8);
    emit_symbol(stream, info->nZ,                                       8);
-   emit_symbol(stream, info->nTS,                                      2);
+   emit_symbol(stream, info->nTS,                                      8);
    emit_symbol(stream, info->nPar,                                     1);
-   emit_symbol(stream, info->precision,                                1);
-   emit_chunck(stream, (uchar*)info->f_ext,                            10);
-
-   for(p = 0; p < info->nPar; ++p)
-   {
-      emit_chunck(stream, (uchar*)parameter[p].info.name,             24);
-      emit_symbol(stream, parameter[p].info.precision,                 1);
-   }
+   emit_symbol(stream, (uint8)info->data_prec,                         1);
+   emit_symbol(stream, (uint8)info->codec_prec,                        1);
 
    emit_symbol(stream, SGC,                                            2);
    emit_symbol(stream, Lctr,                                           2);
@@ -239,7 +228,7 @@ codestream_write_header(bitstream   *const stream,
    emit_symbol(stream, control->tileSizeX,                             8);
    emit_symbol(stream, control->tileSizeY,                             8);
    emit_symbol(stream, control->tileSizeZ,                             8);
-   emit_symbol(stream, control->tileSizeTS,                            2);
+   emit_symbol(stream, control->tileSizeTS,                            8);
 
    emit_symbol(stream, control->nLayers,                               1);
 
@@ -274,21 +263,21 @@ codestream_write_header(bitstream   *const stream,
       for(p = 0; p < info->nPar; ++p)
       {
 
-         emit_symbol(stream, *(uint64 *)&field->tile[t].
+         emit_symbol(stream, *(uint64 *)&codec->tile[t].
                                                 parameter[p].info.
                                                 parameter_min, PREC_BYTE);
-         emit_symbol(stream, *(uint64 *)&field->tile[t].
+         emit_symbol(stream, *(uint64 *)&codec->tile[t].
                                                 parameter[p].info.
                                                 parameter_max, PREC_BYTE);
 
-         field->tile[t].parameter[p].info.parameter_max  = -FLT_MAX;
-         field->tile[t].parameter[p].info.parameter_min  =  FLT_MAX;
+         codec->tile[t].parameter[p].info.parameter_max  = -FLT_MAX;
+         codec->tile[t].parameter[p].info.parameter_min  =  FLT_MAX;
       }
    }
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar sequence_packets(bwc_field *const field, bwc_field *const field)                    !
+!   FUNCTION NAME: uchar sequence_packets(bwc_codec *const codec, bwc_tile *const tile)                      !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -299,7 +288,7 @@ codestream_write_header(bitstream   *const stream,
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
@@ -319,7 +308,7 @@ codestream_write_header(bitstream   *const stream,
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-sequence_packets(bwc_field *const field, bwc_tile *const tile)
+sequence_packets(bwc_codec *const codec, bwc_tile *const tile)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -347,8 +336,8 @@ sequence_packets(bwc_field *const field, bwc_tile *const tile)
    ! sequence structure to temporary variables to make the    !
    ! code more readable.                                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    packet_sequence = tile->packet_sequence;
 
@@ -490,7 +479,7 @@ sequence_packets(bwc_field *const field, bwc_tile *const tile)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar sequence_packets(bwc_field *const field, bwc_field *const field)                    !
+!   FUNCTION NAME:                                                                                           !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -501,16 +490,11 @@ sequence_packets(bwc_field *const field, bwc_tile *const tile)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                tile                        bwc_tile*             - Structure defining a bwc tile.          !
 !                                                                                                            !
 !   RETURN VALUE:                                                                                            !
 !   -------------                                                                                            !
 !                Type                        Description                                                     !
 !                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
 !                                                                                                            !
 !   DEVELOPMENT HISTORY:                                                                                     !
 !   --------------------                                                                                     !
@@ -521,7 +505,7 @@ sequence_packets(bwc_field *const field, bwc_tile *const tile)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static void
-assemble_tile(bwc_field *const field, bwc_tile *const tile, bitstream *const stream)
+assemble_tile(bwc_codec *const codec, bwc_tile *const tile, bitstream *const stream)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -537,7 +521,7 @@ assemble_tile(bwc_field *const field, bwc_tile *const tile, bitstream *const str
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
    assert(stream);
 
@@ -546,7 +530,7 @@ assemble_tile(bwc_field *const field, bwc_tile *const tile, bitstream *const str
    ! sequence structure to temporary variables to make the    !
    ! code more readable.                                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    emit_symbol(stream, SOT,                        2);
    emit_symbol(stream, 14,                         2);
@@ -613,14 +597,14 @@ assemble_tile(bwc_field *const field, bwc_tile *const tile, bitstream *const str
 !                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-bwc_field*
-parse_main_header(bwc_data *const data,bitstream *const stream)
+bwc_codec*
+parse_main_header(bwc_codec *const codec, bwc_stream *const data, bitstream *const stream)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
    uint64      buff_long, buffX, buffY, buffZ, buffTS;
-   uint64      nX, nY, nZ;
+   uint64      nX, nY, nZ, nTS;
    uint32      buff;
    uint32      bitrate;
    uint32      Lsax;
@@ -629,35 +613,34 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
    uint16      CSsgc;
    uint16      Linf, Lctr, Lcom, Leoh, Lunk;
    uint16      marker;
-   uint16      nTS;
    uint8       index, l;
    uint8       nPar, p;
-   uint8       codec_prec, precision;
+   bwc_precision data_prec, codec_prec;
 
    /*-----------------------*\
    ! DEFINE CHAR VARIABLES:  !
    \*-----------------------*/
-   char*       buffer_char;
    char        status;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
-   bwc_field         *field;
    bwc_gl_ctrl       *control;
    bwc_gl_inf        *info;
    
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
+   assert(codec);
    assert(data);
    assert(stream);
    
    /*--------------------------------------------------------*\
-   ! Save the data info structure to a temporary variable to  !
-   ! make the code more readable.                             !
+   ! Save the global control and info structure to temporary  !
+   ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   info = &data->info;
+   info    = &codec->info;
+   control = &codec->control;
 
    status = CODESTREAM_OK;
    index  = 0;
@@ -708,40 +691,22 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
                break;
             }
 
-            info->nX        = nX         =         get_symbol(stream,  8);
-            info->nY        = nY         =         get_symbol(stream,  8);
-            info->nZ        = nZ         =         get_symbol(stream,  8);
-            info->nTS       = nTS        = (uint16)get_symbol(stream,  2);
-            info->nPar      = nPar       =  (uint8)get_symbol(stream,  1);
-            info->precision = codec_prec =  (uint8)get_symbol(stream,  1);
+            nX         =                get_symbol(stream,  8);
+            nY         =                get_symbol(stream,  8);
+            nZ         =                get_symbol(stream,  8);
+            nTS        =                get_symbol(stream,  8);
+            nPar       =         (uint8)get_symbol(stream,  1);
+            data_prec  = (bwc_precision)get_symbol(stream,  1);
+            codec_prec = (bwc_precision)get_symbol(stream,  1);
 
-            buffer_char       =  (char*)get_chunck(stream, 10);
-            strncpy(info->f_ext, buffer_char, sizeof(buffer_char)/sizeof(*buffer_char));
-            free(buffer_char);
+            info->codec_prec = codec_prec;
 
-            for(p = 0; p < nPar; ++p)
-            {
-               buffer_char = (char*)get_chunck(stream, 24);
-               precision   = (uint8)get_symbol(stream, 1);
-
-               bwc_add_param(data, buffer_char, precision);
-
-               free(buffer_char);
-            }
-
-            field = bwc_initialize_field(data);
-            if(!field)
+            configure_codec(codec, nX, nY, nZ, nTS, nPar, data_prec);
+            if(!codec)
             {
                status |= CODESTREAM_ERROR;
                break;
             }
-
-            /*--------------------------------------------------------*\
-            ! Save the global control and info structure to temporary  !
-            ! variables to make the code more readable.                !
-            \*--------------------------------------------------------*/
-            info    =  field->info = &data->info;
-            control = &field->control;
 
             control->codestreamSize = stream->Lmax;
 
@@ -755,7 +720,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -766,7 +731,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -777,14 +742,14 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             buff_long  = get_symbol(stream, 1);
             if(CSsgc & (0x01 << 0))
             {
-               bwc_set_error_resilience(field);
+               bwc_set_error_resilience(codec);
             }
 
             buff_long = get_symbol(stream, 1);
 
             if(CSsgc & (0x01 << 1))
             {
-               set_quant_style(field, (bwc_quant_st)buff_long);
+               set_quant_style(codec, (bwc_quant_st)buff_long);
             }
 
             buff_long = get_symbol(stream, 1);
@@ -800,50 +765,50 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             buff_long  = get_symbol(stream, 1);
             if(CSsgc & (0x01 << 3))
             {
-               set_progression(field, (uint8)buff_long);
+               set_progression(codec, (uint8)buff_long);
             }
 
             buff_long  = get_symbol(stream, 1);
             if(CSsgc & (0x01 << 4))
             {
-               set_kernels(field, (uint8)(0x03 & (buff_long >> 6)), (uint8)(0x03 & (buff_long >> 4)),
+               set_kernels(codec, (uint8)(0x03 & (buff_long >> 6)), (uint8)(0x03 & (buff_long >> 4)),
                                   (uint8)(0x03 & (buff_long >> 2)), (uint8)(0x03 &  buff_long));
             }
 
             buff_long  = get_symbol(stream, 4);
             if(CSsgc & (0x01 << 5))
             {
-               bwc_set_decomp(field, (uint8)(0xFF & (buff_long >> 24)), (uint8)(0xFF & (buff_long >>  16)),
+               bwc_set_decomp(codec, (uint8)(0xFF & (buff_long >> 24)), (uint8)(0xFF & (buff_long >>  16)),
                                      (uint8)(0xFF & (buff_long >>  8)), (uint8)(0xFF &  buff_long));
             }
             
             buff_long  = get_symbol(stream, 2);
             if(CSsgc & (0x01 << 6))
             {
-               bwc_set_precincts(field, (uint8)(0x0F & (buff_long >> 8)), (uint8)(0x0F & (buff_long >> 12)),
+               bwc_set_precincts(codec, (uint8)(0x0F & (buff_long >> 8)), (uint8)(0x0F & (buff_long >> 12)),
                                         (uint8)(0x0F &  buff_long),       (uint8)(0x0F & (buff_long >>  4)));
             }
 
             buff_long  = get_symbol(stream, 4);
             if(CSsgc & (0x01 << 7))
             {
-               bwc_set_codeblocks(field, (uint8)(0xFF & (buff_long >> 24)), (uint8)(0xFF & (buff_long >> 16)),
+               bwc_set_codeblocks(codec, (uint8)(0xFF & (buff_long >> 24)), (uint8)(0xFF & (buff_long >> 16)),
                                          (uint8)(0xFF & (buff_long >>  8)), (uint8)(0xFF &  buff_long));
             }
 
             buff_long  = get_symbol(stream, 1);
             if(CSsgc & (0x01 << 8))
             {
-               bwc_set_qm(field, (uint8)buff_long);
+               bwc_set_qm(codec, (uint8)buff_long);
             }
 
             buffX  = get_symbol(stream, 8);
             buffY  = get_symbol(stream, 8);
             buffZ  = get_symbol(stream, 8);
-            buffTS = get_symbol(stream, 2);
+            buffTS = get_symbol(stream, 8);
             if(CSsgc & (0x01 << 9))
             {
-               bwc_set_tiles(field, buffX, buffY, buffZ, (uint16)buffTS, bwc_tile_sizeof);
+               bwc_set_tiles(codec, buffX, buffY, buffZ, buffTS, bwc_tile_sizeof);
             }
 
             control->nLayers = get_symbol(stream, 1);
@@ -852,7 +817,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // memory allocation error
                fprintf(stderr, MEMERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status|= CODESTREAM_ERROR;
                break;
             }
@@ -863,10 +828,10 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
                control->bitrate[l] = *(float *)&bitrate;
             }
 
-            create_field(field);
-            if(!field)
+            create_codec(codec);
+            if(!codec)
             {
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -881,7 +846,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -891,17 +856,17 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
 
-            data->codestream.aux = calloc(1, sizeof(bwc_stream));
+            data->codestream.aux = calloc(1, sizeof(bwc_span));
             if(!data->codestream.aux)
             {
                // memory allocation error
                fprintf(stderr, MEMERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -919,7 +884,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -929,17 +894,17 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
 
-            data->codestream.com = calloc(1, sizeof(bwc_stream));
+            data->codestream.com = calloc(1, sizeof(bwc_span));
             if(!data->codestream.com)
             {
                // memory allocation error
                fprintf(stderr, MEMERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -947,7 +912,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             data->codestream.com->memory = get_chunck(stream, Lcom - 2);
             data->codestream.com->size   = Lcom -2;
 
-            status |= CODESTREAM_ERROR;
+            status |= CODESTREAM_COM_READ;
             break;
          }
 
@@ -959,7 +924,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
                {
                   // Invalid Codestream
                   fprintf(stderr, CSERROR);
-                  bwc_kill_compression(field);
+                  bwc_free_codec(codec);
                   status |= CODESTREAM_ERROR;
                   break;
                }
@@ -969,12 +934,12 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
                {
                   // Invalid Codestream
                   fprintf(stderr, CSERROR);
-                  bwc_kill_compression(field);
+                  bwc_free_codec(codec);
                   status |= CODESTREAM_ERROR;
                   break;
                }
 
-               if(codec_prec == 8)
+               if(codec_prec == bwc_precision_double)
                {
                   /*--------------------------------------------------------*\
                   ! Loop through all tile parameters and...                  !
@@ -988,14 +953,14 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
                         ! header stream.                                           !
                         \*--------------------------------------------------------*/
                         buff_long = get_symbol(stream, sizeof(double));
-                        field->tile[t].parameter[p].info.parameter_min = (bwc_float)*(double*)&buff_long;
+                        codec->tile[t].parameter[p].info.parameter_min = (bwc_float)*(double*)&buff_long;
 
                         buff_long = get_symbol(stream, sizeof(double));
-                        field->tile[t].parameter[p].info.parameter_max = (bwc_float)*(double*)&buff_long;
+                        codec->tile[t].parameter[p].info.parameter_max = (bwc_float)*(double*)&buff_long;
                      }
                   }
                }
-               else if(codec_prec == 4)
+               else if(codec_prec == bwc_precision_single)
                {
                   /*--------------------------------------------------------*\
                   ! Loop through all tile parameters and...                  !
@@ -1009,20 +974,20 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
                         ! header stream.                                           !
                         \*--------------------------------------------------------*/
                         buff = get_symbol(stream, sizeof(float));
-                        field->tile[t].parameter[p].info.parameter_min = (bwc_float)*(float*)&buff;
+                        codec->tile[t].parameter[p].info.parameter_min = (bwc_float)*(float*)&buff;
 
                         buff = get_symbol(stream, sizeof(float));
-                        field->tile[t].parameter[p].info.parameter_max = (bwc_float)*(float*)&buff;
+                        codec->tile[t].parameter[p].info.parameter_max = (bwc_float)*(float*)&buff;
                      }
                   }
                }
-               return field;
+               return codec;
             }
             else
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
             }
             break;
@@ -1034,7 +999,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -1044,7 +1009,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -1059,7 +1024,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar sequence_packets(bwc_field *const field, bwc_field *const field)                    !
+!   FUNCTION NAME:                                                                                           !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -1070,16 +1035,11 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                tile                        bwc_tile*             - Structure defining a bwc tile.          !
 !                                                                                                            !
 !   RETURN VALUE:                                                                                            !
 !   -------------                                                                                            !
 !                Type                        Description                                                     !
 !                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
 !                                                                                                            !
 !   DEVELOPMENT HISTORY:                                                                                     !
 !   --------------------                                                                                     !
@@ -1090,7 +1050,7 @@ parse_main_header(bwc_data *const data,bitstream *const stream)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-parse_tile(bwc_field *const field, bitstream *const stream)
+parse_tile(bwc_codec *const codec, bitstream *const stream)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1110,7 +1070,7 @@ parse_tile(bwc_field *const field, bitstream *const stream)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(stream);
 
    /*--------------------------------------------------------*\
@@ -1118,7 +1078,7 @@ parse_tile(bwc_field *const field, bitstream *const stream)
    ! sequence structure to temporary variables to make the    !
    ! code more readable.                                      !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    if(!can_read(stream, 2))
    {
@@ -1144,7 +1104,7 @@ parse_tile(bwc_field *const field, bitstream *const stream)
       return 1;
    }
 
-   tile                    = &field->tile[buf];
+   tile                    = &codec->tile[buf];
    tile->control.body_size = 
                  body_size = (uint64)get_symbol(stream, 8);
    
@@ -1160,7 +1120,7 @@ parse_tile(bwc_field *const field, bitstream *const stream)
       ! Sequence the packets according to the user specified op- !
       ! tion.                                                    !
       \*--------------------------------------------------------*/
-      if(sequence_packets(field, tile))
+      if(sequence_packets(codec, tile))
       {
          return 1;
       }
@@ -1198,7 +1158,7 @@ parse_tile(bwc_field *const field, bitstream *const stream)
 
          packet->header.memory = get_access(stream);
 
-         if(parse_packet(field, tile, packet, body_size))
+         if(parse_packet(codec, tile, packet, body_size))
          {
             return 1;
          }
@@ -1240,7 +1200,7 @@ parse_tile(bwc_field *const field, bitstream *const stream)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-parse_body(bwc_field *const field, bitstream *const stream)
+parse_body(bwc_codec *const codec, bitstream *const stream)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1256,7 +1216,7 @@ parse_body(bwc_field *const field, bitstream *const stream)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    
    status = CODESTREAM_OK;
 
@@ -1274,7 +1234,7 @@ parse_body(bwc_field *const field, bitstream *const stream)
       {
          case SOT:
          {
-            if(parse_tile(field, stream))
+            if(parse_tile(codec, stream))
             {
                status |= CODESTREAM_ERROR;
             }
@@ -1307,7 +1267,7 @@ parse_body(bwc_field *const field, bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -1317,7 +1277,7 @@ parse_body(bwc_field *const field, bitstream *const stream)
             {
                // Invalid Codestream
                fprintf(stderr, CSERROR);
-               bwc_kill_compression(field);
+               bwc_free_codec(codec);
                status |= CODESTREAM_ERROR;
                break;
             }
@@ -1336,7 +1296,7 @@ parse_body(bwc_field *const field, bitstream *const stream)
 ||                                                                                                          ||
 \************************************************************************************************************/
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_stream* assemble_codestream(bwc_field *const field)                                   !
+!   FUNCTION NAME: bwc_span* assemble_codestream(bwc_codec *const codec, bwc_stream *const data)             !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -1347,14 +1307,14 @@ parse_body(bwc_field *const field, bitstream *const stream)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !   RETURN VALUE:                                                                                            !
 !   -------------                                                                                            !
 !                Type                        Description                                                     !
 !                ----                        -----------                                                     !
-!                bwc_stream*               - Packed stream containing the compressed data set.               !
+!                bwc_span*                 - Packed stream containing the compressed data set.               !
 !                                                                                                            !
 !   DEVELOPMENT HISTORY:                                                                                     !
 !   --------------------                                                                                     !
@@ -1364,12 +1324,13 @@ parse_body(bwc_field *const field, bitstream *const stream)
 !                13.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-bwc_stream*
-assemble_codestream(bwc_field *const field)
+size_t
+assemble_codestream(bwc_codec *const codec, bwc_stream *const data)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
+   size_t   compressed_size;
    uint64   i;
    
    /*-----------------------*\
@@ -1378,12 +1339,12 @@ assemble_codestream(bwc_field *const field)
    bwc_gl_ctrl       *control;
    bwc_tile          *tile;
    bitstream         *stream;
-   bwc_stream        *packed_stream;
    
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
+   assert(data);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
@@ -1391,7 +1352,7 @@ assemble_codestream(bwc_field *const field)
    ! the final codestream size with the number of header      !
    ! bytes.                                                   !
    \*--------------------------------------------------------*/
-   control = &field->control;
+   control = &codec->control;
 
    control->codestreamSize = control->headerSize + 2;
 
@@ -1405,15 +1366,15 @@ assemble_codestream(bwc_field *const field)
       ! Save the tile structure in a temporary variable to make  !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tile          = &field->tile[i];
+      tile          = &codec->tile[i];
 
       /*--------------------------------------------------------*\
       ! Sequence the packets according to the user specified op- !
       ! tion and iterate the size of the codestream.             !
       \*--------------------------------------------------------*/
-      if(sequence_packets(field, tile))
+      if(sequence_packets(codec, tile))
       {
-         return NULL;
+         return 0;
       }
       control->codestreamSize += tile->control.header_size + 
                                  tile->control.body_size;
@@ -1423,8 +1384,8 @@ assemble_codestream(bwc_field *const field)
    ! Initialize the final codestream and emit the header      !
    ! bytes.                                                   !
    \*--------------------------------------------------------*/
-   stream = init_stream(NULL, control->codestreamSize, 'c');
-   codestream_write_header(stream, field);
+   stream = init_bitstream(data->out, control->codestreamSize, 'c');
+   codestream_write_header(stream, codec, data);
 
    /*--------------------------------------------------------*\
    ! Walk through the tile structure and assemble the packed  !
@@ -1437,33 +1398,21 @@ assemble_codestream(bwc_field *const field)
       ! Save the tile structure in a temporary variable to make  !
       ! the code more readable.                                  !
       \*--------------------------------------------------------*/
-      tile          = &field->tile[i];
+      tile          = &codec->tile[i];
 
-      assemble_tile(field, tile, stream);
+      assemble_tile(codec, tile, stream);
    }
 
    emit_symbol(stream, EOC, 2);
 
-   packed_stream = calloc(1, sizeof(bwc_stream));
-   if(!packed_stream)
-   {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      return NULL;
-   }
+   compressed_size = stream->L;
+   free(stream);
 
-   if(terminate_stream(stream, packed_stream))
-   {
-      return NULL;
-   }
-   else
-   {
-      return packed_stream;
-   }
+   return compressed_size;
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar parse_codestream(bwc_field *const field, bitstream *const stream)                   !
+!   FUNCTION NAME: uchar parse_codestream(bwc_codec *const codec, bitstream *const stream)                   !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -1474,7 +1423,7 @@ assemble_codestream(bwc_field *const field)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
@@ -1494,32 +1443,32 @@ assemble_codestream(bwc_field *const field)
 !                05.08.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-bwc_field*
-parse_codestream(bwc_data *const data, uint8 const layer)
+bwc_codec*
+parse_codestream(bwc_codec *const codec, bwc_stream *const data, uint8 const layer)
 {
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
    \*-----------------------*/
-   bwc_field         *field;
    bitstream         *stream;
    
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
    assert(data);
+   assert(codec);
 
    /*--------------------------------------------------------*\
    ! Initialize a bitstream used to parse the packed code-    !
    ! stream.                                                  !
    \*--------------------------------------------------------*/
-   stream = init_stream(data->codestream.data->memory, 10, 'd');
+   stream = init_bitstream(data->inp, 10, 'd');
 
    /*--------------------------------------------------------*\
-   ! Parse the main header and set up the field structure for !
+   ! Parse the main header and set up the codec structure for !
    ! the current decompression run.                           !
    \*--------------------------------------------------------*/
-   field = parse_main_header(data, stream);
-   if(!field)
+   parse_main_header(codec, data, stream);
+   if(!codec)
    {
       return NULL;
    }
@@ -1528,36 +1477,36 @@ parse_codestream(bwc_data *const data, uint8 const layer)
    ! Initialize the useLayer option to decompress the entire  !
    ! codestream.                                              !
    \*--------------------------------------------------------*/
-   field->control.useLayer = field->control.nLayers - 1;   
+   codec->control.useLayer = codec->control.nLayers - 1;
 
    /*--------------------------------------------------------*\
    ! Check if the layer index supplied by the function caller !
    ! is valid.                                                !
    \*--------------------------------------------------------*/
-   if(layer < field->control.nLayers && layer > 0)
+   if(layer < codec->control.nLayers && layer > 0)
    {
       /*--------------------------------------------------------*\
       ! Amend the use layer variable in the global control struc-!
       ! ture.                                                    !
       \*--------------------------------------------------------*/
-      field->control.useLayer = layer;
+      codec->control.useLayer = layer;
    }
 
    /*--------------------------------------------------------*\
    ! Parse the rest of the compressed codestream and load the !
-   ! body into the field structure.                           !
+   ! body into the codec structure.                           !
    \*--------------------------------------------------------*/
-   if(parse_body(field, stream))
+   if(parse_body(codec, stream))
    {
-      bwc_kill_compression(field);
+      bwc_free_codec(codec);
       return NULL;
    }
 
    /*--------------------------------------------------------*\
    ! Free the bitstream used to parse the codestream and re-  !
-   ! turn the field structure to the function caller.         !
+   ! turn the codec structure to the function caller.         !
    \*--------------------------------------------------------*/
    free(stream);
 
-   return field;
+   return codec;
 }

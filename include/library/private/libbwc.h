@@ -64,92 +64,99 @@
   ||                                                                                              ||
   \************************************************************************************************/
   //==========|==========================|======================|======|=======|====================
-  bwc_data*    bwc_initialize_data        (double                       *const  field,
-                                           uint64                const          nX,
-                                           uint64                const          nY,
-                                           uint64                const          nZ,
-                                           uint16                const          nTS,
-                                           uint8                 const          nPar,
-                                           char                         *const  file_extension);
+  bwc_stream*  bwc_init_stream            (void                         *const  inpbuf,
+                                           void                         *const  outbuf,
+                                           bwc_mode              const          mode);
   //==========|==========================|======================|======|=======|====================
-  uchar        bwc_set_com                (bwc_data                     *const  data,
+  uchar        bwc_set_com                (bwc_stream                   *const  stream,
                                            char                  const  *const  com, 
                                            uint16                const          size);
   //==========|==========================|======================|======|=======|====================
-  uchar        bwc_set_aux                (bwc_data                     *const  data,
+  uchar        bwc_set_aux                (bwc_stream                   *const  stream,
                                            char                  const  *const  aux, 
                                            uint32                const          size);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_add_param              (bwc_data                     *const  data, 
-                                           char                         *const  name,
-                                           uint8                 const          precision);
+  uchar        create_codec               (bwc_codec                    *const  codec);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_get_data               (bwc_data                     *const  data,
-                                           uchar                        *const  buffer,
-                                           uint64                const          size);
+  bwc_codec*   configure_codec            (bwc_codec                    *const  codec,
+                                           uint64                const          nX,
+                                           uint64                const          nY,
+                                           uint64                const          nZ,
+                                           uint64                const          nTS,
+                                           uint8                 const          nPar,
+                                           bwc_precision         const          prec);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_free_data              (bwc_data                     *const  data);
+  bwc_codec*   bwc_alloc_coder            (uint64                const          nX,
+                                           uint64                const          nY,
+                                           uint64                const          nZ,
+                                           uint64                const          nTS,
+                                           uint8                 const          nPar,
+                                           bwc_precision         const          prec);
   //==========|==========================|======================|======|=======|====================
-  uchar        create_field               (bwc_field                    *const  field);
+  bwc_codec*   bwc_alloc_decoder          ();
   //==========|==========================|======================|======|=======|====================
-  void         bwc_kill_compression       (bwc_field                    *const  field);
+  void         bwc_free_codec             (bwc_codec                    *const  codec);
   //==========|==========================|======================|======|=======|====================
-  bwc_field*   bwc_initialize_field       (bwc_data                     *const  data);
+  void         bwc_set_error_resilience   (bwc_codec                    *const  codec);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_error_resilience   (bwc_field                    *const  field);
-  //==========|==========================|======================|======|=======|====================
-  void         set_quant_style            (bwc_field                    *const  field, 
+  void         set_quant_style            (bwc_codec                    *const  codec, 
                                            bwc_quant_st          const          quantization_style);
   //==========|==========================|======================|======|=======|====================
-  void         set_quant_step_size        (bwc_field                    *const  field,
+  void         set_quant_step_size        (bwc_codec                    *const  codec,
                                            double                const          delta);
   //==========|==========================|======================|======|=======|====================
-  void         set_progression            (bwc_field                    *const  field,
+  void         set_progression            (bwc_codec                    *const  codec,
                                            bwc_prog_ord          const          progression);
   //==========|==========================|======================|======|=======|====================
-  void         set_kernels                (bwc_field                    *const  field,
+  void         set_kernels                (bwc_codec                    *const  codec,
                                            bwc_dwt_filter        const          KernelX,
                                            bwc_dwt_filter        const          KernelY,
                                            bwc_dwt_filter        const          KernelZ,
                                            bwc_dwt_filter        const          KernelTS);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_decomp             (bwc_field                    *const  field,
+  void         bwc_set_decomp             (bwc_codec                    *const  codec,
                                            uint8                 const          decompX,
                                            uint8                 const          decompY,
                                            uint8                 const          decompZ,
                                            uint8                 const          decompTS);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_precincts          (bwc_field                    *const  field,
+  void         bwc_set_precincts          (bwc_codec                    *const  codec,
                                            uint8                 const          pX,
                                            uint8                 const          pY,
                                            uint8                 const          pZ,
                                            uint8                 const          pTS);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_codeblocks         (bwc_field                    *const  field,
+  void         bwc_set_codeblocks         (bwc_codec                    *const  codec,
                                            uint8                 const          cbX,
                                            uint8                 const          cbY,
                                            uint8                 const          cbZ,
                                            uint8                 const          cbTS);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_qm                 (bwc_field                    *const  field,
+  void         bwc_set_qm                 (bwc_codec                    *const  codec,
                                            uint8                 const          Qm);
   //==========|==========================|======================|======|=======|====================
-  void         bwc_set_tiles              (bwc_field                    *const  field, 
+  void         bwc_set_tiles              (bwc_codec                    *const  codec, 
                                            uint64                const          tilesX,
                                            uint64                const          tilesY,
                                            uint64                const          tilesZ,
                                            uint64                const          tilesTS,
                                            bwc_tile_instr        const          instr);
   //==========|==========================|======================|======|=======|====================
-  uchar        bwc_create_compression     (bwc_field                    *const  field,
+  bwc_header*  bwc_open_header            (void                         *const  inpbuf);
+  //==========|==========================|======================|======|=======|====================
+  void         bwc_close_header           (bwc_header                   *const  header);
+  //==========|==========================|======================|======|=======|====================
+  uchar        bwc_create_compression     (bwc_codec                    *const  codec,
+                                           bwc_stream                   *const  data,
                                            char                         *const  rate_control);
   //==========|==========================|======================|======|=======|====================
-  uchar        bwc_compress               (bwc_field                    *const  field,
-                                           bwc_data                     *const  data);
+  size_t       bwc_compress               (bwc_codec                    *const  codec,
+                                           bwc_stream                   *const  data);
   //==========|==========================|======================|======|=======|====================
-  bwc_field*   bwc_create_decompression   (bwc_data                     *const  data,
+  uchar        bwc_create_decompression   (bwc_codec                    *const  codec,
+                                           bwc_stream                   *const  stream,
                                            uint8                 const          layer);
   //==========|==========================|======================|======|=======|====================
-  uchar        bwc_decompress             (bwc_field                    *const  field,
-                                           bwc_data                     *const  data);
+  uchar        bwc_decompress             (bwc_codec                    *const  codec,
+                                           bwc_stream                   *const  stream);
 #endif

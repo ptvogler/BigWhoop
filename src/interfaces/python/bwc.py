@@ -84,55 +84,37 @@ const = _const()
 #|             |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]             |#
 #|                                                                                                |#
 #**************************************************************************************************#
-def free_data(data):
-  fun = libbwc.bwc_free_data
-  fun.restype  = None
-  fun.argtypes = [ctypes.c_void_p]
-  fun(data)
-#==================================================================================================#
-def initialize_data(data, nX, nY, nZ, nTS, nPar, file_extension):
-  fun = libbwc.bwc_initialize_data
+def init_stream(inpbuf, outbuf, mode):
+  fun = libbwc.bwc_init_stream
   fun.restype  = ctypes.c_void_p
   fun.argtypes = [ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                  ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
+                  ctypes.c_char_p]
+  return ctypes.c_void_p(fun(inpbuf, outbuf, mode.encode('utf-8')))
+#==================================================================================================#
+def alloc_coder(nX, nY, nZ, nTS, nPar, prec):
+  fun = libbwc.bwc_alloc_coder
+  fun.restype  = ctypes.c_void_p
+  fun.argtypes = [ctypes.c_uint64,
                   ctypes.c_uint64,
                   ctypes.c_uint64,
-                  ctypes.c_uint64,
-                  ctypes.c_uint16,
                   ctypes.c_uint8,
                   ctypes.c_char_p]
-  return ctypes.c_void_p(fun(data, nX, nY, nZ, nTS, nPar, file_extension.encode('utf-8')))
+  return ctypes.c_void_p(fun(nX, nY, nZ, nTS, nPar, prec.encode('utf-8')))
 #==================================================================================================#
-def get_data(data, buffer, size):
-  fun = libbwc.bwc_get_data
-  fun.restype  = None
-  fun.argtypes = [ctypes.c_void_p,
-                  ndpointer(ctypes.c_double, flags="C_CONTIGUOUS"),
-                  ctypes.c_uint64]
-  fun(data, buffer, size)
-#==================================================================================================#
-def add_param(data, name, sample, dim, precision):
-  fun = libbwc.bwc_add_param
-  fun.restype  = None
-  fun.argtypes = [ctypes.c_void_p,
-                  ctypes.c_char_p,
-                  ctypes.c_uint16,
-                  ctypes.c_uint8,
-                  ctypes.c_uint8]
-  fun(data, name.encode('utf-8'), sample, dim, precision)
-#==================================================================================================#
-def kill_compression(field):
-  fun = libbwc.bwc_kill_compression
-  fun.restype  = None
-  fun.argtypes = [ctypes.c_void_p]
-  fun(field)
-#==================================================================================================#
-def initialize_field(data):
-  fun = libbwc.bwc_initialize_field
+def alloc_decoder():
+  fun = libbwc.bwc_alloc_decoder
   fun.restype  = ctypes.c_void_p
-  fun.argtypes = [ctypes.c_void_p]
-  return ctypes.c_void_p(fun(data))
+  fun.argtypes = []
+  return ctypes.c_void_p(fun())
 #==================================================================================================#
-def set_codeblocks(field, cbX, cbY, cbZ, cbTS):
+def free_codec(codec):
+  fun = libbwc.bwc_free_codec
+  fun.restype  = None
+  fun.argtypes = [ctypes.c_void_p]
+  fun(codec)
+#==================================================================================================#
+def set_codeblocks(codec, cbX, cbY, cbZ, cbTS):
   fun = libbwc.bwc_set_codeblocks
   fun.restype  = None
   fun.argtypes = [ctypes.c_void_p,
@@ -140,9 +122,9 @@ def set_codeblocks(field, cbX, cbY, cbZ, cbTS):
                   ctypes.c_uint8,
                   ctypes.c_uint8,
                   ctypes.c_uint8]
-  fun(field, cbX, cbY, cbZ, cbTS)
+  fun(codec, cbX, cbY, cbZ, cbTS)
 #==================================================================================================#
-def set_decomp(field, decompX, decompY, decompZ, decompTS):
+def set_decomp(codec, decompX, decompY, decompZ, decompTS):
   fun = libbwc.bwc_set_decomp
   fun.restype  = None
   fun.argtypes = [ctypes.c_void_p,
@@ -150,16 +132,16 @@ def set_decomp(field, decompX, decompY, decompZ, decompTS):
                   ctypes.c_uint8,
                   ctypes.c_uint8,
                   ctypes.c_uint8]
-  fun(field, decompX, decompY, decompZ, decompTS)
+  fun(codec, decompX, decompY, decompZ, decompTS)
 #==================================================================================================#
-def set_qm(field, Qm):
+def set_qm(codec, Qm):
   fun = libbwc.bwc_set_qm
   fun.restype  = None
   fun.argtypes = [ctypes.c_void_p,
-                  ctypes.c_int8]
-  fun(field, Qm)
+                  ctypes.c_uint8]
+  fun(codec, Qm)
 #==================================================================================================#
-def set_tiles(field, tilesX, tilesY, tilesZ, tilesTS, instr):
+def set_tiles(codec, tilesX, tilesY, tilesZ, tilesTS, instr):
   fun = libbwc.bwc_set_tiles
   fun.restype  = None
   fun.argtypes = [ctypes.c_void_p,
@@ -168,9 +150,9 @@ def set_tiles(field, tilesX, tilesY, tilesZ, tilesTS, instr):
                   ctypes.c_uint64,
                   ctypes.c_uint64,
                   ctypes.c_char_p]
-  fun(field, tilesX, tilesY, tilesZ, tilesTS, instr.encode('utf-8'))
+  fun(codec, tilesX, tilesY, tilesZ, tilesTS, instr.encode('utf-8'))
 #==================================================================================================#
-def set_precincts(field, pX, pY, pZ, pTS):
+def set_precincts(codec, pX, pY, pZ, pTS):
   fun = libbwc.bwc_set_precincts
   fun.restype  = None
   fun.argtypes = [ctypes.c_void_p,
@@ -178,32 +160,34 @@ def set_precincts(field, pX, pY, pZ, pTS):
                   ctypes.c_uint8,
                   ctypes.c_uint8,
                   ctypes.c_uint8]
-  fun(field, pX, pY, pZ, pTS)
+  fun(codec, pX, pY, pZ, pTS)
 #==================================================================================================#
-def create_compression(field, rate_control):
+def create_compression(codec, stream, rate_control):
   fun = libbwc.bwc_create_compression
-  fun.restype  = None
+  fun.restype  = ctypes.c_uchar
   fun.argtypes = [ctypes.c_void_p,
+                  ctypes.c_void_p,
                   ctypes.c_char_p]
-  fun(field, rate_control.encode('utf-8'))
+  return ctypes.c_uchar(fun(codec, stream, rate_control.encode('utf-8')))
 #==================================================================================================#
-def compress(field, data):
+def compress(codec, stream):
   fun = libbwc.bwc_compress
-  fun.restype  = None
+  fun.restype  = ctypes.c_size_t
   fun.argtypes = [ctypes.c_void_p,
                   ctypes.c_void_p]
-  fun(field, data)
+  return ctypes.c_size_t(fun(codec, stream))
 #==================================================================================================#
-def create_decompression(field, data):
+def create_decompression(codec, stream, layer):
   fun = libbwc.bwc_create_decompression
-  fun.restype  = ctypes.c_void_p
+  fun.restype  = ctypes.c_uchar
   fun.argtypes = [ctypes.c_void_p,
+                  ctypes.c_void_p,
                   ctypes.c_uint8]
-  return ctypes.c_void_p(fun(field, data))
+  return ctypes.c_uchar(fun(codec, stream, layer))
 #==================================================================================================#
-def decompress(field, data):
+def decompress(codec, stream):
   fun = libbwc.bwc_decompress
-  fun.restype  = None
+  fun.restype  = ctypes.c_uchar
   fun.argtypes = [ctypes.c_void_p,
                   ctypes.c_void_p]
-  fun(field, data)
+  return ctypes.c_uchar(fun(codec, stream))

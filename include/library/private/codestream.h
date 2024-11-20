@@ -89,16 +89,22 @@
   ||            |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]            ||
   ||                                                                                              ||
   \************************************************************************************************/
-  uchar        assemble_main_header       (bwc_field                    *const  field);
+  uchar        assemble_main_header       (bwc_codec                    *const  codec);
   //==========|==========================|======================|======|======|=====================
-  uchar        codestream_write_aux       (bwc_stream                   *const  header, 
-                                           bwc_stream                   *const  aux);
+  uchar        codestream_write_aux       (bwc_span                     *const  header, 
+                                           bwc_span                     *const  aux);
   //==========|==========================|======================|======|======|=====================
-  uchar        codestream_write_com       (bwc_stream                   *const  header,
-                                           bwc_stream                   *const  com);
+  uchar        codestream_write_com       (bwc_span                     *const  header,
+                                           bwc_span                     *const  com);
   //==========|==========================|======================|======|======|=====================
-  bwc_stream*  assemble_codestream        (bwc_field                    *const  field);
+  size_t       assemble_codestream        (bwc_codec                    *const  codec,
+                                           bwc_stream                   *const  stream);
   //==========|==========================|======================|======|======|=====================
-  bwc_field*   parse_codestream           (bwc_data                     *const  data,
+  bwc_codec*   parse_main_header          (bwc_codec                    *const codec,
+                                           bwc_stream                   *const data,
+                                           bitstream                    *const stream);
+  //==========|==========================|======================|======|======|=====================
+  bwc_codec*   parse_codestream           (bwc_codec                    *const  codec,
+                                           bwc_stream                   *const  stream,
                                            uint8                         const  layer);
 #endif

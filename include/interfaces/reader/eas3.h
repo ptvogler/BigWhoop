@@ -181,36 +181,6 @@
 
   #define AUX_SIZE        0x8000
 
-  /************************************************************************************************************\
-  ||                                         ___ _   _ ___  ____ ____                                         ||
-  ||                                          |   \_/  |__] |___ [__                                          ||
-  ||                                          |    |   |    |___ ___]                                         ||
-  ||                                                                                                          ||
-  \************************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to read/assemble a packed codestream during coding. The         !
-  !         byte buffer is flushed to the packed stream as soon as the a single byte has           !
-  !         been assembled.                                                                        !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  typedef struct
-  {
-    uchar                       error;                    // Error flag used during streaming.
-
-    uint64                      L;                        // Number of bytes written to/from stream.
-    uint64                      Lmax;                     // Size of packed stream.
-    uint64                      size_incr;                // Size incrmnt used for stream assembly.
-
-    uint8                       T;                        // Byte buffer.
-    int8                        t;                        // Byte buffer counter.
-
-    uchar                      *memory;                   // Memory handle for packed stream chunck.
-  } bitstream;
-
   /*----------------------------------------------------------------------------------------------------------*\
   !   STRUCT NAME: eas3_header                                                                                 !
   !   -----------                                                                                              !
@@ -303,7 +273,7 @@
   {
     uint64_t              file_type;
     uint64_t              accuracy;
-    uint64_t              nzs;
+    uint64_t              nts;
     uint64_t              npar;
     uint64_t              ndim1;
     uint64_t              ndim2;
@@ -324,6 +294,52 @@
     uint64_t              udef_int_size;
     uint64_t              udef_real_size;
   } eas3_std_params;
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         This structure is used to store field names eas3 file.                                 !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  typedef struct name
+  {
+    char                        name[24];                 // Parameter name.
+    uint8                       id;                       // Parameter index.
+
+    struct name                 *next;                     // Next element in linked-list.
+    struct name                 *root;                     // Linked-list root.
+  } eas3_param_names;
+
+  /*----------------------------------------------------------------------------------------------*\
+  !                                                                                                !
+  !   DESCRIPTION:                                                                                 !
+  !   ------------                                                                                 !
+  !                                                                                                !
+  !         This structure is used to read eas3 stuff.                                             !
+  !                                                                                                !
+  \*----------------------------------------------------------------------------------------------*/
+  typedef struct
+  {
+    eas3_param_names     *param_names;
+    eas3_std_params       params;
+
+    struct field
+    {
+      double             *d;
+      float              *f;
+    } field;
+
+    // TODO: implement aux as queue
+    struct aux
+    {
+      uchar                *ptr;
+      uint32                pos;
+      uint32                len;
+    } aux;
+
+  } eas3_data;
   
   /************************************************************************************************************\
   ||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
@@ -331,6 +347,21 @@
   ||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
   ||                                                                                                          ||
   \************************************************************************************************************/
+  /*----------------------------------------------------------------------------------------------------------*\
+  !                                                                                                            !
+  !   DESCRIPTION:                                                                                             !
+  !   ------------                                                                                             !
+  !                This function deallocates the data structure used to store an numerical dataset             !
+  !                and can be called if an error occurs or once the data is no longer needed is to be closed.  !
+  !                The deallocation will be carried out down to the structure levels that have been allocated. !
+  !                                                                                                            !
+  \*----------------------------------------------------------------------------------------------------------*/
+  void
+  eas3_free_data(eas3_data* data);
+
+  uchar
+  bwc_to_eas3(bwc_stream *const stream, eas3_data *const data);
+
   /*----------------------------------------------------------------------------------------------------------*\
   !   FUNCTION NAME: bwc_data* read_eas3(const char* const filename)                                           !
   !   --------------                                                                                           !
@@ -342,7 +373,7 @@
   !                structure.                                                                                  !
   !                                                                                                            !
   \*----------------------------------------------------------------------------------------------------------*/
-  bwc_data*
+  eas3_data*
   read_eas3(char *const filename);
 
   /*----------------------------------------------------------------------------------------------------------*\
@@ -356,5 +387,5 @@
   !                                                                                                            !
   \*----------------------------------------------------------------------------------------------------------*/
   uchar
-  write_eas3(bwc_data *const file, char *const filename);
+  write_eas3(eas3_data *const file, char *const filename);
 #endif

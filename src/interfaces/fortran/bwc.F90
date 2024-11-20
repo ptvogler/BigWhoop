@@ -48,10 +48,10 @@ module bwc
   !|                               | | \| |___ |___ |__| |__/ |___                                |!
   !|                                                                                              |!
   !************************************************************************************************!
-  use, intrinsic :: iso_c_binding, only: C_PTR, C_INT64_T, C_INT32_T, C_INT16_T, C_INT8_T, &
-                                         C_INT, C_DOUBLE,  C_CHAR,    C_SIGNED_CHAR
-  IMPLICIT NONE
-  PRIVATE
+  use, intrinsic :: iso_c_binding, only: c_ptr, c_int64_t, c_int32_t, c_int16_t, c_int8_t, &
+                                         c_int, c_double,  c_char,    c_signed_char
+  implicit none
+  private
 
   !************************************************************************************************!
   !|                          ____ ____ _  _ ____ ___ ____ _  _ ___ ____                          |!
@@ -59,25 +59,25 @@ module bwc
   !|                          |___ |__| | \| ___]  |  |  | | \|  |  ___]                          |!
   !|                                                                                              |!
   !************************************************************************************************!
-  ENUM, BIND(C)
+  enum, bind(c)
     enumerator ::   bwc_dwt_9_7     = 0, &
                     bwc_dwt_5_3     = 1, &
                     bwc_dwt_haar    = 2
-  END ENUM
+  end enum
   !*==============================================================================================*!
-  ENUM, BIND(C)
-    enumerator ::   bwc_prog_LRCP   = 0
-  END ENUM
+  enum, bind(c)
+    enumerator ::   bwc_prog_lrcp   = 0
+  end enum
   !*==============================================================================================*!
-  ENUM, BIND(C)
+  enum, bind(c)
     enumerator ::   bwc_qt_none     = 0, &
                     bwc_qt_derived  = 1
-  END ENUM
+  end enum
   !*==============================================================================================*!
-  ENUM, BIND(C)
+  enum, bind(c)
     enumerator ::   bwc_tile_sizeof = 0, &
                     bwc_tile_numbof = 1
-  END ENUM
+  end enum
 
   !************************************************************************************************!
   !|            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            |!
@@ -86,294 +86,113 @@ module bwc
   !|                                                                                              |!
   !************************************************************************************************!
   interface
-    function initialize_data_f(field, nX, nY, nZ, nTS, nPar, file_extension) result(data) &
-             BIND(C, NAME="bwc_initialize_data")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-      TYPE(C_PTR)                           ::  data
-      
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT16_T),      VALUE   ::  nX, nY, nZ
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  nTS, nPar
-      
-      !*-----------------------*!
-      ! DEFINE CHAR VARIABLES:  !
-      !*-----------------------*!
-      CHARACTER(KIND=C_CHAR)                ::  file_extension(*)
-    end function initialize_data_f
+    function init_stream_f(inpbuf, outbuf, mode) result(stream) &
+             bind(c, name="bwc_init_stream")
+      import
+      type(c_ptr)                           ::  stream
+      type(c_ptr),                  value   ::  inpbuf
+      type(c_ptr),                  value   ::  outbuf
+      integer(kind=c_int),          value   ::  mode
+    end function init_stream_f
     !*============================================================================================*!
-    subroutine add_param_f(data, name, sample, dim, precision) &
-               BIND(C, NAME="bwc_add_param")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  data
-      
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT16_T),      VALUE   ::  sample
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  precision
-      INTEGER(KIND=C_SIGNED_CHAR),  VALUE   ::  dim
-      
-      !*-----------------------*!
-      ! DEFINE CHAR VARIABLES:  !
-      !*-----------------------*!
-      CHARACTER(KIND=C_CHAR)                ::  name(*)
-    end subroutine add_param_f
+    function alloc_coder_f(nx, ny, nz, nts, npar, prec) result(codec) &
+             bind(c, name="bwc_alloc_coder")
+      import
+      type(c_ptr)                           ::  codec
+      integer(kind=c_int64_t),      value   ::  nx, ny, nz, nts
+      integer(kind=c_int8_t),       value   ::  npar
+      integer(kind=c_int),          value   ::  prec
+    end function alloc_coder_f
     !*============================================================================================*!
-    subroutine get_data_f(data, buffer, size) &
-               BIND(C, NAME="bwc_get_data")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  data
-      TYPE(C_PTR),                  VALUE   ::  buffer
-      
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT64_T),      Value   ::  size
-    end subroutine get_data_f
+    function alloc_decoder_f() result(codec) &
+             bind(c, name="bwc_alloc_decoder")
+      import
+      type(c_ptr)                           ::  codec
+    end function alloc_decoder_f
     !*============================================================================================*!
-    subroutine free_data_f(data) &
-               BIND(C, NAME="bwc_free_data")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  data
-    end subroutine free_data_f
+    subroutine free_codec_f(codec) &
+               bind(c, name="bwc_free_codec")
+      import
+      type(c_ptr),                  value   ::  codec
+    end subroutine free_codec_f
     !*============================================================================================*!
-    subroutine kill_compression_f(field) &
-               BIND(C, NAME="bwc_kill_compression")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-    end subroutine kill_compression_f
-    !*============================================================================================*!
-    function initialize_field_f(data) result(field) &
-             BIND(C, NAME="bwc_initialize_field")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  data
-      TYPE(C_PTR)                           ::  field
-    end function initialize_field_f
-    !*============================================================================================*!
-    subroutine set_error_resilience_f(field) &
-               BIND(C, NAME="bwc_set_error_resilience")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
+    subroutine set_error_resilience_f(codec) &
+               bind(c, name="bwc_set_error_resilience")
+      import
+      type(c_ptr),                  value   ::  codec
     end subroutine set_error_resilience_f
     !*============================================================================================*!
-    subroutine set_quantization_style_f(field, quantization_style) &
-               BIND(C, NAME="bwc_set_quantization_style")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT),          VALUE   ::  quantization_style
-    end subroutine set_quantization_style_f
-    !*============================================================================================*!
-    subroutine set_quantization_step_size_f(field, delta) &
-               BIND(C, NAME="bwc_set_quantization_step_size")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE FLOAT VARIABLES: !
-      !*-----------------------*!
-      REAL(KIND=C_DOUBLE),          VALUE   ::  delta
-    end subroutine set_quantization_step_size_f
-    !*============================================================================================*!
-    subroutine set_progression_f(field, progression) &
-               BIND(C, NAME="bwc_set_progression")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT),          VALUE   ::  progression
-    end subroutine set_progression_f
-    !*============================================================================================*!
-    subroutine set_kernels_f(field, KernelX, KernelY, KernelZ, KernelTS) &
-               BIND(C, NAME="bwc_set_kernels")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT),          VALUE   ::  KernelX, KernelY
-      INTEGER(KIND=C_INT),          VALUE   ::  KernelZ, KernelTS
-    end subroutine set_kernels_f
-    !*============================================================================================*!
-    subroutine set_decomp_f(field, decompX, decompY, decompZ, decompTS) &
-               BIND(C, NAME="bwc_set_decomp")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  decompX, decompY
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  decompZ, decompTS
+    subroutine set_decomp_f(codec, decompx, decompy, decompz, decompts) &
+               bind(c, name="bwc_set_decomp")
+      import
+      type(c_ptr),                  value   ::  codec
+      integer(kind=c_int8_t),       value   ::  decompx, decompy
+      integer(kind=c_int8_t),       value   ::  decompz, decompts
     end subroutine set_decomp_f
     !*============================================================================================*!
-    subroutine set_precincts_f(field, pX, pY, pZ, pTS) &
-               BIND(C, NAME="bwc_set_precincts")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  pX, pY
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  pZ, pTS
+    subroutine set_precincts_f(codec, px, py, pz, pts) &
+               bind(c, name="bwc_set_precincts")
+      import
+      type(c_ptr),                  value   ::  codec
+      integer(kind=c_int8_t),       value   ::  px, py
+      integer(kind=c_int8_t),       value   ::  pz, pts
     end subroutine set_precincts_f
     !*============================================================================================*!
-    subroutine set_codeblocks_f(field, cbX, cbY, cbZ, cbTS) &
-               BIND(C, NAME="bwc_set_codeblocks")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  cbX, cbY
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  cbZ, cbTS
+    subroutine set_codeblocks_f(codec, cbx, cby, cbz, cbts) &
+               bind(c, name="bwc_set_codeblocks")
+      import
+      type(c_ptr),                  value   ::  codec
+      integer(kind=c_int8_t),       value   ::  cbx, cby
+      integer(kind=c_int8_t),       value   ::  cbz, cbts
     end subroutine set_codeblocks_f
     !*============================================================================================*!
-    subroutine set_qm_f(field, Qm) &
-               BIND(C, NAME="bwc_set_qm")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  Qm
+    subroutine set_qm_f(codec, qm) &
+               bind(c, name="bwc_set_qm")
+      import
+      type(c_ptr),                  value   ::  codec
+      integer(kind=c_int8_t),       value   ::  qm
     end subroutine set_qm_f
     !*============================================================================================*!
-    subroutine set_tiles_f(field, tilesX, tilesY, tilesZ, tilesTS, instr) &
-               BIND(C, NAME="bwc_set_tiles")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT64_T),      VALUE   ::  tilesX, tilesY, tilesZ
-      INTEGER(KIND=C_INT16_T),      VALUE   ::  tilesTS
-      INTEGER(KIND=C_INT),          VALUE   ::  instr
+    subroutine set_tiles_f(codec, tilesx, tilesy, tilesz, tilests, instr) &
+               bind(c, name="bwc_set_tiles")
+      import
+      type(c_ptr),                  value   ::  codec
+      integer(kind=c_int64_t),      value   ::  tilesx, tilesy, tilesz, tilests
+      integer(kind=c_int),          value   ::  instr
     end subroutine set_tiles_f
     !*============================================================================================*!
-    function create_compression_f(field, rate_control) result(error_flag) &
-             BIND(C, NAME="bwc_create_compression")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-      
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T)                ::  error_flag
-      
-      !*-----------------------*!
-      ! DEFINE CHAR VARIABLES:  !
-      !*-----------------------*!
-      CHARACTER(KIND=C_CHAR)                ::  rate_control(*)
+    function create_compression_f(codec, stream, rate_control) result(error_flag) &
+             bind(c, name="bwc_create_compression")
+      import
+      integer(kind=c_int8_t)                ::  error_flag
+      type(c_ptr),                  value   ::  codec
+      type(c_ptr),                  value   ::  stream
+      character(kind=c_char)                ::  rate_control(*)
     end function create_compression_f
     !*============================================================================================*!
-    function compress_f(field, data) result(error_flag) &
-             BIND(C, NAME="bwc_compress")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-      TYPE(C_PTR),                  VALUE   ::  data
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T)                ::  error_flag
+    function compress_f(codec, stream) result(error_flag) &
+             bind(c, name="bwc_compress")
+      import
+      integer(kind=c_int8_t)                ::  error_flag
+      type(c_ptr),                  value   ::  codec
+      type(c_ptr),                  value   ::  stream
     end function compress_f
     !*============================================================================================*!
-    function create_decompression_f(data, layer) result(field) &
-             BIND(C, NAME="bwc_create_decompression")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR)                           ::  field
-      TYPE(C_PTR),                  VALUE   ::  data
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T),       VALUE   ::  layer
+    function create_decompression_f(codec, stream, layer) result(error_flag) &
+             bind(c, name="bwc_create_decompression")
+      import
+      integer(kind=c_int8_t)                ::  error_flag
+      type(c_ptr),                  value   ::  codec
+      type(c_ptr),                  value   ::  stream
+      integer(kind=c_int8_t),       value   ::  layer
     end function create_decompression_f
     !*============================================================================================*!
-    function decompress_f(field, data) result(error_flag) &
-             BIND(C, NAME="bwc_decompress")
-      IMPORT
-      !*-----------------------*!
-      ! DEFINE POINTERS:        !
-      !*-----------------------*!
-      TYPE(C_PTR),                  VALUE   ::  field
-      TYPE(C_PTR),                  VALUE   ::  data
-
-      !*-----------------------*!
-      ! DEFINE INT VARIABLES:   !
-      !*-----------------------*!
-      INTEGER(KIND=C_INT8_T)                ::  error_flag
+    function decompress_f(codec, stream) result(error_flag) &
+             bind(c, name="bwc_decompress")
+      import
+      integer(kind=c_int8_t)                ::  error_flag
+      type(c_ptr),                  value   ::  codec
+      type(c_ptr),                  value   ::  stream
     end function decompress_f
   end interface
 
@@ -395,24 +214,17 @@ module bwc
   public ::   bwc_tile_sizeof,                  &
               bwc_tile_numbof 
 
-  public ::   bwc_initialize_data,              &
-              bwc_get_data,                     &
-              bwc_free_data
-
-  public ::   bwc_initialize_field,             &
-              bwc_add_param,                    &
-              bwc_kill_compression
+  public ::   bwc_init_stream,                  &
+              bwc_alloc_coder,                  &
+              bwc_alloc_decoder,                &
+              bwc_free_codec
 
   public ::   bwc_set_error_resilience,         &
-              bwc_set_quantization_style,       &
-              bwc_set_quantization_step_size,   &
-              bwc_set_progression,              &
-              bwc_set_kernels,                  &
               bwc_set_decomp,                   &
               bwc_set_precincts,                &
               bwc_set_codeblocks,               &
               bwc_set_qm,                       &
-              bwc_set_tiles,                    
+              bwc_set_tiles
 
   public ::   bwc_create_compression,           &
               bwc_compress,                     &

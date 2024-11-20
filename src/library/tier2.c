@@ -16,7 +16,7 @@
 ||  ------------                                                                                  ||
 ||                                                                                                ||
 ||        This file describes a set of functions that can be used to de-/encode bwc               ||
-||        codeblocks described by the bwc_field structure according to the embedded block         ||
+||        codeblocks described by the bwc_codec structure according to the embedded block         ||
 ||        coding paradigm described by the JPEG 2000 standard. For more information please        ||
 ||        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.                                ||
 ||                                                                                                ||
@@ -312,7 +312,7 @@ encode_length(bitstream *const header, bwc_codeblock *const codeblock,
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void create_quality_layers(bwc_field *const field, bwc_tile *const tile)                  !
+!   FUNCTION NAME:                                                                                           !
 !   --------------                                                                                           !
 !                                                                                                            !
 !                                                                                                            !
@@ -385,11 +385,10 @@ decode_length(bitstream *const header, bwc_codeblock *const codeblock, int8 cons
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: int64 create_packet(bwc_field *const field, bwc_tile       *const tile,                   !
-!   --------------                                             bwc_resolution *const resolution,             !
-!                                                              uint32          const prec_idx,               !
-!                                                              int8            const q_layer,                !
-!                                                              uchar           const est)                    !
+!   FUNCTION NAME: int64 create_packet(bwc_tile *const tile, bwc_resolution *const resolution,               !
+!   --------------                                           uint32          const prec_idx,                 !
+!                                                            int8            const q_layer,                  !
+!                                                            uchar           const est)                      !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
 !   ------------                                                                                             !
@@ -403,9 +402,6 @@ decode_length(bitstream *const header, bwc_codeblock *const codeblock, int8 cons
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
 !                                                                                                            !
 !                resolution                  bwc_resolution*       - Structure defining a bwc resolution     !
@@ -435,11 +431,10 @@ decode_length(bitstream *const header, bwc_codeblock *const codeblock, int8 cons
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static int32
-create_packet(bwc_field *const field, bwc_tile       *const tile, 
-                                      bwc_resolution *const resolution,
-                                      uint32          const prec_idx,
-                                      int16           const q_layer,
-                                      uchar           const est)
+create_packet(bwc_tile *const tile, bwc_resolution *const resolution,
+                                    uint32          const prec_idx,
+                                    int16           const q_layer,
+                                    uchar           const est)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -450,6 +445,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
    int16   *cp_contr;
    int16    delta_z;
    int8     m;
+   uchar   *memory;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -462,7 +458,6 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
    assert(tile);
    assert(resolution);
 
@@ -482,7 +477,14 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       ! Initialize the stream that is used to assemble the pack- !
       ! et header.                                               !
       \*--------------------------------------------------------*/
-      header = init_stream(NULL, PACKET_HEADER_SIZE, 'c');
+      memory = calloc(PACKET_HEADER_SIZE, sizeof(uchar));
+      if(!memory)
+      {
+        // memory allocation error
+        fprintf(stderr, MEMERROR);
+        return -1;
+      }
+      header = init_bitstream(memory, PACKET_HEADER_SIZE, 'c');
       if(!header)
       {
          // memory allocation error
@@ -498,7 +500,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       if(!est)
       {
          packet->body.access = 
-         packet->body.memory = calloc(packet->body.size, sizeof(bwc_stream));
+         packet->body.memory = calloc(packet->body.size, sizeof(bwc_span));
          if(!packet->body.memory)
          {
             // memory allocation error
@@ -644,7 +646,8 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
          }
 
          k = header->L;
-         terminate_stream(header, NULL);
+         free(header->memory);
+         free(header);
          return k;
       }
       /*--------------------------------------------------------*\
@@ -655,11 +658,13 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
       \*--------------------------------------------------------*/
       else
       {
-         if(terminate_stream(header, &packet->header))
+         if(shrink_to_fit(header))
          {
             // memory allocation error
             return -1;
          }
+         transfer_to_span(header, &packet->header);
+         free(header);
 
          packet->size = packet->body.size + packet->header.size;
 
@@ -706,7 +711,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar create_packets(bwc_field *const field, bwc_tile *const tile)                        !
+!   FUNCTION NAME: uchar create_packets(bwc_codec *const codec, bwc_tile *const tile)                        !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -723,7 +728,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
@@ -743,7 +748,7 @@ create_packet(bwc_field *const field, bwc_tile       *const tile,
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-create_packets(bwc_field *const field, bwc_tile *const tile)
+create_packets(bwc_codec *const codec, bwc_tile *const tile)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -764,15 +769,15 @@ create_packets(bwc_field *const field, bwc_tile *const tile)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    /*--------------------------------------------------------*\
    ! Iterate overall quality layers for every precinct in all !
@@ -799,7 +804,7 @@ create_packets(bwc_field *const field, bwc_tile *const tile)
          {
             for(l = 0; l < control->nLayers; ++l)
             {
-               if(create_packet(field, tile, resolution, p, l, 0) < 0)
+               if(create_packet(tile, resolution, p, l, 0) < 0)
                {
                   // memory allocation error
                   return 1;
@@ -845,7 +850,7 @@ create_packets(bwc_field *const field, bwc_tile *const tile)
 
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: int64 create_quality_layer(bwc_field *const field, bwc_tile *const tile,                  !
+!   FUNCTION NAME: int64 create_quality_layer(bwc_codec *const codec, bwc_tile *const tile,                  !
 !   --------------                                                    uint16    const threshold,             !
 !                                                                     int16     const q_layer,               !
 !                                                                     uchar     const est)                   !
@@ -860,7 +865,7 @@ create_packets(bwc_field *const field, bwc_tile *const tile)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
@@ -888,7 +893,7 @@ create_packets(bwc_field *const field, bwc_tile *const tile)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static int64
-create_quality_layer(bwc_field *const field, bwc_tile *const tile,
+create_quality_layer(bwc_codec *const codec, bwc_tile *const tile,
                                              uint16    const threshold,
                                              int16     const q_layer,
                                              uchar     const est)
@@ -916,15 +921,15 @@ create_quality_layer(bwc_field *const field, bwc_tile *const tile,
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
 
    /*--------------------------------------------------------*\
    ! Save the global control and info structure to temporary  !
    ! variables to make the code more readable.                !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    for(j = 0, estimated_ql_size = 0; j < info->nPar; ++j)
    {
@@ -1056,7 +1061,7 @@ create_quality_layer(bwc_field *const field, bwc_tile *const tile,
 
          for(p = 0; p < resolution->control.number_of_precincts; ++p)
          {
-            estimated_ph_size = create_packet(field, tile, resolution, p, q_layer, est + 1);
+            estimated_ph_size = create_packet(tile, resolution, p, q_layer, est + 1);
 
             if(estimated_ph_size < 0)
             {
@@ -1075,7 +1080,7 @@ create_quality_layer(bwc_field *const field, bwc_tile *const tile,
 
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void create_quality_layers(bwc_field *const field, bwc_tile *const tile)                  !
+!   FUNCTION NAME: void create_quality_layers(bwc_codec *const codec, bwc_tile *const tile)                  !
 !   --------------                                                                                           !
 !                                                                                                            !
 !                                                                                                            !
@@ -1087,7 +1092,7 @@ create_quality_layer(bwc_field *const field, bwc_tile *const tile,
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
@@ -1107,7 +1112,7 @@ create_quality_layer(bwc_field *const field, bwc_tile *const tile,
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 static uchar
-create_quality_layers(bwc_field *const field, bwc_tile *const tile)
+create_quality_layers(bwc_codec *const codec, bwc_tile *const tile)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -1131,15 +1136,15 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
 
    /*--------------------------------------------------------*\
    ! Save the global and tile control and info structure to   !
    ! temporary variables to make the code more readable.      !
    \*--------------------------------------------------------*/
-   control = &field->control;
-   info    =  field->info;
+   control = &codec->control;
+   info    = &codec->info;
 
    tile_control = &tile->control;
    tile_info    = &tile->info;
@@ -1189,7 +1194,7 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
          {
             slope = (slope_max + slope_min) >> 1;
             
-            estimated_ql_size = create_quality_layer(field, tile, slope, l, 1);
+            estimated_ql_size = create_quality_layer(codec, tile, slope, l, 1);
 
             if(estimated_ql_size >= 0)
             {
@@ -1234,7 +1239,7 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
          slope = 0;
       }
 
-      estimated_ql_size = create_quality_layer(field, tile, slope, l, 0);
+      estimated_ql_size = create_quality_layer(codec, tile, slope, l, 0);
 
       if(estimated_ql_size >= 0)
       {
@@ -1255,7 +1260,7 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
 ||                                                                                                          ||
 \************************************************************************************************************/
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar   t2_encode(bwc_field *const field, bwc_tile *const tile)                           !
+!   FUNCTION NAME: uchar   t2_encode(bwc_codec *const codec, bwc_tile *const tile)                           !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -1269,7 +1274,7 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
@@ -1289,19 +1294,19 @@ create_quality_layers(bwc_field *const field, bwc_tile *const tile)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-t2_encode(bwc_field *const field, bwc_tile *const tile)
+t2_encode(bwc_codec *const codec, bwc_tile *const tile)
 {
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
 
    /*--------------------------------------------------------*\
    ! Create the quality layers according to the bitrate val-  !
    ! ues provided by the user.                                !
    \*--------------------------------------------------------*/
-   if(create_quality_layers(field, tile))
+   if(create_quality_layers(codec, tile))
    {
       return 1;
    }
@@ -1310,7 +1315,7 @@ t2_encode(bwc_field *const field, bwc_tile *const tile)
    ! Create the data packets according to the quality layers  !
    ! evaluated in the previous step.                          !
    \*--------------------------------------------------------*/
-   if(create_packets(field, tile))
+   if(create_packets(codec, tile))
    {
       return 1;
    }
@@ -1319,7 +1324,7 @@ t2_encode(bwc_field *const field, bwc_tile *const tile)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar parse_packet(bwc_field *const field, bwc_tile   *const tile,                        !
+!   FUNCTION NAME: uchar parse_packet(bwc_codec *const codec, bwc_tile   *const tile,                        !
 !   --------------                                            bwc_packet *const packet,                      !
 !                                                             uint64      const body_size)                   !
 !                                                                                                            !
@@ -1332,7 +1337,7 @@ t2_encode(bwc_field *const field, bwc_tile *const tile)
 !   -----------                                                                                              !
 !                Variable                    Type                    Description                             !
 !                --------                    ----                    -----------                             !
-!                field                       bwc_field*            - Structure defining the compression/     !
+!                codec                       bwc_codec*            - Structure defining the compression/     !
 !                                                                    decompression stage.                    !
 !                                                                                                            !
 !                tile                        bwc_tile*             - Structure defining a bwc tile.          !
@@ -1356,7 +1361,7 @@ t2_encode(bwc_field *const field, bwc_tile *const tile)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 uchar
-parse_packet(bwc_field *const field, bwc_tile   *const tile, 
+parse_packet(bwc_codec *const codec, bwc_tile   *const tile, 
                                      bwc_packet *const packet, 
                                      uint64      const body_size)
 {
@@ -1382,7 +1387,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
    /*-----------------------*\
    ! DEFINE ASSERTIONS:      !
    \*-----------------------*/
-   assert(field);
+   assert(codec);
    assert(tile);
    assert(packet);
 
@@ -1392,7 +1397,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
    ! Initialize the stream that is used to parse the packet   !
    ! codestream.                                              !
    \*--------------------------------------------------------*/
-   header = init_stream(packet->header.memory, body_size, 'd');
+   header = init_bitstream(packet->header.memory, body_size, 'd');
    if(!header)
    {
       // memory allocation error
@@ -1572,7 +1577,7 @@ parse_packet(bwc_field *const field, bwc_tile   *const tile,
    ! If the error resilience mode is active for the current   !
    ! codestream...                                            !
    \*--------------------------------------------------------*/
-   if(field->control.error_resilience)
+   if(codec->control.error_resilience)
    {
       /*--------------------------------------------------------*\
       ! check if the next symbol corresponds to the end of pack- !

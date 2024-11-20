@@ -114,8 +114,14 @@
   \*----------------------------------------------------------------------------------------------*/
   typedef enum
   {
-    bwc_type_half,
-    bwc_type_single,
-    bwc_type_double,
-  } bwc_type;
+    bwc_precision_half = 2,
+    bwc_precision_single = 4,
+    bwc_precision_double = 8,
+  } bwc_precision;
+
+  typedef enum
+  {
+    comp,
+    decomp,
+  } bwc_mode;
 #endif

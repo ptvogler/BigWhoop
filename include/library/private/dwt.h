@@ -157,13 +157,13 @@
   \************************************************************************************************/
   uchar        initialize_gain_lut        ();
   //==========|==========================|======================|======|=======|====================
-  bwc_float    get_dwt_energy_gain        (bwc_field                    *const  field, 
+  bwc_float    get_dwt_energy_gain        (bwc_codec                    *const  codec, 
                                            uchar                 const          highband_flag, 
                                            uint16                const          level);
   //==========|==========================|======================|======|=======|====================
-  uchar        forward_wavelet_transform  (bwc_field                    *const  field, 
+  uchar        forward_wavelet_transform  (bwc_codec                    *const  codec, 
                                            bwc_parameter                *const  parameter);
   //==========|==========================|======================|======|=======|====================
-  uchar        inverse_wavelet_transform  (bwc_field                    *const  field, 
+  uchar        inverse_wavelet_transform  (bwc_codec                    *const  codec, 
                                            bwc_parameter                *const  parameter);
 #endif
