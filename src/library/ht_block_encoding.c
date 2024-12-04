@@ -80,9 +80,9 @@
 ||                                                                                                ||
 \**************************************************************************************************/
 static void
-quantize(ht_bwc_codeblock *const destination, bwc_sample *const source,
+quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
          bwc_cblk_access  *const cblkaccess,              const uint64 width,
-                           const uint64 height,           const uint64 depth)
+                           const uint64 height,           const uint64 depth, const uint64 delta)
 {
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
@@ -101,6 +101,7 @@ quantize(ht_bwc_codeblock *const destination, bwc_sample *const source,
    ! DEFINE FLOAT VARIABLES: !
    \*-----------------------*/
    bwc_float   qt_step_size;
+   bwc_float   qt_scale;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -131,6 +132,7 @@ quantize(ht_bwc_codeblock *const destination, bwc_sample *const source,
    ! the most significant bitfield.                           !
    \*--------------------------------------------------------*/
    qt_step_size = cblkaccess->subband->control.qt_effective_step_size;
+   qt_scale     = (bwc_float)(1.0/qt_step_size);
    Kmax         = 0;
 
    /*--------------------------------------------------------*\
@@ -176,8 +178,8 @@ quantize(ht_bwc_codeblock *const destination, bwc_sample *const source,
    ! of the source memory.                                    !
    \*--------------------------------------------------------*/
    tmp = &source[X0 + width * (Y0 + height * (Z0 + depth * TS0))];
-   destination->samples = calloc(cblk_width * cblk_height *
-                                 cblk_depth * cblk_dt, sizeof(bwc_raw));
+   bwc_raw *nu = destination->nu;
+   uint8 *sigma = destination->sigma;
 
    /*--------------------------------------------------------*\
    ! Walk through all wavelet coefficients in the current     !
@@ -186,89 +188,42 @@ quantize(ht_bwc_codeblock *const destination, bwc_sample *const source,
    ! structure. Here, two adjacent stripes are stored         !
    ! in one 8 bit integer.                                    !
    \*--------------------------------------------------------*/
-   for(t = 0, i = 0; t < cblk_dt; ++t)
+   for(t = 0; t < cblk_dt; ++t)
    {
       for(z = 0; z < cblk_depth; ++z)
       {
-         for(y = 0; y < cblk_stripe; i += cblk_width, ++y)
+         for(y = 0; y < cblk_height; ++y)
          {
-            /*--------------------------------------------------------*\
-            ! Initialize the stripe bit masks to the first stripe posi-!
-            ! tion in the sign, state and sample variables.            !
-            \*--------------------------------------------------------*/
-            bit_mask = 0x08;
-
-            for(s = 0, limit = cblk_height - y * 4; s < 4 && s < limit; ++s)
+            for(x = 0; x < cblk_width; ++x)
             {
-               for(x = 0; x < cblk_width; ++x)
-               {
-                  /*--------------------------------------------------------*\
-                  ! Save the sign bit of the current wavelet coefficient in  !
-                  ! the appropriate position of the sign field.              !
-                  \*--------------------------------------------------------*/
-                  destination[x + i].xi |= bit_mask * (tmp[x].raw / ~sign_mask);
+               bwc_raw temp;
+               bwc_raw sign = tmp[x].raw & SIGN;
 
-                  /*--------------------------------------------------------*\
-                  ! Calculate the absolute value of the wavelet coefficient  !
-                  ! and store the quantized value in the temporary buffer.   !
-                  \*--------------------------------------------------------*/
-                  tmp[x].raw &= sign_mask;
-                  buff        = (bwc_raw)(tmp[x].f / qt_step_size);
-
-                  /*--------------------------------------------------------*\
-                  ! Save the unsigned wavelet coefficient for distortion     !
-                  ! calculation.                                             !
-                  \*--------------------------------------------------------*/
-                  destination[x + i].sample[3 - s] = buff;
-
-                  /*--------------------------------------------------------*\
-                  ! set the bitfield index b to zero.                        !
-                  \*--------------------------------------------------------*/
-                  b = 0;
-
-                  /*--------------------------------------------------------*\
-                  ! Save the significant bits of the current wavelet coeffi- !
-                  ! cient in the appropriate bitfield and stripe.            !
-                  \*--------------------------------------------------------*/
-                  while(buff)
-                  {
-                     destination[x + i].bit[b] |= bit_mask * (buff & 0x01);
-                     buff >>= 1;
-                     b++;
-                  }
-
-                  /*--------------------------------------------------------*\
-                  ! Update the index of the most significant bitfield.       !
-                  \*--------------------------------------------------------*/
-                  Kmax = MAX(Kmax, b);
-
-                  /*--------------------------------------------------------*\
-                  ! Evaluate the appropriate index for the stripe neighbours !
-                  ! Neighbours that fall outside of the codeblock boundaries !
-                  ! are set to dummy variables to uncouple the current block !
-                  ! from its neighbors.                                      !
-                  \*--------------------------------------------------------*/
-                  idx_u = (y == 0)              ? -1 : (int64)(i + x - cblk_width);
-                  idx_r = (x == cblk_width - 1) ? -2 : (int64)(i + x + 1);
-                  idx_d = (s == limit - 1)      ? -1 : (int64)(i + x + cblk_width);
-                  idx_l = (x == 0)              ? -2 : (int64)(i + x - 1);
-
-                  /*--------------------------------------------------------*\
-                  ! Set the state pointers.                                  !
-                  \*--------------------------------------------------------*/
-                  destination[x + i].stripe_u = &destination[idx_u];
-                  destination[x + i].stripe_r = &destination[idx_r];
-                  destination[x + i].stripe_d = &destination[idx_d];
-                  destination[x + i].stripe_l = &destination[idx_l];
-               }
                /*--------------------------------------------------------*\
-               ! Increment the stripe bit mask to the next stripe posi-   !
-               ! tion slice and increment the temporary data pointer to   !
-               ! the next row.                                            !
+               ! Calculate the absolute value of the wavelet coefficient  !
+               ! and store the quantized value in the temporary buffer.   !
                \*--------------------------------------------------------*/
-               bit_mask >>= 1;
-               tmp       += incrX;
+               tmp[x].raw &= sign_mask;
+               temp        = (bwc_raw)(tmp[x].f * qt_scale);
+
+               /*--------------------------------------------------------*\
+               ! Save the unsigned wavelet coefficient for distortion     !
+               ! calculation.                                             !
+               \*--------------------------------------------------------*/
+               if (temp) {
+                  temp--;
+                  temp <<= 1;
+                  temp += (bwc_raw)(sign >> PREC_BIT);
+                  *nu = temp;
+                  *sigma |= 1;
+               }
+               ++nu;
+               ++sigma;
             }
+            /*--------------------------------------------------------*\
+            ! Increment the temporary data pointer to the next row.    !
+            \*--------------------------------------------------------*/
+            tmp += incrX;
          }
          /*--------------------------------------------------------*\
          ! Increment to the next column.                            !
@@ -292,101 +247,68 @@ quantize(ht_bwc_codeblock *const destination, bwc_sample *const source,
 ||             |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]             ||
 ||                                                                                                ||
 \**************************************************************************************************/
-/*------------------------------------------------------------------------------------------------*\
-!                                                                                                  !
-!   DESCRIPTION:                                                                                   !
-!   ------------                                                                                   !
-!                                                                                                  !
-!         DESCRIPTION NEEDED                                                                       !
-!        |                                                                                |        !
-!                                                                                                  !
-!   RETURN:                                                                                        !
-!   -------                                                                                        !
-!                                                                                                  !
-!         -                                                                                        !
-!                                                                                                  !
-\*------------------------------------------------------------------------------------------------*/
-/*-----------------------*\
-! DEFINE INT VARIABLES:   !
-\*-----------------------*/
-/*-----------------------*\
-! DEFINE FLOAT VARIABLES: !
-\*-----------------------*/
-/*-----------------------*\
-! DEFINE CHAR VARIABLES:  !
-\*-----------------------*/
-/*-----------------------*\
-! DEFINE STRUCTS:         !
-\*-----------------------*/
-/*--------------------------------------------------------*\
-! COMMENTCOMMENTCOMMENTCOMMENTCOMMENTCOMMENTCOMMENTCOMMENT !
-\*--------------------------------------------------------*/
-#ifndef HEADER_H
-#define HEADER_H
-  /************************************************************************************************\
-  ||                               _ _  _ ____ _    _  _ ___  ____                                ||
-  ||                               | |\ | |    |    |  | |  \ |___                                ||
-  ||                               | | \| |___ |___ |__| |__/ |___                                ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||                ___  ____ _ _  _ _ ___ _ _  _ ____    ___ _   _ ___  ____ ____                ||
-  ||                |__] |__/ | |\/| |  |  | |  | |___     |   \_/  |__] |___ [__                 ||
-  ||                |    |  \ | |  | |  |  |  \/  |___     |    |   |    |___ ___]                ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||                                _  _ ____ ____ ____ ____ ____                                 ||
-  ||                                |\/| |__| |    |__/ |  | [__                                  ||
-  ||                                |  | |  | |___ |  \ |__| ___]                                 ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||                          ____ ____ _  _ ____ ___ ____ _  _ ___ ____                          ||
-  ||                          |    |  | |\ | [__   |  |__| |\ |  |  [__                           ||
-  ||                          |___ |__| | \| ___]  |  |  | | \|  |  ___]                          ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||     ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____      ||
-  ||     |___  \/   |  |___ |__/ |\ | |__| |       |  | |__| |__/ | |__| |__] |    |___ [__       ||
-  ||     |___ _/\_  |  |___ |  \ | \| |  | |___     \/  |  | |  \ | |  | |__] |___ |___ ___]      ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||     ____ _  _ ___ ____ ____ _  _ ____ _       ____ ____ _  _ ____ ___ ____ _  _ ___ ____     ||
-  ||     |___  \/   |  |___ |__/ |\ | |__| |       |    |  | |\ | [__   |  |__| |\ |  |  [__      ||
-  ||     |___ _/\_  |  |___ |  \ | \| |  | |___    |___ |__| | \| ___]  |  |  | | \|  |  ___]     ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||                                   ___ _   _ ___  ____ ____                                   ||
-  ||                                    |   \_/  |__] |___ [__                                    ||
-  ||                                    |    |   |    |___ ___]                                   ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /************************************************************************************************\
-  ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
-  ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
-  ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         DESCRIPTION NEEDED                                                                     !
-  !        |                                                                              |        !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  //===========================|=========================|==========================================
-  /************************************************************************************************\
-  ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||
-  ||            |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__             ||
-  ||            |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]            ||
-  ||                                                                                              ||
-  \************************************************************************************************/
-  //==========|==========================|======================|======|=======|====================
-  //================================================================================================
-#endif
+uchar
+t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter)
+{
+   /*-----------------------*\
+   ! DEFINE INT VARIABLES:   !
+   \*-----------------------*/
+   uint64   c;
+   uint64   cbSizeX, cbSizeY, cbSizeZ, cbSizeTS;
+   uint64   width, height, depth, delta;
+   uint64   buff_size;
+
+   /*-----------------------*\
+   ! DEFINE STRUCTS:         !
+   \*-----------------------*/
+   bwc_gl_ctrl        *control;
+   bwc_codeblock      *codeblock;
+   bwc_cblk_inf       *cblk_info;
+   bwc_param_inf      *param_info;
+   bwc_ht_codeblock   *working_buffer;
+
+   control = &codec->control;
+
+   param_info = &parameter->info;
+
+   /*--------------------------------------------------------*\
+   ! Evaluate the width, height and depth of the current      !
+   ! parameter.                                               !
+   \*--------------------------------------------------------*/
+   width  = parameter->info.X1 - parameter->info.X0;
+   height = parameter->info.Y1 - parameter->info.Y0;
+   depth  = parameter->info.Z1 - parameter->info.Z0;
+   delta  = parameter->info.TS1 - parameter->info.TS0;
+
+   buff_size = (uint64)(1 << (control->cbX + control->cbY + control->cbZ + control->cbTS));
+   working_buffer = calloc(1, sizeof(bwc_ht_codeblock));
+   working_buffer->nu = calloc(buff_size, sizeof(bwc_raw));
+   working_buffer->sigma = calloc(buff_size, sizeof(uint8));
+
+   for(c = 0; c < parameter->control.number_of_codeblocks; ++c)
+   {
+      codeblock =  parameter->access[c].codeblock;
+      cblk_info = &codeblock->info;
+
+      cbSizeX  = cblk_info->X1  - cblk_info->X0;
+      cbSizeY  = cblk_info->Y1  - cblk_info->Y0;
+      cbSizeZ  = cblk_info->Z1  - cblk_info->Z0;
+      cbSizeTS = cblk_info->TS1 - cblk_info->TS0;
+
+      quantize(working_buffer,        parameter->data,
+               &parameter->access[c], width,
+               height,                depth, delta);
+   }
+
+   free(working_buffer->nu);
+   free(working_buffer->sigma);
+   free(working_buffer);
+
+   return 1;
+}
+
+uchar
+t1_decode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter)
+{
+   return 0;
+}
