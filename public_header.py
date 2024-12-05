@@ -232,7 +232,7 @@ for file in include_files:
             else:
               buff = buff + line
             if("\\" not in line):
-              public_header.write(buff+"\n")
+              public_header.write(buff)
               buff = ""
               break
             line = next(f)

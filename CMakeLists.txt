@@ -63,11 +63,13 @@ endif()
 # Save the bwc.c file in a temporary variable and match    #
 # the current version number with a regular expression.    #
 #----------------------------------------------------------#
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/src/library/libbwc.c _bwc_c_contents)
-string(REGEX MATCH "V[ \t]+([0-9]+).([0-9]+).([0-9]+)" _ ${ver} ${_bwc_c_contents})
-set(BWC_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(BWC_VERSION_MINOR ${CMAKE_MATCH_2})
-set(BWC_VERSION_PATCH ${CMAKE_MATCH_3})
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/library/private/macros.h _macros_h_contents)
+string(REGEX REPLACE ".*#define[ \t]+BWC_VERSION_MAJOR[ \t]+([0-9]+).*"
+     "\\1" BWC_VERSION_MAJOR ${_macros_h_contents})
+string(REGEX REPLACE ".*#define[ \t]+BWC_VERSION_MINOR[ \t]+([0-9]+).*"
+     "\\1" BWC_VERSION_MINOR ${_macros_h_contents})
+string(REGEX REPLACE ".*#define[ \t]+BWC_VERSION_PATCH[ \t]+([0-9]+).*"
+     "\\1" BWC_VERSION_PATCH ${_macros_h_contents})
 set(BWC_VERSION "${BWC_VERSION_MAJOR}.${BWC_VERSION_MINOR}.${BWC_VERSION_PATCH}")
 
 #----------------------------------------------------------#
