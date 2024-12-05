@@ -39,12 +39,12 @@ make debug
 ```
 make cmdl
 ```
-**for a full debugging (including command line tool)**
+**for debugging (including command line tool)**
 ```
 make cldebug
 ```
 
-This builds the library and places the associated files in the `/lib` or `/lib64` folders. If a full build was attempted, the command line tool binaries are placed in the `/bin` folder.
+This builds the library and places the associated files in the `build/lib` or `build/lib64` folders. If a full build was attempted, the command line tool binaries are placed in the `build/bin` folder.
 
 ### Credits
 
