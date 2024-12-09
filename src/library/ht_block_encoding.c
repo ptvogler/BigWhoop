@@ -84,10 +84,16 @@
 ||                                                                                                ||
 \**************************************************************************************************/
 
-inline uint8 int_log2(const uint8 x) {
+inline uint8 int_log2(const bwc_raw x) {
   uint8 y;
   y = (uint8)(PREC_BIT - __builtin_clz(x));
   return (x == 0) ? 0 : y;
+}
+
+inline uint8 count_leading_zeros(const bwc_raw x) {
+  uint8 y;
+  y = PREC_BIT - int_log2(x);
+  return (x == 0) ? (PREC_BIT+1) : y;
 }
 
 static void
@@ -284,14 +290,14 @@ void fetch_quads(const bwc_ht_codeblock *const codeblock,
   v_n[6] = (bwc_raw)(sp0[3]);
   v_n[7] = (bwc_raw)(sp1[3]);
 
-  E_n[0] = (uint8)(int_log2(v_n[0]) * sigma_n[0]);
-  E_n[1] = (uint8)(int_log2(v_n[1]) * sigma_n[1]);
-  E_n[2] = (uint8)(int_log2(v_n[2]) * sigma_n[2]);
-  E_n[3] = (uint8)(int_log2(v_n[3]) * sigma_n[3]);
-  E_n[4] = (uint8)(int_log2(v_n[4]) * sigma_n[4]);
-  E_n[5] = (uint8)(int_log2(v_n[5]) * sigma_n[5]);
-  E_n[6] = (uint8)(int_log2(v_n[6]) * sigma_n[6]);
-  E_n[7] = (uint8)(int_log2(v_n[7]) * sigma_n[7]);
+  E_n[0] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[0]) * sigma_n[0]);
+  E_n[1] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[1]) * sigma_n[1]);
+  E_n[2] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[2]) * sigma_n[2]);
+  E_n[3] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[3]) * sigma_n[3]);
+  E_n[4] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[4]) * sigma_n[4]);
+  E_n[5] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[5]) * sigma_n[5]);
+  E_n[6] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[6]) * sigma_n[6]);
+  E_n[7] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[7]) * sigma_n[7]);
 }
 
 /**************************************************************************************************\
