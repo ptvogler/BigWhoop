@@ -51,9 +51,13 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdalign.h>
 
 #include "types.h"
 #include "ht_block_encoding.h"
+
+#define round_up(x, n) (((x) + (n) - 1) & (-n))
+#define ceil_int(a, b) ((a) + ((b) - 1)) / (b)
 
 /**************************************************************************************************\
 ||      ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____       ||
@@ -79,6 +83,13 @@
 ||           |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]           ||
 ||                                                                                                ||
 \**************************************************************************************************/
+
+inline uint8 int_log2(const uint8 x) {
+  uint8 y;
+  y = (uint8)(PREC_BIT - __builtin_clz(x));
+  return (x == 0) ? 0 : y;
+}
+
 static void
 quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
          bwc_cblk_access  *const cblkaccess,              const uint64 width,
@@ -241,6 +252,48 @@ quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
    \*--------------------------------------------------------*/
    cblkaccess->codeblock->control.K = Kmax;
 }
+
+void fetch_quads(const bwc_ht_codeblock *const codeblock,
+                 const uint16 qy, const uint16 qx, const uint16 QWx2,
+                 uint8 *const sigma_n, bwc_raw *const v_n, uint8 *const E_n,
+                 uint8 *const rho_q)
+{
+  uint8   *const ssp0 = codeblock->sigma + (2U * qy + 1U) * QWx2 + 2U * qx + 1U;
+  uint8   *const ssp1 = ssp0 + QWx2;
+  bwc_raw *sp0        = codeblock->nu + 2U * (qx + qy * QWx2);
+  bwc_raw *sp1        = sp0 + QWx2;
+
+  sigma_n[0] = ssp0[0] & 1;
+  sigma_n[1] = ssp1[0] & 1;
+  sigma_n[2] = ssp0[1] & 1;
+  sigma_n[3] = ssp1[1] & 1;
+  sigma_n[4] = ssp0[2] & 1;
+  sigma_n[5] = ssp1[2] & 1;
+  sigma_n[6] = ssp0[3] & 1;
+  sigma_n[7] = ssp1[3] & 1;
+
+  rho_q[0] = (uint8)(sigma_n[0] + (sigma_n[1] << 1) + (sigma_n[2] << 2) + (sigma_n[3] << 3));
+  rho_q[1] = (uint8)(sigma_n[4] + (sigma_n[5] << 1) + (sigma_n[6] << 2) + (sigma_n[7] << 3));
+
+  v_n[0] = (bwc_raw)(sp0[0]);
+  v_n[1] = (bwc_raw)(sp1[0]);
+  v_n[2] = (bwc_raw)(sp0[1]);
+  v_n[3] = (bwc_raw)(sp1[1]);
+  v_n[4] = (bwc_raw)(sp0[2]);
+  v_n[5] = (bwc_raw)(sp1[2]);
+  v_n[6] = (bwc_raw)(sp0[3]);
+  v_n[7] = (bwc_raw)(sp1[3]);
+
+  E_n[0] = (uint8)(int_log2(v_n[0]) * sigma_n[0]);
+  E_n[1] = (uint8)(int_log2(v_n[1]) * sigma_n[1]);
+  E_n[2] = (uint8)(int_log2(v_n[2]) * sigma_n[2]);
+  E_n[3] = (uint8)(int_log2(v_n[3]) * sigma_n[3]);
+  E_n[4] = (uint8)(int_log2(v_n[4]) * sigma_n[4]);
+  E_n[5] = (uint8)(int_log2(v_n[5]) * sigma_n[5]);
+  E_n[6] = (uint8)(int_log2(v_n[6]) * sigma_n[6]);
+  E_n[7] = (uint8)(int_log2(v_n[7]) * sigma_n[7]);
+}
+
 /**************************************************************************************************\
 ||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
 ||             |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__              ||
@@ -298,6 +351,18 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       quantize(working_buffer,        parameter->data,
                &parameter->access[c], width,
                height,                depth, delta);
+
+      const uint16_t QW = (uint16)(ceil_int((int16)(cbSizeX), 2));
+      const uint16_t QH = (uint16_t)(ceil_int((int16)(cbSizeY), 2));
+
+      const uint64 QWx2 = round_up(cbSizeX, 8U);
+
+      alignas(PREC_BIT+1) bwc_raw nu_n[8] = {0};
+      alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, E_n[8] = {0}, rho_q[2] = {0};
+      for(uint16 qx = 0; qx < QW - 1; qx += 2)
+      {
+         fetch_quads(working_buffer, 0, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
+      }
    }
 
    free(working_buffer->nu);
