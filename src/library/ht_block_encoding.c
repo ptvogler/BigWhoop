@@ -380,6 +380,7 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, E_n[8] = {0}, rho_q[2] = {0};
       alignas(PREC_BIT+1) int32 U_q[2] = {0};
 
+      uint8 gamma;
       uint16 context = 0, n_q;
       uint8 Emax_q;
       int32_t u_q, uoff, u_min, uvlc_idx, kappa = 1;
@@ -423,6 +424,61 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
          emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
          n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 8));
 
+      }
+
+      int32_t Emax0, Emax1;
+      for(uint16_t qy = 1; qy < QH; qy++)
+      {
+         E_p      = Eline + 1;
+         rho_p    = rholine + 1;
+         rho_q[1] = 0;
+
+         Emax0 = find_max(E_p[-1], E_p[0], E_p[1], E_p[2]);
+         Emax1 = find_max(E_p[1], E_p[2], E_p[3], E_p[4]);
+
+         // calculate context for the next quad
+         context  = (uint16_t)(((rho_q[1] & 0x4) << 7) | ((rho_q[1] & 0x8) << 6));  // (w | sw) << 9
+         context |= ((rho_p[-1] & 0x8) << 5) | ((rho_p[0] & 0x2) << 7);             // (nw | n) << 8
+         context |= ((rho_p[0] & 0x8) << 7) | ((rho_p[1] & 0x2) << 9);
+         for(uint16 qx = 0; qx < QW - 1; qx += 2)
+         {
+            fetch_quads(working_buffer, qy, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
+
+            // TODO : encode MEL if context == 0
+            gamma = (__builtin_popcount(rho_q[Q0]) > 1) ? 1 : 0;
+            kappa = (Emax0 - 1) * gamma;
+            kappa = kappa > 1 ? kappa : 1;
+
+            Emax_q       = find_max(E_n[0], E_n[1], E_n[2], E_n[3]);
+            U_q[Q0]      = Emax_q > kappa ? Emax_q : kappa;
+            u_q          = U_q[Q0] - kappa;
+            uvlc_idx     = u_q;
+            uoff         = (u_q) ? 1 : 0;
+            emb_pattern  = (E_n[0] == Emax_q) ? uoff : 0;
+            emb_pattern += (E_n[1] == Emax_q) ? uoff << 1 : 0;
+            emb_pattern += (E_n[2] == Emax_q) ? uoff << 2 : 0;
+            emb_pattern += (E_n[3] == Emax_q) ? uoff << 3 : 0;
+            n_q = (uint16_t)(emb_pattern + (rho_q[Q0] << 4) + (context << 0));
+
+            // calculate context for the next quad
+            context  = (uint16_t)(((rho_q[0] & 0x4) << 7) | ((rho_q[0] & 0x8) << 6));  // (w | sw) << 9
+            context |= ((rho_p[0] & 0x8) << 5) | ((rho_p[1] & 0x2) << 7);              // (nw | n) << 8
+            context |= ((rho_p[1] & 0x8) << 7) | ((rho_p[2] & 0x2) << 9);
+            // TODO : encode MEL if context == 0
+            gamma = (__builtin_popcount(rho_q[Q1]) > 1) ? 1 : 0;
+            kappa = (Emax1 - 1) * gamma;
+            kappa = kappa > 1 ? kappa : 1;
+
+            Emax_q       = find_max(E_n[4], E_n[5], E_n[6], E_n[7]);
+            u_q          = U_q[Q1] - kappa;
+            uvlc_idx    += u_q << 5;
+            uoff         = (u_q) ? 1 : 0;
+            emb_pattern  = (E_n[4] == Emax_q) ? uoff : 0;
+            emb_pattern += (E_n[5] == Emax_q) ? uoff << 1 : 0;
+            emb_pattern += (E_n[6] == Emax_q) ? uoff << 2 : 0;
+            emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
+            n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 0));
+         }
       }
    }
 
