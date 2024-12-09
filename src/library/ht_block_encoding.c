@@ -56,6 +56,9 @@
 #include "types.h"
 #include "ht_block_encoding.h"
 
+#define Q0 0
+#define Q1 1
+
 #define round_up(x, n) (((x) + (n) - 1) & (-n))
 #define ceil_int(a, b) ((a) + ((b) - 1)) / (b)
 
@@ -83,6 +86,12 @@
 ||           |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]           ||
 ||                                                                                                ||
 \**************************************************************************************************/
+
+inline uint8 find_max(uint8 x0, uint8 x1, uint8 x2, uint8 x3) {
+  uint8 v0 = ((x0 > x1) ? x0 : x1);
+  uint8 v1 = ((x2 > x3) ? x2 : x3);
+  return (v0 > v1) ? v0 : v1;
+}
 
 inline uint8 int_log2(const bwc_raw x) {
   uint8 y;
@@ -363,11 +372,57 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
 
       const uint64 QWx2 = round_up(cbSizeX, 8U);
 
+      alignas(32) uint8 *Eline       = calloc(2U * QW + 6U, sizeof(uint8));
+      uint8 *E_p                     = Eline + 1;
+      alignas(32) int32 *rholine     = calloc(QW + 3U, sizeof(int32));
+      int32 *rho_p                   = rholine + 1;
       alignas(PREC_BIT+1) bwc_raw nu_n[8] = {0};
       alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, E_n[8] = {0}, rho_q[2] = {0};
+      alignas(PREC_BIT+1) int32 U_q[2] = {0};
+
+      uint16 context = 0, n_q;
+      uint8 Emax_q;
+      int32_t u_q, uoff, u_min, uvlc_idx, kappa = 1;
+      int32_t emb_pattern;
       for(uint16 qx = 0; qx < QW - 1; qx += 2)
       {
+         uint8 uoff_flag = 1;
+
          fetch_quads(working_buffer, 0, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
+
+         *E_p++ = E_n[1];
+         *E_p++ = E_n[3];
+         *E_p++ = E_n[5];
+         *E_p++ = E_n[7];
+
+         // TODO : if context = 0 encode MEL
+
+         Emax_q       = find_max(E_n[0], E_n[1], E_n[2], E_n[3]);
+         U_q[Q0]      = Emax_q < kappa ? kappa : Emax_q;
+         u_q          = U_q[Q0] - kappa;
+         u_min        = u_q;
+         uvlc_idx     = u_q;
+         uoff         = (u_q) ? 1 : 0;
+         uoff_flag   &= uoff;
+         emb_pattern  = (E_n[0] == Emax_q) ? uoff      : 0;
+         emb_pattern += (E_n[1] == Emax_q) ? uoff << 1 : 0;
+         emb_pattern += (E_n[2] == Emax_q) ? uoff << 2 : 0;
+         emb_pattern += (E_n[3] == Emax_q) ? uoff << 3 : 0;
+         n_q = (uint16_t)(emb_pattern + (rho_q[Q0] << 4) + (context << 8));
+
+         Emax_q       = find_max(E_n[4], E_n[5], E_n[6], E_n[7]);
+         U_q[Q1]      = Emax_q < kappa ? kappa : Emax_q;
+         u_q          = U_q[Q1] - kappa;
+         u_min        = (u_min < u_q) ? u_min : u_q;
+         uvlc_idx    += u_q << 5;
+         uoff         = (u_q) ? 1 : 0;
+         uoff_flag   &= uoff;
+         emb_pattern  = (E_n[4] == Emax_q) ? uoff : 0;
+         emb_pattern += (E_n[5] == Emax_q) ? uoff << 1 : 0;
+         emb_pattern += (E_n[6] == Emax_q) ? uoff << 2 : 0;
+         emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
+         n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 8));
+
       }
    }
 
