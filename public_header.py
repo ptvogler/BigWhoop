@@ -92,8 +92,8 @@ if os.path.isdir(destination) == False:
   os.mkdir(destination)
 
 include_files = ['macros.h', 'constants.h', 'dwt.h', 'tagtree.h', 'mq_types.h', 'mq.h',
-                'bitstream.h', 'codestream.h', 'tier1.h', 'tier2.h', 'types.h', 'libbwc.h']
-exclude_files = ["prim_types_double.h", "prim_types_single.h"]
+                'bitstream.h', 'codestream.h', 'ht_block_encoding.h', 'tier2.h', 'types.h', 'libbwc.h']
+exclude_files = ["prim_types_double.h", "prim_types_single.h", "tier1.h"]
 all_files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
 missing_files = [f for f in all_files if f not in include_files and f not in exclude_files]
 if missing_files:

@@ -68,7 +68,8 @@
 #include "types.h"
 #include "codestream.h"
 #include "dwt.h"
-#include "tier1.h"
+//#include "tier1.h"
+#include "ht_block_encoding.h"
 #include "tier2.h"
 #include "tagtree.h"
 
