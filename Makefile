@@ -73,7 +73,7 @@
 #*--------------------------------------------------------*#
 BUILD_TYPE="Release"
 
-LINK_TYPE="Dynamic"
+BUILD_SHARED="True"
 
 BUILD_PREC="Double"
 
@@ -159,7 +159,7 @@ build_debug:
 # Define targets used to instrument library properites.    #
 #*--------------------------------------------------------*#
 static:
-	$(eval LINK_TYPE="Static")
+	$(eval BUILD_SHARED="False")
 
 single:
 	$(eval BUILD_PREC="Single")
@@ -219,7 +219,7 @@ display:
 	@echo    "-----------------   Successfully  Compiled   -----------------"
 	@echo    ""
 	@echo    "  Build Type:       $(BUILD_TYPE)"
-	@echo    "  Link Type:        $(LINK_TYPE)"
+	@echo    "  Shared Libs:      $(BUILD_SHARED)"
 	@echo    "  Precision:        $(BUILD_PREC)"
 	@echo    "  Utilities:        $(BUILD_TOOL)"
 	@echo    "  Profiling:        $(BUILD_PROF)"
@@ -233,7 +233,7 @@ display:
 # Define the main compile command targets.                 #
 #*--------------------------------------------------------*#
 build_bwc:
-	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DLINK:STRING=${LINK_TYPE}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DPROF=${BUILD_PROF}" "-DOMP=${BUILD_OMP}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
+	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DBUILD_SHARED_LIBS=${BUILD_SHARED}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DPROF=${BUILD_PROF}" "-DOMP=${BUILD_OMP}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
 
 clean:
-	- /bin/rm -rf build/ bin/ lib/ lib64/ include/library/public
+	- /bin/rm -rf build/ include/library/public

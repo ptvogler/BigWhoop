@@ -157,22 +157,24 @@ endif()
 include(CMakeDependentOption)
 
 #----------------------------------------------------------#
-# Set the -fPIC compile option for static libraries.       #
+# Set PIC for shared libraries.                            #
 #----------------------------------------------------------#
 get_property(SHARED_LIBS_SUPPORTED GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
 cmake_dependent_option(BUILD_SHARED_LIBS
   "Whether or not to build shared libraries" ON
   "SHARED_LIBS_SUPPORTED" OFF)
 
-if(SHARED_LIBS_SUPPORTED)
-  cmake_dependent_option(BWC_ENABLE_PIC
-    "Build with Position Independent Code" ON
-    "NOT BUILD_SHARED_LIBS" ON)
+if(DEFINED BWC_ENABLE_PIC)
+  set(BWC_ENABLE_PIC_DEFAULT ${BWC_ENABLE_PIC})
+elseif(DEFINED CMAKE_POSITION_INDEPENDENT_CODE)
+  set(BWC_ENABLE_PIC_DEFAULT ${CMAKE_POSITION_INDEPENDENT_CODE})
+else()
+  set(BWC_ENABLE_PIC_DEFAULT ${SHARED_LIBS_SUPPORTED})
 endif()
-
-if(BWC_ENABLE_PIC)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
+cmake_dependent_option(BWC_ENABLE_PIC
+  "Build with Position Independent Code" ${BWC_ENABLE_PIC_DEFAULT}
+  "NOT BUILD_SHARED_LIBS" OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ${BWC_ENABLE_PIC})
 
 #----------------------------------------------------------#
 # Add the project source code.                             #

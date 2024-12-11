@@ -65,24 +65,14 @@ if(result)
   message(WARNING "Public header generation failed: ${error_output}")
 endif()
 
-#----------------------------------------------------------#
-# Set the linking type according to user choice and add    #
-# the library to the current project                       #
-#----------------------------------------------------------#
-if("${LINK}" STREQUAL "Static")
-  set(BWC_LINK "STATIC")
-else()
-  set(BWC_LINK "SHARED")
-endif()
-
-add_library(bwclib ${BWC_LINK} bitstream.c
-                               libbwc.c
-                               codestream.c
-                               dwt.c
-                               mq.c
-                               tier1.c
-                               tier2.c
-                               tagtree.c)
+add_library(bwclib bitstream.c
+                   libbwc.c
+                   codestream.c
+                   dwt.c
+                   mq.c
+                   tier1.c
+                   tier2.c
+                   tagtree.c)
 
 #----------------------------------------------------------#
 # Set the target compile definition for the encoder/decod- #
