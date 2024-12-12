@@ -54,6 +54,7 @@
 #include <stdalign.h>
 
 #include "types.h"
+#include "enc_CxtVLC_tables.h"
 #include "ht_block_encoding.h"
 
 #define Q0 0
@@ -380,11 +381,11 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, E_n[8] = {0}, rho_q[2] = {0};
       alignas(PREC_BIT+1) int32 U_q[2] = {0};
 
-      uint8 gamma;
-      uint16 context = 0, n_q;
+      uint8 lw, gamma;
+      uint16 context = 0, n_q, CxtVLC, cwd;
       uint8 Emax_q;
       int32_t u_q, uoff, u_min, uvlc_idx, kappa = 1;
-      int32_t emb_pattern;
+      int32_t emb_pattern, embk_0, embk_1, emb1_0, emb1_1;
       for(uint16 qx = 0; qx < QW - 1; qx += 2)
       {
          uint8 uoff_flag = 1;
@@ -410,6 +411,12 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
          emb_pattern += (E_n[2] == Emax_q) ? uoff << 2 : 0;
          emb_pattern += (E_n[3] == Emax_q) ? uoff << 3 : 0;
          n_q = (uint16_t)(emb_pattern + (rho_q[Q0] << 4) + (context << 8));
+         // TODO: VLC encoding
+         CxtVLC = enc_CxtVLC_table0[n_q];
+         embk_0 = CxtVLC & 0xF;
+         emb1_0 = emb_pattern & embk_0;
+         lw     = (CxtVLC >> 4) & 0x07;
+         cwd    = (uint16_t)(CxtVLC >> 7);
 
          Emax_q       = find_max(E_n[4], E_n[5], E_n[6], E_n[7]);
          U_q[Q1]      = Emax_q < kappa ? kappa : Emax_q;
@@ -423,6 +430,12 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
          emb_pattern += (E_n[6] == Emax_q) ? uoff << 2 : 0;
          emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
          n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 8));
+         // TODO: VLC encoding
+         CxtVLC = enc_CxtVLC_table0[n_q];
+         embk_1 = CxtVLC & 0xF;
+         emb1_1 = emb_pattern & embk_1;
+         lw     = (CxtVLC >> 4) & 0x07;
+         cwd    = (uint16_t)(CxtVLC >> 7);
 
       }
 
