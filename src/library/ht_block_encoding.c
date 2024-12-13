@@ -272,15 +272,15 @@ quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
    cblkaccess->codeblock->control.K = Kmax;
 }
 
-void fetch_quads(const bwc_ht_codeblock *const codeblock,
+void fetch_quads(const bwc_raw *const nu, const uint8 *const sigma,
                  const uint16 qy, const uint16 qx, const uint16 QWx2,
                  uint8 *const sigma_n, bwc_raw *const v_n, uint8 *const E_n,
                  uint8 *const rho_q)
 {
-  uint8   *const ssp0 = codeblock->sigma + (2U * qy + 1U) * QWx2 + 2U * qx + 1U;
-  uint8   *const ssp1 = ssp0 + QWx2;
-  bwc_raw *sp0        = codeblock->nu + 2U * (qx + qy * QWx2);
-  bwc_raw *sp1        = sp0 + QWx2;
+  const bwc_raw *const sp0  = nu + 2U * (qx + qy * QWx2);
+  const bwc_raw *const sp1  = sp0 + QWx2;
+  const uint8   *const ssp0 = sigma + (2U * qy + 1U) * QWx2 + 2U * qx + 1U;
+  const uint8   *const ssp1 = ssp0 + QWx2;
 
   sigma_n[0] = ssp0[0] & 1;
   sigma_n[1] = ssp1[0] & 1;
@@ -395,11 +395,13 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
          {
             uint8 *E_p                     = Eline + 1;
             int32 *rho_p                   = rholine + 1;
+            bwc_raw *nu  = working_buffer->nu + cbSizeX * cbSizeY * (z + cbSizeZ * t);
+            uint8 *sigma = working_buffer->sigma + cbSizeX * cbSizeY * (z + cbSizeZ * t);
             for(uint16 qx = 0; qx < QW - 1; qx += 2)
             {
                uint8 uoff_flag = 1;
 
-               fetch_quads(working_buffer, 0, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
+               fetch_quads(nu, sigma, 0, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
 
                *E_p++ = E_n[1];
                *E_p++ = E_n[3];
@@ -464,9 +466,7 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                context |= ((rho_p[0] & 0x8) << 7) | ((rho_p[1] & 0x2) << 9);
                for(uint16 qx = 0; qx < QW - 1; qx += 2)
                {
-                  fetch_quads(working_buffer, qy, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
-                  working_buffer->nu    += 2*cbSizeX;
-                  working_buffer->sigma += 2*cbSizeX;
+                  fetch_quads(nu, sigma, qy, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
 
                   // TODO : encode MEL if context == 0
                   gamma = (__builtin_popcount(rho_q[Q0]) > 1) ? 1 : 0;
@@ -504,7 +504,6 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                   n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 0));
                }
             }
-            working_buffer->nu += cbSizeX * cbSizeY;
          }
       }
    }
