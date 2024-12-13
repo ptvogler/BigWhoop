@@ -66,6 +66,7 @@
 
 #define MAX_Scup 3072
 #define MEL_SIZE 192
+#define VLC_SIZE MAX_Scup - MEL_SIZE
 
 #define round_up(x, n) (((x) + (n) - 1) & (-n))
 #define ceil_int(a, b) ((a) + ((b) - 1)) / (b)
@@ -527,12 +528,15 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
 
       const uint64 QWx2 = round_up(cbSizeX, 8U);
 
-      const int mel_vlc_size = MAX_Scup;
-      uint8 mel_vlc_buf[mel_vlc_size];
+      uint8 mel_vlc_buf[MAX_Scup];
       uint8 *mel_buf = mel_vlc_buf;
+      const int vlc_size = MAX_Scup - MEL_SIZE;
+      uint8 *vlc_buf = mel_vlc_buf + MEL_SIZE;
 
       mel_struct mel;
       mel_init(&mel, MEL_SIZE, mel_buf);
+      vlc_struct vlc;
+      vlc_init(&vlc, VLC_SIZE, vlc_buf);
 
       alignas(32) uint8 *Eline       = calloc(2U * QW + 6U, sizeof(uint8));
       alignas(32) int32 *rholine     = calloc(QW + 3U, sizeof(int32));
@@ -582,12 +586,12 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                emb_pattern += (E_n[2] == Emax_q) ? uoff << 2 : 0;
                emb_pattern += (E_n[3] == Emax_q) ? uoff << 3 : 0;
                n_q = (uint16_t)(emb_pattern + (rho_q[Q0] << 4) + (context << 8));
-               // TODO: VLC encoding
                CxtVLC = enc_CxtVLC_table0[n_q];
                embk_0 = CxtVLC & 0xF;
                emb1_0 = emb_pattern & embk_0;
                lw     = (CxtVLC >> 4) & 0x07;
                cwd    = (uint16_t)(CxtVLC >> 7);
+               vlc_encode(&vlc, cwd, lw);
 
                context = (rho_q[Q0] >> 1) | (rho_q[Q0] & 0x1);
 
@@ -603,12 +607,12 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                emb_pattern += (E_n[6] == Emax_q) ? uoff << 2 : 0;
                emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
                n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 8));
-               // TODO: VLC encoding
                CxtVLC = enc_CxtVLC_table0[n_q];
                embk_1 = CxtVLC & 0xF;
                emb1_1 = emb_pattern & embk_1;
                lw     = (CxtVLC >> 4) & 0x07;
                cwd    = (uint16_t)(CxtVLC >> 7);
+               vlc_encode(&vlc, cwd, lw);
 
                if(context == 0) {
                   if(rho_q[Q1] != 0) {
