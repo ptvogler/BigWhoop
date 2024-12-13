@@ -506,6 +506,8 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
             }
          }
       }
+      free(Eline);
+      free(rholine);
    }
 
    free(working_buffer->nu);
