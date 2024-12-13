@@ -109,6 +109,75 @@ inline uint8 count_leading_zeros(const bwc_raw x) {
   return (x == 0) ? (PREC_BIT+1) : y;
 }
 
+typedef struct mel_struct {
+   //storage
+   uint8 *buf;           //pointer to data buffer
+   uint32 pos;           //position of next writing within buf
+   uint32 buf_size;      //size of buffer, which we must not exceed
+
+   // all these can be replaced by bytes
+   int8 k;               //state
+   uint8 run;            //number of 0 run
+   uint8 threshold;      //threshold
+   uint8 remaining_bits; //number of empty bits in tmp
+   uint8 tmp;            //temporary storage of coded bits
+} mel_struct;
+
+void mel_init(mel_struct* mel, uint32 buffer_size, uint8* data)
+{
+   static const int mel_exp[13] = {0,0,0,1,1,1,2,2,2,3,3,4,5};
+   mel->buf = data;
+   mel->pos = 0;
+   mel->buf_size = buffer_size;
+   mel->k = 0;
+   mel->run = 0;
+   mel->threshold = (uint8)(1 << mel_exp[mel->k]);
+   mel->remaining_bits = 8;
+   mel->tmp = 0;
+}
+
+inline void mel_emit_bit(mel_struct* mel, int v)
+{
+   assert(v == 0 || v == 1);
+   mel->tmp = (mel->tmp << 1) + v;
+   mel->remaining_bits--;
+   if(mel->remaining_bits == 0)
+   {
+      mel->buf[mel->pos++] = (uint8)mel->tmp;
+      mel->remaining_bits = (uint8)(mel->tmp == 0xFF ? 7 : 8);
+      mel->tmp = 0;
+   }
+}
+
+inline void
+mel_encode(mel_struct* mel, int8 bit)
+{
+   static const int mel_exp[13] = {0,0,0,1,1,1,2,2,2,3,3,4,5};
+   if(bit)
+   {
+      ++mel->run;
+      if(mel->run >= mel->threshold)
+      {
+         mel_emit_bit(mel, 1);
+         mel->run = 0;
+         mel->k = 12 < (mel->k+1) ? (int8)12 : (mel->k+1);
+         mel->threshold = (uint8)(1 << mel_exp[mel->k]);
+      }
+   }
+   else
+   {
+      mel_emit_bit(mel, 0);
+      int t = mel_exp[mel->k];
+      while (t > 0)
+      {
+        mel_emit_bit(mel, (mel->run >> --t) & 1);
+      }
+      mel->run = 0;
+      mel->k = 0 > (mel->k-1) ? (int8)0 : (mel->k-1);
+      mel->threshold = (uint8)(1 << mel_exp[mel->k]);
+   }
+}
+
 static void
 quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
          bwc_cblk_access  *const cblkaccess,              const uint64 width,
