@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdalign.h>
+#include <stdbool.h>
 
 #include "types.h"
 #include "enc_CxtVLC_tables.h"
@@ -62,6 +63,9 @@
 
 #define Q0 0
 #define Q1 1
+
+#define MAX_Scup 3072
+#define MEL_SIZE 192
 
 #define round_up(x, n) (((x) + (n) - 1) & (-n))
 #define ceil_int(a, b) ((a) + ((b) - 1)) / (b)
@@ -150,10 +154,10 @@ inline void mel_emit_bit(mel_struct* mel, int v)
 }
 
 inline void
-mel_encode(mel_struct* mel, int8 bit)
+mel_encode(mel_struct* mel, bool smel)
 {
    static const int mel_exp[13] = {0,0,0,1,1,1,2,2,2,3,3,4,5};
-   if(bit)
+   if(smel)
    {
       ++mel->run;
       if(mel->run >= mel->threshold)
@@ -437,14 +441,45 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       cbSizeZ  = cblk_info->Z1  - cblk_info->Z0;
       cbSizeTS = cblk_info->TS1 - cblk_info->TS0;
 
+      //printf("cbX etc. %d, %d, %d, %d\n", (1<<control->cbX),
+                                              //(1<<control->cbY),
+                                              //(1<<control->cbZ),
+                                              //(1<<control->cbTS));
+
+      //printf("cbSizeX etc. %ld, %ld, %ld, %ld\n", cbSizeX, cbSizeY, cbSizeZ, cbSizeTS);
+
+      //memset(working_buffer->nu, 0, buff_size);
+
       quantize(working_buffer,        parameter->data,
                &parameter->access[c], width,
                height,                depth, delta);
+
+      //printf("working_buffer \n");
+      //for (int i = 0; i< buff_size; ++i)
+      //{
+         //printf("%ld ", working_buffer->nu[i]);
+      //}
+      //printf("\n");
+
+            // COPY FOR DEBUGGING INTO LOOP
+            //printf("fetch \n");
+            //for(int i = 0; i < cbSizeY * cbSizeX; ++i)
+            //{
+             //  printf("%ld ", nu[i]);
+            //}
+            //printf("\n");
 
       const uint16_t QW = (uint16)(ceil_int((int16)(cbSizeX), 2));
       const uint16_t QH = (uint16_t)(ceil_int((int16)(cbSizeY), 2));
 
       const uint64 QWx2 = round_up(cbSizeX, 8U);
+
+      const int mel_vlc_size = MAX_Scup;
+      uint8 mel_vlc_buf[mel_vlc_size];
+      uint8 *mel_buf = mel_vlc_buf;
+
+      mel_struct mel;
+      mel_init(&mel, MEL_SIZE, mel_buf);
 
       alignas(32) uint8 *Eline       = calloc(2U * QW + 6U, sizeof(uint8));
       alignas(32) int32 *rholine     = calloc(QW + 3U, sizeof(int32));
@@ -477,7 +512,10 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                *E_p++ = E_n[5];
                *E_p++ = E_n[7];
 
-               // TODO : if context = 0 encode MEL
+               if(context == 0)
+               {
+                  mel_encode(&mel, rho_q[Q0] != 0);
+               }
 
                Emax_q       = find_max(E_n[0], E_n[1], E_n[2], E_n[3]);
                U_q[Q0]      = Emax_q < kappa ? kappa : Emax_q;
@@ -498,6 +536,8 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                lw     = (CxtVLC >> 4) & 0x07;
                cwd    = (uint16_t)(CxtVLC >> 7);
 
+               context = (rho_q[Q0] >> 1) | (rho_q[Q0] & 0x1);
+
                Emax_q       = find_max(E_n[4], E_n[5], E_n[6], E_n[7]);
                U_q[Q1]      = Emax_q < kappa ? kappa : Emax_q;
                u_q          = U_q[Q1] - kappa;
@@ -517,6 +557,30 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                lw     = (CxtVLC >> 4) & 0x07;
                cwd    = (uint16_t)(CxtVLC >> 7);
 
+               if(context == 0) {
+                  if(rho_q[Q1] != 0) {
+                     mel_encode(&mel, true);
+                  }
+                  else
+                  {
+                     if(u_min > 2)
+                     {
+                        mel_encode(&mel, true);
+                     }
+                     else
+                     {
+                        mel_encode(&mel, false);
+                     }
+                  }
+               }
+               else if(uoff_flag)
+               {
+                  if(u_min > 2) {
+                     mel_encode(&mel, true);
+                  } else {
+                     mel_encode(&mel, false);
+                  }
+               }
             }
 
             int32_t Emax0, Emax1;
