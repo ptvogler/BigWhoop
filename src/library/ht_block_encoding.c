@@ -329,6 +329,7 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
    uint64   cbSizeX, cbSizeY, cbSizeZ, cbSizeTS;
    uint64   width, height, depth, delta;
    uint64   buff_size;
+   uint64   z, t;
 
    /*-----------------------*\
    ! DEFINE STRUCTS:         !
@@ -377,9 +378,7 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       const uint64 QWx2 = round_up(cbSizeX, 8U);
 
       alignas(32) uint8 *Eline       = calloc(2U * QW + 6U, sizeof(uint8));
-      uint8 *E_p                     = Eline + 1;
       alignas(32) int32 *rholine     = calloc(QW + 3U, sizeof(int32));
-      int32 *rho_p                   = rholine + 1;
       alignas(PREC_BIT+1) bwc_raw nu_n[8] = {0};
       alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, E_n[8] = {0}, rho_q[2] = {0};
       alignas(PREC_BIT+1) int32 U_q[2] = {0};
@@ -389,6 +388,13 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       uint8 Emax_q;
       int32_t u_q, uoff, u_min, uvlc_idx, kappa = 1;
       int32_t emb_pattern, embk_0, embk_1, emb1_0, emb1_1;
+
+      for(t = 0; t < cbSizeTS; ++t)
+      {
+      for(z = 0; z < cbSizeZ; ++z)
+      {
+      uint8 *E_p                     = Eline + 1;
+      int32 *rho_p                   = rholine + 1;
       for(uint16 qx = 0; qx < QW - 1; qx += 2)
       {
          uint8 uoff_flag = 1;
@@ -495,6 +501,8 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
             emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
             n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 0));
          }
+      }
+      }
       }
    }
 
