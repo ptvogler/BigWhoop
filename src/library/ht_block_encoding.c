@@ -182,6 +182,59 @@ mel_encode(mel_struct* mel, bool smel)
    }
 }
 
+// VLC encoding
+typedef struct vlc_struct {
+   //storage
+   uint8* buf;      //pointer to data buffer
+   uint32 pos;      //position of next writing within buf
+   uint32 buf_size; //size of buffer, which we must not exceed
+
+   uint8 tmp;       //temporary storage of coded bits
+   uint8 used_bits; //number of occupied bits in tmp
+   bool last_greater_0x8F; //true if last byte is greater than 0x8F
+} vlc_struct;
+
+static inline void
+vlc_init(vlc_struct* vlc, uint32 buffer_size, uint8* data)
+{
+   vlc->buf = data + buffer_size - 1; //points to last byte
+   vlc->pos = 1;                      //locations will be all -pos
+   vlc->buf_size = buffer_size;
+   vlc->buf[0] = 0xFF;
+   vlc->used_bits = 4;
+   vlc->tmp = 0xF;
+   vlc->last_greater_0x8F = true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+static inline void
+vlc_encode(vlc_struct* vlc, uint16 cwd, uint8 len)
+{
+   while(len > 0)
+   {
+      int32 available_bits = 8 - vlc->last_greater_0x8F - vlc->used_bits;
+      int32 t              = available_bits < len ? available_bits : len;
+      vlc->tmp |= (uint8)((cwd & ((1 << t) - 1)) << vlc->used_bits);
+      vlc->used_bits += t;
+      available_bits -= t;
+      len -= t;
+      cwd >>= t;
+      if(available_bits == 0)
+      {
+         if(vlc->last_greater_0x8F && vlc->tmp != 0x7F)
+         {
+            vlc->last_greater_0x8F = false;
+            continue;
+         }
+         *(vlc->buf - vlc->pos) = (uint8)(vlc->tmp);
+         vlc->pos++;
+         vlc->last_greater_0x8F = vlc->tmp > 0x8F;
+         vlc->tmp = 0;
+         vlc->used_bits = 0;
+      }
+   }
+}
+
 static void
 quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
          bwc_cblk_access  *const cblkaccess,              const uint64 width,
