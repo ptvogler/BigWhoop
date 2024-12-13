@@ -19,7 +19,10 @@
 ||       |                                                                                |       ||
 ||                                                                                                ||
 ||  --------------------------------------------------------------------------------------------  ||
-||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
+||  Copyright (c) 2019, Aous Naman                                                                ||
+||  Copyright (c) 2019, Kakadu Software Pty Ltd, Australia                                        ||
+||  Copyright (c) 2019, The University of New South Wales, Australia                              ||
+||  Copyright (c) 2024, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
 ||  permitted provided that the following conditions are met:                                     ||
