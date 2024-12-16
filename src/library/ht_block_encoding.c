@@ -236,6 +236,33 @@ vlc_encode(vlc_struct* vlc, uint16 cwd, uint8 len)
    }
 }
 
+static inline void
+mel_vlc_terminate(mel_struct* melp, vlc_struct* vlcp)
+{
+   if(melp->run > 0)
+      mel_emit_bit(melp, 1);
+
+   melp->tmp = melp->tmp << melp->remaining_bits;
+   int mel_mask = (0xFF << melp->remaining_bits) & 0xFF;
+   int vlc_mask = 0xFF >> (8 - vlcp->used_bits);
+   if((mel_mask | vlc_mask) == 0)
+      return;  //last mel byte cannot be 0xFF, since then
+               //melp->remaining_bits would be < 8
+   int fuse = melp->tmp | vlcp->tmp;
+   if( ( ((fuse ^ melp->tmp) & mel_mask)
+       | ((fuse ^ vlcp->tmp) & vlc_mask) ) == 0
+       && (fuse != 0xFF) && vlcp->pos > 1)
+   {
+      melp->buf[melp->pos++] = (uint8)fuse;
+   }
+   else
+   {
+      melp->buf[melp->pos++] = (uint8)melp->tmp; //melp->tmp cannot be 0xFF
+      *(vlcp->buf - vlcp->pos) = (uint8)vlcp->tmp;
+      vlcp->pos++;
+  }
+}
+
 typedef struct magsgn_struct {
    //storage
    uint8* buf;      //pointer to data buffer
@@ -278,6 +305,25 @@ magsgn_encode(magsgn_struct* magsgn, uint32 cwd, int len)
          magsgn->tmp = 0;
          magsgn->used_bits = 0;
       }
+   }
+}
+
+inline void
+magsgn_terminate(magsgn_struct* magsgn)
+{
+   if(magsgn->used_bits)
+   {
+      int t = magsgn->max_bits - magsgn->used_bits; //unused bits
+      magsgn->tmp |= (0xFF & ((1U << t) - 1)) << magsgn->used_bits;
+      magsgn->used_bits += t;
+      if(magsgn->tmp != 0xFF)
+      {
+         magsgn->buf[magsgn->pos++] = (uint8)magsgn->tmp;
+      }
+   }
+   else if (magsgn->max_bits == 7)
+   {
+      magsgn->pos--;
    }
 }
 
