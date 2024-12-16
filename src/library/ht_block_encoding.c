@@ -236,6 +236,51 @@ vlc_encode(vlc_struct* vlc, uint16 cwd, uint8 len)
    }
 }
 
+typedef struct magsgn_struct {
+   //storage
+   uint8* buf;      //pointer to data buffer
+   uint32 pos;      //position of next writing within buf
+   uint32 buf_size; //size of buffer, which we must not exceed
+
+   uint8 max_bits;  //maximum number of bits that can be store in tmp
+   uint8 used_bits; //number of occupied bits in tmp
+   uint8 tmp;       //temporary storage of coded bits
+} magsgn_struct;
+
+//////////////////////////////////////////////////////////////////////////
+static inline void
+magsgn_init(magsgn_struct* magsgn, uint32 buffer_size, uint8* data)
+{
+   magsgn->buf = data;
+   magsgn->pos = 0;
+   magsgn->buf_size = buffer_size;
+   magsgn->max_bits = 8;
+   magsgn->used_bits = 0;
+   magsgn->tmp = 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+static inline void
+magsgn_encode(magsgn_struct* magsgn, uint32 cwd, int len)
+{
+   while(len > 0)
+   {
+      int t = len < (magsgn->max_bits-magsgn->used_bits) ?
+              len : (magsgn->max_bits-magsgn->used_bits);
+      magsgn->tmp |= (cwd & ((1U << t) - 1)) << magsgn->used_bits;
+      magsgn->used_bits += t;
+      cwd >>= t;
+      len -= t;
+      if(magsgn->used_bits >= magsgn->max_bits)
+      {
+         magsgn->buf[magsgn->pos++] = magsgn->tmp;
+         magsgn->max_bits = (magsgn->tmp == 0xFF) ? 7 : 8;
+         magsgn->tmp = 0;
+         magsgn->used_bits = 0;
+      }
+   }
+}
+
 static void
 quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
          bwc_cblk_access  *const cblkaccess,              const uint64 width,
