@@ -64,7 +64,8 @@
 #define Q0 0
 #define Q1 1
 
-#define MAX_Scup 3072
+#define MAX_Lcup 16834 * 16
+#define MAX_Scup 4072 * 8
 #define MEL_SIZE 192
 #define VLC_SIZE MAX_Scup - MEL_SIZE
 
@@ -649,6 +650,7 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
 
       const uint64 QWx2 = round_up(cbSizeX, 8U);
 
+      uint8 magsgn_buf[MAX_Lcup];
       uint8 mel_vlc_buf[MAX_Scup];
       uint8 *mel_buf = mel_vlc_buf;
       const int vlc_size = MAX_Scup - MEL_SIZE;
@@ -658,6 +660,8 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       mel_init(&mel, MEL_SIZE, mel_buf);
       vlc_struct vlc;
       vlc_init(&vlc, VLC_SIZE, vlc_buf);
+      magsgn_struct magsgn;
+      magsgn_init(&magsgn, MAX_Lcup, magsgn_buf);
 
       alignas(32) uint8 *Eline       = calloc(2U * QW + 6U, sizeof(uint8));
       alignas(32) int32 *rholine     = calloc(QW + 3U, sizeof(int32));
@@ -734,6 +738,11 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                lw     = (CxtVLC >> 4) & 0x07;
                cwd    = (uint16_t)(CxtVLC >> 7);
                vlc_encode(&vlc, cwd, lw);
+               
+               int32_t tmp = (int32_t)(enc_UVLC_table0[uvlc_idx]);
+               lw          = (uint8_t)(tmp & 0xFF);
+               cwd         = (uint16_t)(tmp >> 8);
+               vlc_encode(&vlc, cwd, lw);
 
                if(context == 0) {
                   if(rho_q[Q1] != 0) {
@@ -759,6 +768,15 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                      mel_encode(&mel, false);
                   }
                }
+
+               for(uint8 i = 0; i < 4; ++i) {
+                  m_n[i] = (uint8_t)(sigma_n[i] * U_q[Q0] - ((embk_0 >> i) & 1));
+                  magsgn_encode(&magsgn, nu_n[i], m_n[i]);
+               }
+               for(uint8 i = 0; i < 4; ++i) {
+                  m_n[4 + i] = (uint8_t)(sigma_n[4 + i] * U_q[Q1] - ((embk_1 >> i) & 1));
+                  magsgn_encode(&magsgn, nu_n[4 + i], m_n[4 + i]);
+               }
             }
 
             int32_t Emax0, Emax1;
@@ -779,7 +797,11 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                {
                   fetch_quads(nu, sigma, qy, qx, QWx2, sigma_n, nu_n, E_n, rho_q);
 
-                  // TODO : encode MEL if context == 0
+                  if(context == 0)
+                  {
+                     mel_encode(&mel, rho_q[Q0] != 0);
+                  }
+
                   gamma = (__builtin_popcount(rho_q[Q0]) > 1) ? 1 : 0;
                   kappa = (Emax0 - 1) * gamma;
                   kappa = kappa > 1 ? kappa : 1;
@@ -794,12 +816,21 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                   emb_pattern += (E_n[2] == Emax_q) ? uoff << 2 : 0;
                   emb_pattern += (E_n[3] == Emax_q) ? uoff << 3 : 0;
                   n_q = (uint16_t)(emb_pattern + (rho_q[Q0] << 4) + (context << 0));
+                  CxtVLC = enc_CxtVLC_table1[n_q];
+                  embk_0 = CxtVLC & 0xF;
+                  emb1_0 = emb_pattern & embk_0;
+                  lw     = (CxtVLC >> 4) & 0x07;
+                  cwd    = (uint16_t)(CxtVLC >> 7);
+                  vlc_encode(&vlc, cwd, lw);
 
                   // calculate context for the next quad
                   context  = (uint16_t)(((rho_q[0] & 0x4) << 7) | ((rho_q[0] & 0x8) << 6));  // (w | sw) << 9
                   context |= ((rho_p[0] & 0x8) << 5) | ((rho_p[1] & 0x2) << 7);              // (nw | n) << 8
                   context |= ((rho_p[1] & 0x8) << 7) | ((rho_p[2] & 0x2) << 9);
-                  // TODO : encode MEL if context == 0
+                  if(context == 0)
+                  {
+                     mel_encode(&mel, rho_q[Q1] != 0);
+                  }
                   gamma = (__builtin_popcount(rho_q[Q1]) > 1) ? 1 : 0;
                   kappa = (Emax1 - 1) * gamma;
                   kappa = kappa > 1 ? kappa : 1;
@@ -813,6 +844,27 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
                   emb_pattern += (E_n[6] == Emax_q) ? uoff << 2 : 0;
                   emb_pattern += (E_n[7] == Emax_q) ? uoff << 3 : 0;
                   n_q = (uint16_t)(emb_pattern + (rho_q[Q1] << 4) + (context << 0));
+                  CxtVLC = enc_CxtVLC_table1[n_q];
+                  embk_1 = CxtVLC & 0xF;
+                  emb1_1 = emb_pattern & embk_1;
+                  lw     = (CxtVLC >> 4) & 0x07;
+                  cwd    = (uint16_t)(CxtVLC >> 7);
+                  // TODO: Check correctness because of seg fault.
+                  vlc_encode(&vlc, cwd, lw);
+
+                  int32_t tmp = (int32_t)(enc_UVLC_table1[uvlc_idx]);
+                  lw          = (uint8_t)(tmp & 0xFF);
+                  cwd         = (uint16_t)(tmp >> 8);
+                  vlc_encode(&vlc, cwd, lw);
+
+                  for(uint8 i = 0; i < 4; ++i) {
+                     m_n[i] = (uint8_t)(sigma_n[i] * U_q[Q0] - ((embk_0 >> i) & 1));
+                     magsgn_encode(&magsgn, nu_n[i], m_n[i]);
+                  }
+                  for(uint8 i = 0; i < 4; ++i) {
+                     m_n[4 + i] = (uint8_t)(sigma_n[4 + i] * U_q[Q1] - ((embk_1 >> i) & 1));
+                     magsgn_encode(&magsgn, nu_n[4 + i], m_n[4 + i]);
+                  }
                }
             }
          }
