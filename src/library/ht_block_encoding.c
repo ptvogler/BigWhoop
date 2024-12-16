@@ -148,6 +148,11 @@ inline void mel_emit_bit(mel_struct* mel, int v)
    mel->remaining_bits--;
    if(mel->remaining_bits == 0)
    {
+      if(mel->pos >= mel->buf_size)
+      {
+         fprintf(stderr, "mel encoder's buffer is full");
+         return;
+      }
       mel->buf[mel->pos++] = (uint8)mel->tmp;
       mel->remaining_bits = (uint8)(mel->tmp == 0xFF ? 7 : 8);
       mel->tmp = 0;
@@ -213,6 +218,11 @@ vlc_encode(vlc_struct* vlc, uint16 cwd, uint8 len)
 {
    while(len > 0)
    {
+      if(vlc->pos >= vlc->buf_size)
+      {
+         fprintf(stderr, "vlc encoder's buffer is full");
+         return;
+      }
       int32 available_bits = 8 - vlc->last_greater_0x8F - vlc->used_bits;
       int32 t              = available_bits < len ? available_bits : len;
       vlc->tmp |= (uint8)((cwd & ((1 << t) - 1)) << vlc->used_bits);
@@ -248,6 +258,11 @@ mel_vlc_terminate(mel_struct* melp, vlc_struct* vlcp)
    if((mel_mask | vlc_mask) == 0)
       return;  //last mel byte cannot be 0xFF, since then
                //melp->remaining_bits would be < 8
+   if(melp->pos >= melp->buf_size)
+   {
+      fprintf(stderr, "mel encoder's buffer is full, while terminating");
+      return;
+   }
    int fuse = melp->tmp | vlcp->tmp;
    if( ( ((fuse ^ melp->tmp) & mel_mask)
        | ((fuse ^ vlcp->tmp) & vlc_mask) ) == 0
@@ -257,6 +272,11 @@ mel_vlc_terminate(mel_struct* melp, vlc_struct* vlcp)
    }
    else
    {
+      if(vlcp->pos >= vlcp->buf_size)
+      {
+         fprintf(stderr, "vlc encoder's buffer is full, while terminating");
+         return;
+      }
       melp->buf[melp->pos++] = (uint8)melp->tmp; //melp->tmp cannot be 0xFF
       *(vlcp->buf - vlcp->pos) = (uint8)vlcp->tmp;
       vlcp->pos++;
@@ -292,6 +312,11 @@ magsgn_encode(magsgn_struct* magsgn, uint32 cwd, int len)
 {
    while(len > 0)
    {
+      if(magsgn->pos >= magsgn->buf_size)
+      {
+         fprintf(stderr, "magsgn encoder's buffer is full");
+         return;
+      }
       int t = len < (magsgn->max_bits-magsgn->used_bits) ?
               len : (magsgn->max_bits-magsgn->used_bits);
       magsgn->tmp |= (cwd & ((1U << t) - 1)) << magsgn->used_bits;
@@ -318,6 +343,11 @@ magsgn_terminate(magsgn_struct* magsgn)
       magsgn->used_bits += t;
       if(magsgn->tmp != 0xFF)
       {
+         if(magsgn->pos >= magsgn->buf_size)
+         {
+            fprintf(stderr, "magsgn encoder's buffer is full, while terminating");
+            return;
+         }
          magsgn->buf[magsgn->pos++] = (uint8)magsgn->tmp;
       }
    }
