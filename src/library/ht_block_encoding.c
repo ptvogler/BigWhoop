@@ -163,7 +163,7 @@ inline void mel_emit_bit(mel_struct* mel, int v)
 inline void
 mel_encode(mel_struct* mel, bool smel)
 {
-   static const int mel_exp[13] = {0,0,0,1,1,1,2,2,2,3,3,4,5};
+   static const uint8 mel_exp[13] = {0,0,0,1,1,1,2,2,2,3,3,4,5};
    if(smel)
    {
       ++mel->run;
@@ -308,8 +308,8 @@ magsgn_init(magsgn_struct* magsgn, uint32 buffer_size, uint8* data)
 }
 
 //////////////////////////////////////////////////////////////////////////
-static inline void
-magsgn_encode(magsgn_struct* magsgn, uint32 cwd, int len)
+inline void
+magsgn_encode(magsgn_struct* magsgn, bwc_raw cwd, int len)
 {
    while(len > 0)
    {
@@ -326,7 +326,8 @@ magsgn_encode(magsgn_struct* magsgn, uint32 cwd, int len)
       len -= t;
       if(magsgn->used_bits >= magsgn->max_bits)
       {
-         magsgn->buf[magsgn->pos++] = magsgn->tmp;
+         magsgn->buf[magsgn->pos] = magsgn->tmp;
+         magsgn->pos++;
          magsgn->max_bits = (magsgn->tmp == 0xFF) ? 7 : 8;
          magsgn->tmp = 0;
          magsgn->used_bits = 0;
@@ -523,7 +524,7 @@ quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
 
 void fetch_quads(const bwc_raw *const nu, const uint8 *const sigma,
                  const uint16 qy, const uint16 qx, const uint16 QWx2,
-                 uint8 *const sigma_n, bwc_raw *const v_n, uint8 *const E_n,
+                 uint8 *const sigma_n, bwc_raw *const v_n, int32 *const E_n,
                  uint8 *const rho_q)
 {
   const bwc_raw *const sp0  = nu + 2U * (qx + qy * QWx2);
@@ -552,14 +553,14 @@ void fetch_quads(const bwc_raw *const nu, const uint8 *const sigma,
   v_n[6] = (bwc_raw)(sp0[3]);
   v_n[7] = (bwc_raw)(sp1[3]);
 
-  E_n[0] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[0]) * sigma_n[0]);
-  E_n[1] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[1]) * sigma_n[1]);
-  E_n[2] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[2]) * sigma_n[2]);
-  E_n[3] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[3]) * sigma_n[3]);
-  E_n[4] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[4]) * sigma_n[4]);
-  E_n[5] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[5]) * sigma_n[5]);
-  E_n[6] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[6]) * sigma_n[6]);
-  E_n[7] = (uint8)(PREC_BIT + 1 - count_leading_zeros(v_n[7]) * sigma_n[7]);
+  E_n[0] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[0]) * sigma_n[0]);
+  E_n[1] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[1]) * sigma_n[1]);
+  E_n[2] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[2]) * sigma_n[2]);
+  E_n[3] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[3]) * sigma_n[3]);
+  E_n[4] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[4]) * sigma_n[4]);
+  E_n[5] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[5]) * sigma_n[5]);
+  E_n[6] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[6]) * sigma_n[6]);
+  E_n[7] = (int32)(PREC_BIT + 1 - count_leading_zeros(v_n[7]) * sigma_n[7]);
 }
 
 /**************************************************************************************************\
@@ -663,11 +664,11 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       magsgn_struct magsgn;
       magsgn_init(&magsgn, MAX_Lcup, magsgn_buf);
 
-      alignas(32) uint8 *Eline       = calloc(2U * QW + 6U, sizeof(uint8));
+      alignas(32) int32 *Eline       = calloc(2U * QW + 6U, sizeof(int32));
       alignas(32) int32 *rholine     = calloc(QW + 3U, sizeof(int32));
       alignas(PREC_BIT+1) bwc_raw nu_n[8] = {0};
-      alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, E_n[8] = {0}, rho_q[2] = {0};
-      alignas(PREC_BIT+1) int32 U_q[2] = {0};
+      alignas(PREC_BIT+1) uint8 sigma_n[8] = {0}, rho_q[2] = {0}, m_n[8] = {0};
+      alignas(PREC_BIT+1) int32 E_n[8] = {0}, U_q[2] = {0};
 
       uint8 lw, gamma;
       uint16 context = 0, n_q, CxtVLC, cwd;
@@ -679,8 +680,8 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       {
          for(z = 0; z < cbSizeZ; ++z)
          {
-            uint8 *E_p                     = Eline + 1;
-            int32 *rho_p                   = rholine + 1;
+            int32 *E_p   = Eline + 1;
+            int32 *rho_p = rholine + 1;
             bwc_raw *nu  = working_buffer->nu + cbSizeX * cbSizeY * (z + cbSizeZ * t);
             uint8 *sigma = working_buffer->sigma + cbSizeX * cbSizeY * (z + cbSizeZ * t);
             for(uint16 qx = 0; qx < QW - 1; qx += 2)
