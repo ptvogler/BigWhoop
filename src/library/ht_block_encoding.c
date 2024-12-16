@@ -872,6 +872,8 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
       }
       free(Eline);
       free(rholine);
+      mel_vlc_terminate(&mel, &vlc);
+      magsgn_terminate(&magsgn);
    }
 
    free(working_buffer->nu);
