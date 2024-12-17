@@ -71,7 +71,6 @@ add_library(bwclib bitstream.c
                    dwt.c
                    mq.c
                    ht_block_encoding.c
-                   tier1.c
                    tier2.c
                    tagtree.c)
 
