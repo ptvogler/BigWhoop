@@ -1,11 +1,19 @@
-BasedOnStyle: GNU
+# BasedOnStyle: GNU
+Language: Cpp                          # Yes, should also be used for C. 
+UseTab: Never
+BreakBeforeBraces: Whitesmiths         # This also indents function body braces
 IndentWidth: 2
-PointerAlignment: Right
-ColumnLimit: 80
-ReflowComments: false
-# AlwaysBreakAfterDefinitionReturnType: All
-# PenaltyBreakComment: 300 # default
-# PenaltyBreakOpenParenthesis: 0  # default
+IndentPPDirectives: BeforeHash         # indentation of preprocessor directives
+# MaxEmptyLinesToKeep: 1
+# PointerAlignment: Right
+ColumnLimit: 0
+ReflowComments: true
+# SpacesBeforeTrailingComments: 4
+# SpacesInContainerLiterals: false
+# SpaceAfterCStyleCast: false
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: false
+  AfterFunctionDefinitionName: false
+# InsertBraces: true                     # always braces after control statements
 # BreakBeforeBinaryOperators: None
-# BinPackParameters: false
-# SpaceAfterCStyleCast: true
