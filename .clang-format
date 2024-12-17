@@ -4,6 +4,24 @@ UseTab: Never
 BreakBeforeBraces: Whitesmiths         # This also indents function body braces
 IndentWidth: 2
 IndentPPDirectives: BeforeHash         # indentation of preprocessor directives
+AlignConsecutiveAssignments: 
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+AlignEscapedNewlines: Right          # This equivalent to 'LeftWithLastLine' as long as 'ColumnWidth: 0'
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 1
 # MaxEmptyLinesToKeep: 1
 # PointerAlignment: Right
 ColumnLimit: 0
