@@ -151,7 +151,7 @@ inline void mel_emit_bit(mel_struct* mel, int v)
    {
       if(mel->pos >= mel->buf_size)
       {
-         fprintf(stderr, "mel encoder's buffer is full");
+         fprintf(stderr, "mel encoder's buffer is full\n");
          return;
       }
       mel->buf[mel->pos++] = (uint8)mel->tmp;
@@ -221,7 +221,7 @@ vlc_encode(vlc_struct* vlc, uint16 cwd, uint8 len)
    {
       if(vlc->pos >= vlc->buf_size)
       {
-         fprintf(stderr, "vlc encoder's buffer is full");
+         fprintf(stderr, "vlc encoder's buffer is full\n");
          return;
       }
       int32 available_bits = 8 - vlc->last_greater_0x8F - vlc->used_bits;
@@ -261,7 +261,7 @@ mel_vlc_terminate(mel_struct* melp, vlc_struct* vlcp)
                //melp->remaining_bits would be < 8
    if(melp->pos >= melp->buf_size)
    {
-      fprintf(stderr, "mel encoder's buffer is full, while terminating");
+      fprintf(stderr, "mel encoder's buffer is full, while terminating\n");
       return;
    }
    int fuse = melp->tmp | vlcp->tmp;
@@ -275,7 +275,7 @@ mel_vlc_terminate(mel_struct* melp, vlc_struct* vlcp)
    {
       if(vlcp->pos >= vlcp->buf_size)
       {
-         fprintf(stderr, "vlc encoder's buffer is full, while terminating");
+         fprintf(stderr, "vlc encoder's buffer is full, while terminating\n");
          return;
       }
       melp->buf[melp->pos++] = (uint8)melp->tmp; //melp->tmp cannot be 0xFF
@@ -315,7 +315,7 @@ magsgn_encode(magsgn_struct* magsgn, bwc_raw cwd, int len)
    {
       if(magsgn->pos >= magsgn->buf_size)
       {
-         fprintf(stderr, "magsgn encoder's buffer is full");
+         fprintf(stderr, "magsgn encoder's buffer is full\n");
          return;
       }
       int t = len < (magsgn->max_bits-magsgn->used_bits) ?
@@ -347,7 +347,7 @@ magsgn_terminate(magsgn_struct* magsgn)
       {
          if(magsgn->pos >= magsgn->buf_size)
          {
-            fprintf(stderr, "magsgn encoder's buffer is full, while terminating");
+            fprintf(stderr, "magsgn encoder's buffer is full, while terminating\n");
             return;
          }
          magsgn->buf[magsgn->pos++] = (uint8)magsgn->tmp;
@@ -648,6 +648,11 @@ t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const par
 
       const uint16_t QW = (uint16)(ceil_int((int16)(cbSizeX), 2));
       const uint16_t QH = (uint16_t)(ceil_int((int16)(cbSizeY), 2));
+
+      // TODO: Implement this case.
+      //if(QW & 1){
+         //printf("QW = %d\n", QW);
+      //}
 
       const uint64 QWx2 = round_up(cbSizeX, 8U);
 
