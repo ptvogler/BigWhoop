@@ -1,7 +1,18 @@
 # BasedOnStyle: GNU
 Language: Cpp                          # Yes, should also be used for C. 
 UseTab: Never
-BreakBeforeBraces: Whitesmiths         # This also indents function body braces
+BreakBeforeBraces: Custom         # This also indents function body braces
+BraceWrapping:
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterExternBlock: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeWhile: false
+  IndentBraces: true
 IndentWidth: 2
 IndentPPDirectives: BeforeHash         # indentation of preprocessor directives
 AlignConsecutiveAssignments: 
