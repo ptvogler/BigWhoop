@@ -1,0 +1,11 @@
+BasedOnStyle: GNU
+IndentWidth: 2
+PointerAlignment: Right
+ColumnLimit: 80
+ReflowComments: false
+# AlwaysBreakAfterDefinitionReturnType: All
+# PenaltyBreakComment: 300 # default
+# PenaltyBreakOpenParenthesis: 0  # default
+# BreakBeforeBinaryOperators: None
+# BinPackParameters: false
+# SpaceAfterCStyleCast: true
