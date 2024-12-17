@@ -33,6 +33,15 @@ AlignEscapedNewlines: Right          # This equivalent to 'LeftWithLastLine' as 
 AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 1
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakBeforeMultilineStrings: true   # If undesired in argp_options of bwc_cmdl.c use clang-format on/off
 # Details
 InsertBraces: true                     # always braces after control statements
 MaxEmptyLinesToKeep: 1
