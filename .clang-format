@@ -33,8 +33,12 @@ AlignEscapedNewlines: Right          # This equivalent to 'LeftWithLastLine' as 
 AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 1
-# MaxEmptyLinesToKeep: 1
-# PointerAlignment: Right
+# Details
+InsertBraces: true                     # always braces after control statements
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Right
+BreakBeforeBinaryOperators: None
+AllowShortBlocksOnASingleLine: Never # Consider other single line constructs, such as functions etc.
 ColumnLimit: 0
 ReflowComments: true
 # SpacesBeforeTrailingComments: 4
@@ -44,5 +48,3 @@ SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
   AfterControlStatements: false
   AfterFunctionDefinitionName: false
-# InsertBraces: true                     # always braces after control statements
-# BreakBeforeBinaryOperators: None
