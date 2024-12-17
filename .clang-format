@@ -1,7 +1,8 @@
 # BasedOnStyle: GNU
-Language: Cpp                          # Yes, should also be used for C. 
+Language: Cpp # Yes, should also be used for C. 
 UseTab: Never
-BreakBeforeBraces: Custom         # This also indents function body braces
+# BreakBeforeBraces: GNU          # TODO: Test. This might also do the job.
+BreakBeforeBraces: Custom
 BraceWrapping:
   AfterControlStatement: Always
   AfterEnum: true
@@ -14,7 +15,8 @@ BraceWrapping:
   BeforeWhile: false
   IndentBraces: true
 IndentWidth: 2
-IndentPPDirectives: BeforeHash         # indentation of preprocessor directives
+IndentPPDirectives: BeforeHash # indentation of preprocessor directives
+PPIndentWidth: -1 # Uses IndentWidth if set to -1
 AlignConsecutiveAssignments: 
   Enabled: true
   AcrossEmptyLines: true
@@ -29,7 +31,7 @@ AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: true
   AcrossComments: true
-AlignEscapedNewlines: Right          # This equivalent to 'LeftWithLastLine' as long as 'ColumnWidth: 0'
+AlignEscapedNewlines: Right          # TODO: This equivalent to 'LeftWithLastLine' as long as 'ColumnWidth: 0'
 AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 1
@@ -43,13 +45,23 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: true   # If undesired in argp_options of bwc_cmdl.c use clang-format on/off
 # Details
-InsertBraces: true                     # always braces after control statements
+BinPackArguments: true
+BinPackParameters: true
+BreakBeforeBinaryOperators: None
+BreakStringLiterals: true
+ColumnLimit: 0                         # TODO: choose a value, 80 currently distorts old docstrings
+ContinuationIndentWidth: 2             # TODO: choose a value
+IncludeBlocks: Preserve
+InsertBraces: true
+InsertNewlineAtEOF: true
 MaxEmptyLinesToKeep: 1
 PointerAlignment: Right
-BreakBeforeBinaryOperators: None
-AllowShortBlocksOnASingleLine: Never # Consider other single line constructs, such as functions etc.
-ColumnLimit: 0
-ReflowComments: true
+QualifierAlignment: Leave             # TODO: could be used to enforce left or right const. Maybe specify QualifierOrder
+ReferenceAlignment: Right
+ReflowComments: false
+SeparateDefinitionBlocks: Always
+SortIncludes: CaseInsensitive
+# Spaces
 SpaceAfterCStyleCast: false
 SpacesBeforeTrailingComments: 4
 SpaceBeforeParens: Custom
