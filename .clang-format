@@ -41,10 +41,17 @@ BreakBeforeBinaryOperators: None
 AllowShortBlocksOnASingleLine: Never # Consider other single line constructs, such as functions etc.
 ColumnLimit: 0
 ReflowComments: true
-# SpacesBeforeTrailingComments: 4
-# SpacesInContainerLiterals: false
-# SpaceAfterCStyleCast: false
+SpaceAfterCStyleCast: false
+SpacesBeforeTrailingComments: 4
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
   AfterControlStatements: false
   AfterFunctionDefinitionName: false
+SpaceBeforeSquareBrackets: false
+SpacesInContainerLiterals: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesInLineCommentPrefix:
+  Maximum: 1
+  Minimum: 1
+SpacesInParens: Never
