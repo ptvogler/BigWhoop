@@ -3134,6 +3134,9 @@ bwc_compress(bwc_codec *const codec, bwc_stream *const stream)
       double   wav = 0;
       double   ent = 0;
       double   ass = 0;
+
+      double   ent1 = 0;
+      double   ent2 = 0;
    #endif
 
    /*-----------------------*\
@@ -3293,9 +3296,11 @@ bwc_compress(bwc_codec *const codec, bwc_stream *const stream)
             #if defined (_OPENMP)
                end = omp_get_wtime();
                ent += end - start;
+               ent1 += end - start;
             #else
                end = (double)clock();
                ent += (end - start)/CLOCKS_PER_SEC;
+               ent1 += (end - start)/CLOCKS_PER_SEC;
             #endif
          #endif
 
@@ -3324,9 +3329,11 @@ bwc_compress(bwc_codec *const codec, bwc_stream *const stream)
          #if defined (_OPENMP)
             end = omp_get_wtime();
             ent += end - start;
+            ent2 += end - start;
          #else
             end = (double)clock();
             ent += (end - start)/CLOCKS_PER_SEC;
+            ent2 += (end - start)/CLOCKS_PER_SEC;
          #endif
       #endif
    }
@@ -3382,6 +3389,8 @@ bwc_compress(bwc_codec *const codec, bwc_stream *const stream)
       printf("  Compression Time:              %*.2f s\n", 25, ttl);
       printf("       - Wavelet transformation: %*.2f s\n", 25, wav);
       printf("       - Entropy encoding:       %*.2f s\n", 25, ent);
+      printf("         - Tier1:                %*.2f s\n", 25, ent1);
+      printf("         - Tier2:                %*.2f s\n", 25, ent2);
       printf("       - Codestream assembly:    %*.2f s\n", 25, ass);
       printf("\n");
       printf("  Compression Ratio:             %*.2f\n",   27, cpr);
