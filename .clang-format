@@ -19,13 +19,13 @@ IndentPPDirectives: BeforeHash # indentation of preprocessor directives
 PPIndentWidth: -1 # Uses IndentWidth if set to -1
 AlignConsecutiveAssignments: 
   Enabled: true
-  AcrossEmptyLines: true
+  AcrossEmptyLines: false
   AcrossComments: false
   AlignCompound: true
   PadOperators: true
 AlignConsecutiveDeclarations:
   Enabled: true
-  AcrossEmptyLines: true
+  AcrossEmptyLines: false
   AcrossComments: false
 AlignConsecutiveMacros:
   Enabled: true
