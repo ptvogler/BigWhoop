@@ -77,7 +77,7 @@ BUILD_SHARED="True"
 
 BIGWHOOP_PRECISION="Double"
 
-BUILD_TOOL="False"
+BUILD_UTILITIES="False"
 
 BIGWHOOP_WITH_PROFILING="False"
 
@@ -168,7 +168,7 @@ single:
 # Define target used to activate command line tool build.  #
 #*--------------------------------------------------------*#
 utilities:
-	$(eval BUILD_TOOL="True")
+	$(eval BUILD_UTILITIES="True")
 
 #*--------------------------------------------------------*#
 # Define target used to activate profiling.  #
@@ -221,7 +221,7 @@ display:
 	@echo    "  Build Type:       $(BUILD_TYPE)"
 	@echo    "  Shared Libs:      $(BUILD_SHARED)"
 	@echo    "  Precision:        $(BIGWHOOP_PRECISION)"
-	@echo    "  Utilities:        $(BUILD_TOOL)"
+	@echo    "  Utilities:        $(BUILD_UTILITIES)"
 	@echo    "  Profiling:        $(BIGWHOOP_WITH_PROFILING)"
 	@echo    ""
 	@echo    "  Build date:       $(shell date)"
@@ -233,7 +233,7 @@ display:
 # Define the main compile command targets.                 #
 #*--------------------------------------------------------*#
 build_bwc:
-	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DBUILD_SHARED_LIBS=${BUILD_SHARED}" "-DBIGWHOOP_PRECISION:STRING=${BIGWHOOP_PRECISION}" "-DBUILD_TOOL=${BUILD_TOOL}" "-DBIGWHOOP_WITH_PROFILING=${BIGWHOOP_WITH_PROFILING}" "-DBIGWHOOP_WITH_OPENMP=${BIGWHOOP_WITH_OPENMP}" "-DBIGWHOOP_WITH_EAS3=${BIGWHOOP_WITH_EAS3}" "-DBIGWHOOP_WITH_NETCDF=${BIGWHOOP_WITH_NETCDF}" && $(MAKE) -j
+	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DBUILD_SHARED_LIBS=${BUILD_SHARED}" "-DBIGWHOOP_PRECISION:STRING=${BIGWHOOP_PRECISION}" "-DBUILD_UTILITIES=${BUILD_UTILITIES}" "-DBIGWHOOP_WITH_PROFILING=${BIGWHOOP_WITH_PROFILING}" "-DBIGWHOOP_WITH_OPENMP=${BIGWHOOP_WITH_OPENMP}" "-DBIGWHOOP_WITH_EAS3=${BIGWHOOP_WITH_EAS3}" "-DBIGWHOOP_WITH_NETCDF=${BIGWHOOP_WITH_NETCDF}" && $(MAKE) -j
 
 clean:
 	- /bin/rm -rf build/ include/library/public

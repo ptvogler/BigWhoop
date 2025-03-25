@@ -91,7 +91,7 @@ include(GNUInstallDirs)
 # and utility binaries.                                    #
 #----------------------------------------------------------#
 list(INSERT CMAKE_MODULE_PATH 0 "${BWC_SOURCE_DIR}/cmake")
-if(${BUILD_TOOL})
+if(${BUILD_UTILITIES})
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BWC_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
   endif()
@@ -184,7 +184,7 @@ add_subdirectory(src/library)
 #----------------------------------------------------------#
 # Add the utilities source code if requested.              #
 #----------------------------------------------------------#
-if(${BUILD_TOOL})
+if(${BUILD_UTILITIES})
   add_subdirectory(src/tools)
 else()
   set(ignoreMe "${BIGWHOOP_WITH_EAS3}${BIGWHOOP_WITH_NETCDF}")
