@@ -77,8 +77,8 @@ set(BWC_VERSION "${BWC_VERSION_MAJOR}.${BWC_VERSION_MINOR}.${BWC_VERSION_PATCH}"
 # precision during compression. The standard option is     #
 # set to double precision.                                 #
 #----------------------------------------------------------#
-set(PREC "Double" CACHE STRING "User-specified option used to control\
-                                the precision during compression")
+set(BIGWHOOP_PRECISION "Double" CACHE STRING "User-specified option used to control\
+                                              the precision during compression")
 
 #----------------------------------------------------------#
 # Inlude the GNU standard installation directories module  #
@@ -91,7 +91,7 @@ include(GNUInstallDirs)
 # and utility binaries.                                    #
 #----------------------------------------------------------#
 list(INSERT CMAKE_MODULE_PATH 0 "${BWC_SOURCE_DIR}/cmake")
-if(${TOOL})
+if(${BUILD_TOOL})
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BWC_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
   endif()
@@ -133,7 +133,7 @@ message(STATUS "Compiling with C++ standard: ${CMAKE_CXX_STANDARD}")
 # Check if the OpenMP package is available for the current #
 # setup and set the appropriate C/C++ flags.               #
 #----------------------------------------------------------#
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${OMP}")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${BIGWHOOP_WITH_OPENMP}")
   message(STATUS "Enable OpenMP parallelization")
  find_package(OpenMP)
  if (OPENMP_FOUND)
@@ -184,10 +184,10 @@ add_subdirectory(src/library)
 #----------------------------------------------------------#
 # Add the utilities source code if requested.              #
 #----------------------------------------------------------#
-if(${TOOL})
+if(${BUILD_TOOL})
   add_subdirectory(src/tools)
 else()
-  set(ignoreMe "${BUILD_EAS3}${BUILD_NETCDF}")
+  set(ignoreMe "${BIGWHOOP_WITH_EAS3}${BIGWHOOP_WITH_NETCDF}")
 endif()
 
 #----------------------------------------------------------#

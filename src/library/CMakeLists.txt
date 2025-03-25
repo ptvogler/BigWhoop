@@ -52,7 +52,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   endif()
 endif()
 
-if("${PREC}" STREQUAL "Single")
+if("${BIGWHOOP_PRECISION}" STREQUAL "Single")
   set(PYTHON_ARGUMENT ${PYTHON_ARGUMENT} -Single)
 endif()
 
@@ -78,7 +78,7 @@ add_library(bwclib bitstream.c
 # Set the target compile definition for the encoder/decod- #
 # er bit precision.                                        #
 #----------------------------------------------------------#
-if("${PREC}" STREQUAL "Single")
+if("${BIGWHOOP_PRECISION}" STREQUAL "Single")
    target_compile_definitions(bwclib PRIVATE -DBWC_SINGLE_PRECISION)
 else()
    target_compile_definitions(bwclib PRIVATE -DBWC_DOUBLE_PRECISION)
@@ -88,7 +88,7 @@ endif()
 # Set the target compile definition for the profiling      #
 # output.                                                  #
 #----------------------------------------------------------#
-if(${PROF})
+if(${BIGWHOOP_WITH_PROFILING})
   target_compile_definitions(bwclib PRIVATE -DBWC_PROFILE)
   MESSAGE(STATUS "Profiling: ${PROF}")
 endif()

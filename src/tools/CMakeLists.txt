@@ -52,14 +52,14 @@ add_executable(bwccmd  bwccmdl.c
 # Set the target compile definition for the requested file #
 # format support.                                          #
 #----------------------------------------------------------#
-if(${BUILD_EAS3})
+if(${BIGWHOOP_WITH_EAS3})
   target_compile_definitions(bwccmd PRIVATE -DBWC_EAS3)
-  MESSAGE(STATUS "EAS3 file format support: ${BUILD_EAS3}")
+  MESSAGE(STATUS "EAS3 file format support: ${BIGWHOOP_WITH_EAS3}")
 endif()
 
-if(${BUILD_NETCDF})
+if(${BIGWHOOP_WITH_NETCDF})
   target_compile_definitions(bwccmd PRIVATE -DBWC_NETCDF)
-  MESSAGE(STATUS "NetCDF file format support: ${BUILD_NETCDF}")
+  MESSAGE(STATUS "NetCDF file format support: ${BIGWHOOP_WITH_NETCDF}")
 endif()
 
 #----------------------------------------------------------#

@@ -52,7 +52,7 @@
 .PHONY: static
 .PHONY: single
 
-.PHONY: tool
+.PHONY: utilities
 .PHONY: profiling
 .PHONY: omp
 .PHONY: eas3
@@ -75,17 +75,17 @@ BUILD_TYPE="Release"
 
 BUILD_SHARED="True"
 
-BUILD_PREC="Double"
+BIGWHOOP_PRECISION="Double"
 
 BUILD_TOOL="False"
 
-BUILD_PROF="False"
+BIGWHOOP_WITH_PROFILING="False"
 
-BUILD_OMP="False"
+BIGWHOOP_WITH_OPENMP="False"
 
-BUILD_EAS3="False"
+BIGWHOOP_WITH_EAS3="False"
 
-BUILD_NETCDF="False"
+BIGWHOOP_WITH_NETCDF="False"
 
 #*--------------------------------------------------------*#
 # Define default target.     				               #
@@ -137,7 +137,7 @@ help:
 	@echo	"   single                                                 Compiles the BigWhoop library in single precision"
 	@echo	"                                                          mode."
 	@echo   ""
-	@echo	"   tool                                                   Build the command line tool."
+	@echo	"   utilities                                                   Build the command line tool."
 	@echo   ""
 	@echo	"   profiling                                              Enable Profiling."
 	@echo   ""
@@ -162,34 +162,34 @@ static:
 	$(eval BUILD_SHARED="False")
 
 single:
-	$(eval BUILD_PREC="Single")
+	$(eval BIGWHOOP_PRECISION="Single")
 
 #*--------------------------------------------------------*#
 # Define target used to activate command line tool build.  #
 #*--------------------------------------------------------*#
-tool:
+utilities:
 	$(eval BUILD_TOOL="True")
 
 #*--------------------------------------------------------*#
 # Define target used to activate profiling.  #
 #*--------------------------------------------------------*#
 profiling:
-	$(eval BUILD_PROF="True")
+	$(eval BIGWHOOP_WITH_PROFILING="True")
 
 #*--------------------------------------------------------*#
 # Define target used to activate OpenMP parallelization.   #
 #*--------------------------------------------------------*#
 omp:
-	$(eval BUILD_OMP="True")
+	$(eval BIGWHOOP_WITH_OPENMP="True")
 
 #*--------------------------------------------------------*#
 # Define targets used to activate file format support.     #
 #*--------------------------------------------------------*#
 eas3:
-	$(eval BUILD_EAS3="True")
+	$(eval BIGWHOOP_WITH_EAS3="True")
 
 netCDF:
-	$(eval BUILD_NETCDF="True")
+	$(eval BIGWHOOP_WITH_NETCDF="True")
 
 #*--------------------------------------------------------*#
 # Define the wrappers for the compile command targets.     #
@@ -197,8 +197,8 @@ netCDF:
 debug:   	| clean build_debug build_bwc display
 full:    	| clean build_bwc display
 release:	| build_bwc display
-cmdl:		| clean tool profiling eas3 build_bwc display
-cldebug:    | clean build_debug tool profiling eas3 build_bwc display
+cmdl:		| clean utilities profiling eas3 build_bwc display
+cldebug:    | clean build_debug utilities profiling eas3 build_bwc display
 
 #*--------------------------------------------------------*#
 # Define target used to output compile information.        #
@@ -220,9 +220,9 @@ display:
 	@echo    ""
 	@echo    "  Build Type:       $(BUILD_TYPE)"
 	@echo    "  Shared Libs:      $(BUILD_SHARED)"
-	@echo    "  Precision:        $(BUILD_PREC)"
+	@echo    "  Precision:        $(BIGWHOOP_PRECISION)"
 	@echo    "  Utilities:        $(BUILD_TOOL)"
-	@echo    "  Profiling:        $(BUILD_PROF)"
+	@echo    "  Profiling:        $(BIGWHOOP_WITH_PROFILING)"
 	@echo    ""
 	@echo    "  Build date:       $(shell date)"
 	@echo    "  User:             $(USER)"
@@ -233,7 +233,7 @@ display:
 # Define the main compile command targets.                 #
 #*--------------------------------------------------------*#
 build_bwc:
-	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DBUILD_SHARED_LIBS=${BUILD_SHARED}" "-DPREC:STRING=${BUILD_PREC}" "-DTOOL=${BUILD_TOOL}" "-DPROF=${BUILD_PROF}" "-DOMP=${BUILD_OMP}" "-DBUILD_EAS3=${BUILD_EAS3}" "-DBUILD_NETCDF=${BUILD_NETCDF}" && $(MAKE) -j
+	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DBUILD_SHARED_LIBS=${BUILD_SHARED}" "-DBIGWHOOP_PRECISION:STRING=${BIGWHOOP_PRECISION}" "-DBUILD_TOOL=${BUILD_TOOL}" "-DBIGWHOOP_WITH_PROFILING=${BIGWHOOP_WITH_PROFILING}" "-DBIGWHOOP_WITH_OPENMP=${BIGWHOOP_WITH_OPENMP}" "-DBIGWHOOP_WITH_EAS3=${BIGWHOOP_WITH_EAS3}" "-DBIGWHOOP_WITH_NETCDF=${BIGWHOOP_WITH_NETCDF}" && $(MAKE) -j
 
 clean:
 	- /bin/rm -rf build/ include/library/public
