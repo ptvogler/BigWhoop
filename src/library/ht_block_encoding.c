@@ -122,6 +122,21 @@ typedef struct mel_struct
   uint8 tmp;               //temporary storage of coded bits
 } mel_struct;
 
+
+struct dec_mel_st {
+  // data decoding machinery
+  uint8* buf;    //!<the address of data (or bitstream)
+  uint64 tmp;     //!<temporary buffer for read data
+  int bits;     //!<number of bits stored in tmp
+  int size;     //!<number of bytes in MEL code
+  bool unstuff; //!<true if the next bit needs to be unstuffed
+  int k;        //!<state of MEL decoder
+
+  // queue of decoded runs
+  int num_runs; //!<number of decoded runs left in runs (maximum 8)
+  uint64 runs;    //!<runs of decoded MEL codewords (7 bits/run)
+};
+
 void mel_init(mel_struct *mel, uint32 buffer_size, uint8 *data)
 {
   static const int mel_exp[13] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5};
