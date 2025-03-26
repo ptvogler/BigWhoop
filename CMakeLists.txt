@@ -177,6 +177,11 @@ cmake_dependent_option(BWC_ENABLE_PIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ${BWC_ENABLE_PIC})
 
 #----------------------------------------------------------#
+# Add third party fetching and installation.               #
+#----------------------------------------------------------#
+include(cmake/ThirdParty.cmake)
+
+#----------------------------------------------------------#
 # Add the project source code.                             #
 #----------------------------------------------------------#
 add_subdirectory(src/library)
