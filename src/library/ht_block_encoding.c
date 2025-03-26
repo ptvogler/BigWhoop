@@ -62,6 +62,9 @@
 #include "ht_block_encoding.h"
 #include "types.h"
 
+uint64 orgSize;
+uint64 compSize;
+
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                 _  _ ____ ____ ____ ____ ____                                  ||
 ||                                 |\/| |__| |    |__/ |  | [__                                   ||
@@ -950,8 +953,11 @@ encode_codeblock(bwc_codec *const codec, bwc_cblk_access *const access,
   encoded_cblk->S[1] = 0;
   encoded_cblk->S[2] = 0;
 
-  //printf("original size %ld\n", width*height*depth*delta*sizeof(bwc_raw));
-  //printf("compressed size %ld\n", (mel.pos + vlc.pos + magsgn.pos)*sizeof(uint8));
+  orgSize += width*height*depth*delta*sizeof(bwc_raw);
+  compSize += (mel.pos + vlc.pos + magsgn.pos)*sizeof(uint8);
+  printf("original size %ld\n", orgSize);
+  printf("compressed size %ld\n", compSize);
+  printf("ratio orgSize/compSize %1.2f\n", (double)orgSize / (double)compSize);
 
   encoded_cblk->data = calloc(mel.pos + vlc.pos + magsgn.pos, sizeof(uint8));
   memcpy(encoded_cblk->data, magsgn.buf, magsgn.pos);
