@@ -1,0 +1,80 @@
+Language: Cpp # Yes, should also be used for C. 
+UseTab: Never
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterExternBlock: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeWhile: true
+  IndentBraces: true
+IndentWidth: 2
+IndentPPDirectives: BeforeHash # indentation of preprocessor directives
+PPIndentWidth: -1 # Uses IndentWidth if set to -1
+AlignConsecutiveAssignments: 
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCompound: true
+  PadOperators: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+AlignEscapedNewlines: Right
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 1
+AlignAfterOpenBracket: true
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: All
+AlwaysBreakBeforeMultilineStrings: true
+# Details
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: None
+BreakStringLiterals: true
+ColumnLimit: 100
+ContinuationIndentWidth: 4
+IncludeBlocks: Preserve
+InsertBraces: false
+InsertNewlineAtEOF: true
+MaxEmptyLinesToKeep: 1
+PointerAlignment: Right
+QualifierAlignment: Right
+ReferenceAlignment: Right
+ReflowComments: true
+SeparateDefinitionBlocks: Always
+SortIncludes: CaseInsensitive
+# Spaces
+SpaceAfterCStyleCast: false
+SpacesBeforeTrailingComments: 4
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterFunctionDeclarationName: true
+  AfterFunctionDefinitionName: true
+  BeforeNonEmptyParentheses: true
+SpaceBeforeSquareBrackets: false
+SpacesInContainerLiterals: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesInLineCommentPrefix:
+  Maximum: 1
+  Minimum: 1
+SpacesInParens: Never
