@@ -86,21 +86,21 @@
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 
-inline uint8 find_max(uint8 x0, uint8 x1, uint8 x2, uint8 x3)
+uint8 find_max(uint8 x0, uint8 x1, uint8 x2, uint8 x3)
 {
   uint8 v0 = ((x0 > x1) ? x0 : x1);
   uint8 v1 = ((x2 > x3) ? x2 : x3);
   return (v0 > v1) ? v0 : v1;
 }
 
-inline uint8 int_log2(const bwc_raw x)
+uint8 int_log2(const bwc_raw x)
 {
   uint8 y;
   y = (uint8)(PREC_BIT - __builtin_clz(x));
   return (x == 0) ? 0 : y;
 }
 
-inline uint8 count_leading_zeros(const bwc_raw x)
+uint8 count_leading_zeros(const bwc_raw x)
 {
   uint8 y;
   y = PREC_BIT - int_log2(x);
@@ -135,7 +135,7 @@ void mel_init(mel_struct *mel, uint32 buffer_size, uint8 *data)
   mel->tmp                     = 0;
 }
 
-inline void mel_emit_bit(mel_struct *mel, int v)
+void mel_emit_bit(mel_struct *mel, int v)
 {
   assert(v == 0 || v == 1);
   mel->tmp = (mel->tmp << 1) + v;
@@ -153,7 +153,7 @@ inline void mel_emit_bit(mel_struct *mel, int v)
     }
 }
 
-inline void
+void
 mel_encode(mel_struct *mel, bool smel)
 {
   static const uint8 mel_exp[13] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5};
@@ -195,7 +195,7 @@ typedef struct vlc_struct
   bool  last_greater_0x8F;    //true if last byte is greater than 0x8F
 } vlc_struct;
 
-static inline void
+static void
 vlc_init(vlc_struct *vlc, uint32 buffer_size, uint8 *data)
 {
   vlc->buf               = data + buffer_size - 1;    //points to last byte
@@ -208,7 +208,7 @@ vlc_init(vlc_struct *vlc, uint32 buffer_size, uint8 *data)
 }
 
 //////////////////////////////////////////////////////////////////////////
-static inline void
+static void
 vlc_encode(vlc_struct *vlc, uint16 cwd, uint8 len)
 {
   while(len > 0)
@@ -241,7 +241,7 @@ vlc_encode(vlc_struct *vlc, uint16 cwd, uint8 len)
     }
 }
 
-static inline void
+static void
 mel_vlc_terminate(mel_struct *melp, vlc_struct *vlcp)
 {
   if(melp->run > 0)
@@ -293,7 +293,7 @@ typedef struct magsgn_struct
 } magsgn_struct;
 
 //////////////////////////////////////////////////////////////////////////
-static inline void
+static void
 magsgn_init(magsgn_struct *magsgn, uint32 buffer_size, uint8 *data)
 {
   magsgn->buf       = data;
@@ -305,7 +305,7 @@ magsgn_init(magsgn_struct *magsgn, uint32 buffer_size, uint8 *data)
 }
 
 //////////////////////////////////////////////////////////////////////////
-inline void
+void
 magsgn_encode(magsgn_struct *magsgn, bwc_raw cwd, int len)
 {
   while(len > 0)
@@ -331,7 +331,7 @@ magsgn_encode(magsgn_struct *magsgn, bwc_raw cwd, int len)
     }
 }
 
-inline void
+void
 magsgn_terminate(magsgn_struct *magsgn)
 {
   if(magsgn->used_bits)
