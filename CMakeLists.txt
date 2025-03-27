@@ -49,7 +49,7 @@ cmake_minimum_required(VERSION 3.5.1)
 #----------------------------------------------------------#
 # Set the project name and description.                    #
 #----------------------------------------------------------#
-project(BWC LANGUAGES C)
+project(BWC LANGUAGES C CXX)
 set(PROJECT_DESCRIPTION "Compression algorithm for IEEE 754 datasets")
 
 #----------------------------------------------------------#
@@ -185,6 +185,12 @@ include(cmake/ThirdParty.cmake)
 # Add the project source code.                             #
 #----------------------------------------------------------#
 add_subdirectory(src/library)
+
+#----------------------------------------------------------#
+# Add the unit tests.                                      #
+#----------------------------------------------------------#
+enable_testing()
+add_subdirectory(tests)
 
 #----------------------------------------------------------#
 # Add the utilities source code if requested.              #
