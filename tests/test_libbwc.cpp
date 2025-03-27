@@ -2,7 +2,13 @@
 
 #include <cstdint>
 
-#include "bwc.h"
+#ifdef __cplusplus
+  extern "C" {
+#endif
+#include "../include/library/private/libbwc.h"
+#ifdef __cplusplus
+  }
+#endif
 
 TEST_CASE( "Stream initialization", "[bwc_init_stream]" ) {
     uint32 size = 4;

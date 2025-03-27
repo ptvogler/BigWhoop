@@ -2,8 +2,14 @@
 
 #include <cstdint>
 
-#include "../../include/library/private/types.h"
-#include "../../include/library/private/bitstream.h"
+#ifdef __cplusplus
+  extern "C" {
+#endif
+#include "../include/library/private/types.h"
+#include "../include/library/private/bitstream.h"
+#ifdef __cplusplus
+  }
+#endif
 
 TEST_CASE( "Bit stream initialization", "[init_bitstream]" ) {
     uint32 size = 4;
