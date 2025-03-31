@@ -482,6 +482,8 @@ quantize(bwc_ht_codeblock *const destination, const bwc_sample *const source,
   ! structure. Here, two adjacent stripes are stored         !
   ! in one 8 bit integer.                                    !
   \*--------------------------------------------------------*/
+  bwc_raw temp, sign;
+  bwc_sample smp;
   for(t = 0; t < cblk_dt; ++t)
     {
       for(z = 0; z < cblk_depth; ++z)
@@ -490,15 +492,14 @@ quantize(bwc_ht_codeblock *const destination, const bwc_sample *const source,
             {
               for(x = 0; x < cblk_width; ++x)
                 {
-                  bwc_raw temp;
-                  bwc_raw sign = tmp[x].raw & SIGN;
-
                   /*--------------------------------------------------------*\
-                  ! Calculate the absolute value of the wavelet coefficient  !
-                  ! and store the quantized value in the temporary buffer.   !
+                  ! Extract the sign bit, calculate the absolute value of    !
+                  ! the wavelet coefficient, and store the quantized value   !
+                  ! in the temporary buffer.                                 !
                   \*--------------------------------------------------------*/
-                  bwc_sample smp = (bwc_sample)(tmp[x].raw & sign_mask);
-                  temp           = (bwc_raw)(smp.f * qt_scale);
+                  sign = tmp[x].raw & SIGN;
+                  smp  = (bwc_sample)(tmp[x].raw & sign_mask);
+                  temp = (bwc_raw)(smp.f * qt_scale);
 
                   /*--------------------------------------------------------*\
                   ! Save the unsigned wavelet coefficient for distortion     !
