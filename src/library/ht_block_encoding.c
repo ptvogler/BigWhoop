@@ -374,7 +374,7 @@ magsgn_terminate(magsgn_struct *magsgn)
 }
 
 static void
-quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
+quantize(bwc_ht_codeblock *const destination, const bwc_sample *const source,
          bwc_cblk_access *const cblkaccess, const uint64 width,
          const uint64 height, const uint64 depth, const uint64 delta)
 {
@@ -400,8 +400,8 @@ quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
   /*-----------------------*\
   ! DEFINE STRUCTS:         !
   \*-----------------------*/
-  bwc_cblk_inf *cblk_info;
-  bwc_sample   *tmp;
+  bwc_cblk_inf     *cblk_info;
+  const bwc_sample *tmp;
 
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
@@ -497,8 +497,8 @@ quantize(bwc_ht_codeblock *const destination, bwc_sample *const source,
                   ! Calculate the absolute value of the wavelet coefficient  !
                   ! and store the quantized value in the temporary buffer.   !
                   \*--------------------------------------------------------*/
-                  tmp[x].raw &= sign_mask;
-                  temp        = (bwc_raw)(tmp[x].f * qt_scale);
+                  bwc_sample smp = (bwc_sample)(tmp[x].raw & sign_mask);
+                  temp           = (bwc_raw)(smp.f * qt_scale);
 
                   /*--------------------------------------------------------*\
                   ! Save the unsigned wavelet coefficient for distortion     !
