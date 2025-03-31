@@ -48,27 +48,57 @@
 #include <cstdint>
 
 #ifdef __cplusplus
-  extern "C" {
+extern "C"
+{
 #endif
-#include "../include/library/private/types.h"
 #include "../include/library/private/ht_block_encoding.h"
+#include "../include/library/private/types.h"
 #ifdef __cplusplus
-  }
+}
 #endif
 
-TEST_CASE( "Quantization", "[quantize]" ) {
-    uint32 size = 4;
-    uchar inp_mem[size];
-    uchar out_mem[size];
-    out_mem[3] = inp_mem[0] = 1;
-    out_mem[2] = inp_mem[1] = 2;
-    out_mem[1] = inp_mem[2] = 3;
-    out_mem[0] = inp_mem[3] = 4;
-    char instr = 'c';
+TEST_CASE("Quantize a individual samples", "[quantize_sample]")
+{
 
+  bwc_raw   sign_mask = ~(static_cast<bwc_raw>(0x01) << PREC_BIT);
+  bwc_float qt_scale  = static_cast<bwc_float>(0.125);
 
-    //REQUIRE(((uchar*)stream->memory)[0] == 1);
-    //REQUIRE(((uchar*)stream->memory)[1] == 2);
-    //REQUIRE(((uchar*)stream->memory)[2] == 3);
-    //REQUIRE(((uchar*)stream->memory)[3] == 4);
+  std::vector<bwc_sample> samples(8);
+  std::vector<bwc_raw>    nu(8, static_cast<bwc_raw>(0));
+  std::vector<uint8>      sigma(8, static_cast<uint8>(0));
+
+  samples[0].f = static_cast<bwc_float>(-832.0);
+  samples[1].f = static_cast<bwc_float>(832.0);
+  samples[2].f = static_cast<bwc_float>(83279793.0);
+  samples[3].f = static_cast<bwc_float>(-83279793.0);
+  samples[4].f = static_cast<bwc_float>(8327979349850341.0);
+  samples[5].f = static_cast<bwc_float>(-8327979349850341.0);
+  samples[6].f = static_cast<bwc_float>(-0.0);
+  samples[7].f = static_cast<bwc_float>(0.0);
+
+  quantize_sample(&nu[0], &sigma[0], &samples[0], sign_mask, qt_scale);
+  quantize_sample(&nu[1], &sigma[1], &samples[1], sign_mask, qt_scale);
+  quantize_sample(&nu[2], &sigma[2], &samples[2], sign_mask, qt_scale);
+  quantize_sample(&nu[3], &sigma[3], &samples[3], sign_mask, qt_scale);
+  quantize_sample(&nu[4], &sigma[4], &samples[4], sign_mask, qt_scale);
+  quantize_sample(&nu[5], &sigma[5], &samples[5], sign_mask, qt_scale);
+  quantize_sample(&nu[6], &sigma[6], &samples[6], sign_mask, qt_scale);
+  quantize_sample(&nu[7], &sigma[7], &samples[7], sign_mask, qt_scale);
+
+  REQUIRE(nu[0] == 207);
+  REQUIRE(sigma[0] == 1);
+  REQUIRE(nu[1] == 206);
+  REQUIRE(sigma[1] == 1);
+  REQUIRE(nu[2] == 20819946);
+  REQUIRE(sigma[2] == 1);
+  REQUIRE(nu[3] == 20819947);
+  REQUIRE(sigma[3] == 1);
+  REQUIRE(nu[4] == 2081994837462582);
+  REQUIRE(sigma[4] == 1);
+  REQUIRE(nu[5] == 2081994837462583);
+  REQUIRE(sigma[5] == 1);
+  REQUIRE(nu[6] == 0);
+  REQUIRE(sigma[6] == 0);
+  REQUIRE(nu[7] == 0);
+  REQUIRE(sigma[7] == 0);
 }

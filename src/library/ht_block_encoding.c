@@ -370,6 +370,35 @@ void magsgn_terminate(magsgn_struct *magsgn)
     }
 }
 
+void quantize_sample(bwc_raw *nu, uint8 *sigma, bwc_sample const *const sample,
+                     bwc_raw const sign_mask, bwc_float const qt_scale)
+{
+  bwc_raw    temp, sign;
+  bwc_sample smp;
+
+  /*--------------------------------------------------------*\
+  ! Extract the sign bit, calculate the absolute value of    !
+  ! the wavelet coefficient, and store the quantized value   !
+  ! in the temporary buffer.                                 !
+  \*--------------------------------------------------------*/
+  sign = sample->raw & SIGN;
+  smp  = (bwc_sample)(sample->raw & sign_mask);
+  temp = (bwc_raw)(smp.f * qt_scale);
+
+  /*--------------------------------------------------------*\
+  ! Save the unsigned wavelet coefficient for distortion     !
+  ! calculation.                                             !
+  \*--------------------------------------------------------*/
+  if(temp)
+    {
+      temp--;
+      temp   <<= 1;
+      temp    += (bwc_raw)(sign >> PREC_BIT);
+      *nu      = temp;
+      *sigma  |= 1;
+    }
+}
+
 static void
 quantize(bwc_ht_codeblock *const destination, const bwc_sample *const source,
          bwc_cblk_access *const cblkaccess, const uint64 width,
@@ -479,8 +508,6 @@ quantize(bwc_ht_codeblock *const destination, const bwc_sample *const source,
   ! structure. Here, two adjacent stripes are stored         !
   ! in one 8 bit integer.                                    !
   \*--------------------------------------------------------*/
-  bwc_raw temp, sign;
-  bwc_sample smp;
   for(t = 0; t < cblk_dt; ++t)
     {
       for(z = 0; z < cblk_depth; ++z)
@@ -489,27 +516,7 @@ quantize(bwc_ht_codeblock *const destination, const bwc_sample *const source,
             {
               for(x = 0; x < cblk_width; ++x)
                 {
-                  /*--------------------------------------------------------*\
-                  ! Extract the sign bit, calculate the absolute value of    !
-                  ! the wavelet coefficient, and store the quantized value   !
-                  ! in the temporary buffer.                                 !
-                  \*--------------------------------------------------------*/
-                  sign = tmp[x].raw & SIGN;
-                  smp  = (bwc_sample)(tmp[x].raw & sign_mask);
-                  temp = (bwc_raw)(smp.f * qt_scale);
-
-                  /*--------------------------------------------------------*\
-                  ! Save the unsigned wavelet coefficient for distortion     !
-                  ! calculation.                                             !
-                  \*--------------------------------------------------------*/
-                  if(temp)
-                    {
-                      temp--;
-                      temp   <<= 1;
-                      temp    += (bwc_raw)(sign >> PREC_BIT);
-                      *nu      = temp;
-                      *sigma  |= 1;
-                    }
+                  quantize_sample(nu, sigma, tmp + x, sign_mask, qt_scale);
                   ++nu;
                   ++sigma;
                 }
