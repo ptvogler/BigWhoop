@@ -125,19 +125,19 @@ typedef struct mel_struct
   uint8 tmp;               //temporary storage of coded bits
 } mel_struct;
 
-
-struct dec_mel_st {
+struct dec_mel_st
+{
   // data decoding machinery
-  uint8* buf;    //!<the address of data (or bitstream)
-  uint64 tmp;     //!<temporary buffer for read data
-  int bits;     //!<number of bits stored in tmp
-  int size;     //!<number of bytes in MEL code
-  bool unstuff; //!<true if the next bit needs to be unstuffed
-  int k;        //!<state of MEL decoder
+  uint8 *buf;        //!<the address of data (or bitstream)
+  uint64 tmp;        //!<temporary buffer for read data
+  int    bits;       //!<number of bits stored in tmp
+  int    size;       //!<number of bytes in MEL code
+  bool   unstuff;    //!<true if the next bit needs to be unstuffed
+  int    k;          //!<state of MEL decoder
 
   // queue of decoded runs
-  int num_runs; //!<number of decoded runs left in runs (maximum 8)
-  uint64 runs;    //!<runs of decoded MEL codewords (7 bits/run)
+  int    num_runs;    //!<number of decoded runs left in runs (maximum 8)
+  uint64 runs;        //!<runs of decoded MEL codewords (7 bits/run)
 };
 
 void mel_init(mel_struct *mel, uint32 buffer_size, uint8 *data)
@@ -171,8 +171,7 @@ void mel_emit_bit(mel_struct *mel, int v)
     }
 }
 
-void
-mel_encode(mel_struct *mel, bool smel)
+void mel_encode(mel_struct *mel, bool smel)
 {
   static const uint8 mel_exp[13] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5};
   if(smel)
@@ -323,8 +322,7 @@ magsgn_init(magsgn_struct *magsgn, uint32 buffer_size, uint8 *data)
 }
 
 //////////////////////////////////////////////////////////////////////////
-void
-magsgn_encode(magsgn_struct *magsgn, bwc_raw cwd, int len)
+void magsgn_encode(magsgn_struct *magsgn, bwc_raw cwd, int len)
 {
   while(len > 0)
     {
@@ -349,8 +347,7 @@ magsgn_encode(magsgn_struct *magsgn, bwc_raw cwd, int len)
     }
 }
 
-void
-magsgn_terminate(magsgn_struct *magsgn)
+void magsgn_terminate(magsgn_struct *magsgn)
 {
   if(magsgn->used_bits)
     {
@@ -954,11 +951,11 @@ encode_codeblock(bwc_codec *const codec, bwc_cblk_access *const access,
   encoded_cblk->S[1] = 0;
   encoded_cblk->S[2] = 0;
 
-  orgSize += width*height*depth*delta*sizeof(bwc_raw);
-  compSize += (mel.pos + vlc.pos + magsgn.pos)*sizeof(uint8);
-  printf("original size %ld\n", orgSize);
-  printf("compressed size %ld\n", compSize);
-  printf("ratio orgSize/compSize %1.2f\n", (double)orgSize / (double)compSize);
+  //orgSize  += width * height * depth * delta * sizeof(bwc_raw);
+  //compSize += (mel.pos + vlc.pos + magsgn.pos) * sizeof(uint8);
+  //printf("original size %ld\n", orgSize);
+  //printf("compressed size %ld\n", compSize);
+  //printf("ratio orgSize/compSize %1.2f\n", (double)orgSize / (double)compSize);
 
   encoded_cblk->data = calloc(mel.pos + vlc.pos + magsgn.pos, sizeof(uint8));
   memcpy(encoded_cblk->data, magsgn.buf, magsgn.pos);

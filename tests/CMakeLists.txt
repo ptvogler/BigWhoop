@@ -54,3 +54,4 @@ endfunction()
 
 bigwhoop_unit_test(test_libbwc)
 bigwhoop_unit_test(test_bitstream)
+bigwhoop_unit_test(test_ht_block_encoding)
