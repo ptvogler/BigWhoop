@@ -106,3 +106,27 @@ TEST_CASE( "Bit stream initialization", "[init_bitstream]" ) {
 
     free(stream);
 }
+
+TEST_CASE( "Check used bytes in bitstream buffer", "[bytes_used]" ) {
+    uint32 size = 5;
+    uchar inp_mem[size];
+    inp_mem[0] = 1;
+    inp_mem[1] = 2;
+    inp_mem[2] = 3;
+    inp_mem[3] = 4;
+    inp_mem[4] = 44;
+    char instr = 'c';
+    bitstream *stream;
+
+    stream = init_bitstream(inp_mem, size, instr);
+
+    REQUIRE(bytes_used(stream) == stream->L);
+
+    stream->T = 0xFF;
+    REQUIRE(bytes_used(stream) == (stream->L + 1));
+
+    stream->T = 0xFE;
+    REQUIRE(bytes_used(stream) == stream->L);
+
+    free(stream);
+}
