@@ -130,3 +130,45 @@ TEST_CASE( "Check used bytes in bitstream buffer", "[bytes_used]" ) {
 
     free(stream);
 }
+
+TEST_CASE( "Pass chunk to bitstream", "[emit_chunck]" ) {
+    uint32 size = 10;
+    uchar inp_mem[size] = {0};
+    uint64 chunk_size = 4;
+    uchar chunk1[chunk_size] = {1, 2, 3, 4};
+    uchar chunk2[chunk_size] = {4, 3, 2, 1};
+    char instr = 'c';
+    bitstream *stream;
+
+    stream = init_bitstream(inp_mem, size, instr);
+
+    emit_chunck(stream, chunk1, chunk_size);
+
+    REQUIRE(stream);
+    REQUIRE(!stream->error);
+    REQUIRE(stream->memory);
+    REQUIRE(stream->L == chunk_size);
+    REQUIRE(((uchar*)stream->memory)[0] == 1);
+    REQUIRE(((uchar*)stream->memory)[1] == 2);
+    REQUIRE(((uchar*)stream->memory)[2] == 3);
+    REQUIRE(((uchar*)stream->memory)[3] == 4);
+
+    emit_chunck(stream, chunk2, chunk_size);
+
+    REQUIRE(stream);
+    REQUIRE(!stream->error);
+    REQUIRE(stream->memory);
+    REQUIRE(stream->L == 2*chunk_size);
+    REQUIRE(((uchar*)stream->memory)[4] == 4);
+    REQUIRE(((uchar*)stream->memory)[5] == 3);
+    REQUIRE(((uchar*)stream->memory)[6] == 2);
+    REQUIRE(((uchar*)stream->memory)[7] == 1);
+
+    emit_chunck(stream, chunk2, chunk_size);
+
+    REQUIRE(stream);
+    REQUIRE(stream->error);
+    REQUIRE(stream->Lmax == 0);
+
+    free(stream);
+}
