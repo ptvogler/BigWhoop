@@ -383,7 +383,7 @@ void quantize_sample(bwc_raw *nu, uint8 *sigma, bwc_sample const *const sample,
   \*--------------------------------------------------------*/
   sign = sample->raw & SIGN;
   smp  = (bwc_sample)(sample->raw & sign_mask);
-  temp = (bwc_raw)(smp.f * qt_scale);
+  temp = (bwc_raw)floor(smp.f * qt_scale);
 
   /*--------------------------------------------------------*\
   ! Save the unsigned wavelet coefficient for distortion     !

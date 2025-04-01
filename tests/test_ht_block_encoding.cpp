@@ -47,6 +47,8 @@
 
 #include <cstdint>
 
+#include <limits.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -57,48 +59,70 @@ extern "C"
 }
 #endif
 
-TEST_CASE("Quantize a individual samples", "[quantize_sample]")
+TEST_CASE ("Quantize individual samples", "[quantize_sample]")
 {
 
-  bwc_raw   sign_mask = ~(static_cast<bwc_raw>(0x01) << PREC_BIT);
-  bwc_float qt_scale  = static_cast<bwc_float>(0.125);
+  bwc_raw   sign_mask = ~(static_cast<bwc_raw> (0x01) << PREC_BIT);
+  bwc_float qt_scale  = static_cast<bwc_float> (0.125);
 
-  std::vector<bwc_sample> samples(8);
-  std::vector<bwc_raw>    nu(8, static_cast<bwc_raw>(0));
-  std::vector<uint8>      sigma(8, static_cast<uint8>(0));
+  std::vector<bwc_sample> samples (13);
+  std::vector<bwc_raw>    nu (13, static_cast<bwc_raw> (0));
+  std::vector<uint8>      sigma (13, static_cast<uint8> (0));
 
-  samples[0].f = static_cast<bwc_float>(-832.0);
-  samples[1].f = static_cast<bwc_float>(832.0);
-  samples[2].f = static_cast<bwc_float>(83279793.0);
-  samples[3].f = static_cast<bwc_float>(-83279793.0);
-  samples[4].f = static_cast<bwc_float>(8327979349850341.0);
-  samples[5].f = static_cast<bwc_float>(-8327979349850341.0);
-  samples[6].f = static_cast<bwc_float>(-0.0);
-  samples[7].f = static_cast<bwc_float>(0.0);
+  samples[0].f = static_cast<bwc_float> (-832.0);
+  samples[1].f = static_cast<bwc_float> (832.0);
+  samples[2].f = static_cast<bwc_float> (83279793.0);
+  samples[3].f = static_cast<bwc_float> (-83279793.0);
+  samples[4].f = static_cast<bwc_float> (8327979349850341.0);
+  samples[5].f = static_cast<bwc_float> (-8327979349850341.0);
+  samples[6].f = static_cast<bwc_float> (-0.0);
+  samples[7].f = static_cast<bwc_float> (0.0);
+  samples[8].f = static_cast<bwc_float> (UINT64_MAX);
+  // Note, tricky test: INT64_MAX 9223372036854775807 is not representable
+  // as floating point value. After casting the actual value is 9223372036854775808
+  samples[9].f  = static_cast<bwc_float> (INT64_MAX);
+  samples[10].f = static_cast<bwc_float> (INT64_MIN);
+  samples[11].f = static_cast<bwc_float> (1.0 / qt_scale);
+  samples[12].f = static_cast<bwc_float> (FLT_MIN);
 
-  quantize_sample(&nu[0], &sigma[0], &samples[0], sign_mask, qt_scale);
-  quantize_sample(&nu[1], &sigma[1], &samples[1], sign_mask, qt_scale);
-  quantize_sample(&nu[2], &sigma[2], &samples[2], sign_mask, qt_scale);
-  quantize_sample(&nu[3], &sigma[3], &samples[3], sign_mask, qt_scale);
-  quantize_sample(&nu[4], &sigma[4], &samples[4], sign_mask, qt_scale);
-  quantize_sample(&nu[5], &sigma[5], &samples[5], sign_mask, qt_scale);
-  quantize_sample(&nu[6], &sigma[6], &samples[6], sign_mask, qt_scale);
-  quantize_sample(&nu[7], &sigma[7], &samples[7], sign_mask, qt_scale);
+  quantize_sample (&nu[0], &sigma[0], &samples[0], sign_mask, qt_scale);
+  quantize_sample (&nu[1], &sigma[1], &samples[1], sign_mask, qt_scale);
+  quantize_sample (&nu[2], &sigma[2], &samples[2], sign_mask, qt_scale);
+  quantize_sample (&nu[3], &sigma[3], &samples[3], sign_mask, qt_scale);
+  quantize_sample (&nu[4], &sigma[4], &samples[4], sign_mask, qt_scale);
+  quantize_sample (&nu[5], &sigma[5], &samples[5], sign_mask, qt_scale);
+  quantize_sample (&nu[6], &sigma[6], &samples[6], sign_mask, qt_scale);
+  quantize_sample (&nu[7], &sigma[7], &samples[7], sign_mask, qt_scale);
+  quantize_sample (&nu[8], &sigma[8], &samples[8], sign_mask, qt_scale);
+  quantize_sample (&nu[9], &sigma[9], &samples[9], sign_mask, qt_scale);
+  quantize_sample (&nu[10], &sigma[10], &samples[10], sign_mask, qt_scale);
+  quantize_sample (&nu[11], &sigma[11], &samples[11], sign_mask, qt_scale);
+  quantize_sample (&nu[12], &sigma[12], &samples[12], sign_mask, qt_scale);
 
-  REQUIRE(nu[0] == 207);
-  REQUIRE(sigma[0] == 1);
-  REQUIRE(nu[1] == 206);
-  REQUIRE(sigma[1] == 1);
-  REQUIRE(nu[2] == 20819946);
-  REQUIRE(sigma[2] == 1);
-  REQUIRE(nu[3] == 20819947);
-  REQUIRE(sigma[3] == 1);
-  REQUIRE(nu[4] == 2081994837462582);
-  REQUIRE(sigma[4] == 1);
-  REQUIRE(nu[5] == 2081994837462583);
-  REQUIRE(sigma[5] == 1);
-  REQUIRE(nu[6] == 0);
-  REQUIRE(sigma[6] == 0);
-  REQUIRE(nu[7] == 0);
-  REQUIRE(sigma[7] == 0);
+  REQUIRE (nu[0] == 207);
+  REQUIRE (sigma[0] == 1);
+  REQUIRE (nu[1] == 206);
+  REQUIRE (sigma[1] == 1);
+  REQUIRE (nu[2] == 20819946);
+  REQUIRE (sigma[2] == 1);
+  REQUIRE (nu[3] == 20819947);
+  REQUIRE (sigma[3] == 1);
+  REQUIRE (nu[4] == 2081994837462582);
+  REQUIRE (sigma[4] == 1);
+  REQUIRE (nu[5] == 2081994837462583);
+  REQUIRE (sigma[5] == 1);
+  REQUIRE (nu[6] == 0);
+  REQUIRE (sigma[6] == 0);
+  REQUIRE (nu[7] == 0);
+  REQUIRE (sigma[7] == 0);
+  REQUIRE (nu[8] == 4611686018427387902);
+  REQUIRE (sigma[8] == 1);
+  REQUIRE (nu[9] == 2305843009213693950);
+  REQUIRE (sigma[9] == 1);
+  REQUIRE (nu[10] == 2305843009213693951);
+  REQUIRE (sigma[10] == 1);
+  REQUIRE (nu[11] == 0);
+  REQUIRE (sigma[11] == 1);
+  REQUIRE (nu[12] == 0);
+  REQUIRE (sigma[12] == 0);
 }
