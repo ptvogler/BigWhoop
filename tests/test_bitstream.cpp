@@ -57,18 +57,52 @@
 #endif
 
 TEST_CASE( "Bit stream initialization", "[init_bitstream]" ) {
-    constexpr uint32 size = 4;
+    uint32 size = 5;
     uchar inp_mem[size];
     inp_mem[0] = 1;
     inp_mem[1] = 2;
     inp_mem[2] = 3;
     inp_mem[3] = 4;
+    inp_mem[4] = 44;
     char instr = 'c';
+    bitstream *stream;
 
-    bitstream *stream = init_bitstream(inp_mem, size, instr);
+    stream = init_bitstream(inp_mem, size, instr);
 
+    REQUIRE(stream);
+    REQUIRE(stream->memory);
+    REQUIRE(stream->Lmax == size);
+    REQUIRE(stream->size_incr == size/2);
     REQUIRE(((uchar*)stream->memory)[0] == 1);
     REQUIRE(((uchar*)stream->memory)[1] == 2);
     REQUIRE(((uchar*)stream->memory)[2] == 3);
     REQUIRE(((uchar*)stream->memory)[3] == 4);
+    REQUIRE(((uchar*)stream->memory)[4] == 44);
+    REQUIRE(stream->t == 8);
+    REQUIRE(stream->L == 0);
+    REQUIRE(stream->L == bytes_used(stream));
+    REQUIRE(stream->T == 0);
+    REQUIRE(stream->error == 0);
+
+    free(stream);
+
+    instr = 'd';
+    stream = init_bitstream(inp_mem, size, instr);
+
+    REQUIRE(stream);
+    REQUIRE(stream->memory);
+    REQUIRE(stream->Lmax == size);
+    REQUIRE(stream->size_incr == size/2);
+    REQUIRE(((uchar*)stream->memory)[0] == 1);
+    REQUIRE(((uchar*)stream->memory)[1] == 2);
+    REQUIRE(((uchar*)stream->memory)[2] == 3);
+    REQUIRE(((uchar*)stream->memory)[3] == 4);
+    REQUIRE(((uchar*)stream->memory)[4] == 44);
+    REQUIRE(stream->t == 0);
+    REQUIRE(stream->L == 0);
+    REQUIRE(stream->L == bytes_used(stream));
+    REQUIRE(stream->T == 0);
+    REQUIRE(stream->error == 0);
+
+    free(stream);
 }
