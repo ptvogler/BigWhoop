@@ -172,3 +172,56 @@ TEST_CASE( "Pass chunk to bitstream", "[emit_chunck]" ) {
 
     free(stream);
 }
+
+TEST_CASE( "Pass symbol to bitstream", "[emit_symbol]" ) {
+    // Variables for stream creation
+    uint32 size = 10;
+    uchar inp_mem[size] = {0};
+    uint32 symbol;
+    char instr = 'c';
+    bitstream *stream;
+
+    // Variables for testing
+    int i = 0;
+    uint8 byte;
+    uint32 test_symbol = 0;
+
+    // bitstream initialization
+    stream = init_bitstream(inp_mem, size, instr);
+
+    // Test stream validity & first symbol in stream
+    symbol = UINT32_MAX;
+    emit_symbol(stream, symbol, sizeof(symbol));
+    for(i = sizeof(symbol), test_symbol = 0; i > 0; --i)
+    {
+      byte    = (uint8)stream->memory[sizeof(symbol)-i];
+      test_symbol |= ((uint64)byte << ((i-1) * 8));
+    }
+    REQUIRE(stream);
+    REQUIRE(!stream->error);
+    REQUIRE(stream->memory);
+    REQUIRE(stream->L == sizeof(symbol));
+    REQUIRE(test_symbol == symbol);
+
+    // Test stream validity & second symbol in stream
+    symbol = (uint32)31415;
+    emit_symbol(stream, symbol, sizeof(symbol));
+    for(i = sizeof(symbol), test_symbol = 0; i > 0; --i)
+    {
+      byte    = (uint8)stream->memory[2*sizeof(symbol) - i];
+      test_symbol |= ((uint64)byte << ((i-1) * 8));
+    }
+    REQUIRE(stream);
+    REQUIRE(!stream->error);
+    REQUIRE(stream->memory);
+    REQUIRE(stream->L == 2*sizeof(symbol));
+    REQUIRE(test_symbol == symbol);
+
+    // Test invalidation of stream
+    emit_symbol(stream, symbol, sizeof(symbol));
+    REQUIRE(stream);
+    REQUIRE(stream->error);
+    REQUIRE(stream->Lmax == 0);
+
+    free(stream);
+}
