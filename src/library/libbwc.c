@@ -70,6 +70,7 @@
 #include "dwt.h"
 //#include "tier1.h"
 #include "ht_block_encoding.h"
+#include "ht_block_decoding.h"
 #include "tier2.h"
 #include "tagtree.h"
 

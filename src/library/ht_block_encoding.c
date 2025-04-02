@@ -1039,8 +1039,3 @@ uchar t1_encode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *con
 
   return 0;
 }
-
-uchar t1_decode(bwc_codec *const codec, bwc_tile *const tile, bwc_parameter *const parameter)
-{
-  return 0;
-}
