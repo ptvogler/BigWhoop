@@ -59,6 +59,29 @@ extern "C"
 }
 #endif
 
+TEST_CASE("Test initialization of MEL buffer", "[mel_init]")
+{
+  uint32 buffer_size = 4;
+  uint8 *data = (uint8*)calloc(buffer_size, sizeof(uint8));
+
+  mel_struct mel;
+  mel_init(&mel, buffer_size, data);
+
+  REQUIRE(mel.buf[0] == 0);
+  REQUIRE(mel.buf[1] == 0);
+  REQUIRE(mel.buf[2] == 0);
+  REQUIRE(mel.buf[3] == 0);
+  REQUIRE(mel.pos == 0);
+  REQUIRE(mel.buf_size == buffer_size);
+  REQUIRE(mel.k == 0);
+  REQUIRE(mel.run == 0);
+  REQUIRE(mel.threshold == 1);
+  REQUIRE(mel.remaining_bits == 8);
+  REQUIRE(mel.tmp == 0);
+
+  free(data);
+}
+
 TEST_CASE ("Quantize individual samples", "[quantize_sample]")
 {
 

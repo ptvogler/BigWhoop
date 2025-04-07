@@ -110,36 +110,6 @@ uint8 count_leading_zeros(const bwc_raw x)
   return (x == 0) ? (PREC_BIT + 1) : y;
 }
 
-typedef struct mel_struct
-{
-  //storage
-  uint8 *buf;         //pointer to data buffer
-  uint32 pos;         //position of next writing within buf
-  uint32 buf_size;    //size of buffer, which we must not exceed
-
-  // all these can be replaced by bytes
-  int8  k;                 //state
-  uint8 run;               //number of 0 run
-  uint8 threshold;         //threshold
-  uint8 remaining_bits;    //number of empty bits in tmp
-  uint8 tmp;               //temporary storage of coded bits
-} mel_struct;
-
-struct dec_mel_st
-{
-  // data decoding machinery
-  uint8 *buf;        //!<the address of data (or bitstream)
-  uint64 tmp;        //!<temporary buffer for read data
-  int    bits;       //!<number of bits stored in tmp
-  int    size;       //!<number of bytes in MEL code
-  bool   unstuff;    //!<true if the next bit needs to be unstuffed
-  int    k;          //!<state of MEL decoder
-
-  // queue of decoded runs
-  int    num_runs;    //!<number of decoded runs left in runs (maximum 8)
-  uint64 runs;        //!<runs of decoded MEL codewords (7 bits/run)
-};
-
 void mel_init(mel_struct *mel, uint32 buffer_size, uint8 *data)
 {
   static const int mel_exp[13] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5};
