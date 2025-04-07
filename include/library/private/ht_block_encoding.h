@@ -124,6 +124,9 @@
                                            uint32                               buffer_size,
                                            uint8                        *       data);
   //==========|==========================|======================|======|=======|====================
+  void         mel_emit_bit               (mel_struct                   *       mel,
+                                           int                                  v);
+  //==========|==========================|======================|======|=======|====================
   void         quantize_sample            (bwc_raw                      *       nu,
                                            uint8                        *       sigma,
                                            bwc_sample            const  *const  sample,

@@ -82,6 +82,62 @@ TEST_CASE("Test initialization of MEL buffer", "[mel_init]")
   free(data);
 }
 
+TEST_CASE("Test bit emission to MEL buffer", "[mel_emit_bit]")
+{
+  uint32 buffer_size = 4;
+  uint8 *data = (uint8*)calloc(buffer_size, sizeof(uint8));
+
+  mel_struct mel;
+  mel_init(&mel, buffer_size, data);
+
+  int seq_size = 8;
+  std::vector<int> bit_seq(seq_size, 0);
+
+  // Emit 0's into first byte;
+  for (int i = 0; i < seq_size; ++i)
+  {
+    mel_emit_bit(&mel, bit_seq[i]);
+    REQUIRE(mel.tmp == 0);
+  }
+  REQUIRE(mel.pos == 1);
+  REQUIRE(mel.remaining_bits == 8);
+  REQUIRE(mel.buf[mel.pos-1] == 0);
+
+  // Emit arbitrary bits into second buffer
+  bit_seq = {1,0,1,0,1,0,1,0};
+  for (int i = 0; i < seq_size; ++i)
+  {
+    mel_emit_bit(&mel, bit_seq[i]);
+  }
+  REQUIRE(mel.tmp == 0);
+  REQUIRE(mel.pos == 2);
+  REQUIRE(mel.buf[mel.pos-1] == 0xAA);
+
+  // Emit 0xFF byte;
+  bit_seq = {1,1,1,1,1,1,1,1};
+  for (int i = 0; i < seq_size; ++i)
+  {
+    mel_emit_bit(&mel, bit_seq[i]);
+  }
+  REQUIRE(mel.tmp == 0);
+  REQUIRE(mel.pos == 3);
+  REQUIRE(mel.remaining_bits == 7);
+  REQUIRE(mel.buf[mel.pos-1] == 0xFF);
+
+  // When previous byte is 0xFF
+  // only 7 bits will be stored in the next
+  // byte prepended by a 0 bit.
+  for (int i = 0; i < seq_size-1; ++i)
+  {
+    mel_emit_bit(&mel, bit_seq[i]);
+  }
+  REQUIRE(mel.tmp == 0);
+  REQUIRE(mel.pos == 4);
+  REQUIRE(mel.remaining_bits == 8);
+  REQUIRE(mel.buf[mel.pos-1] == 0x7F);
+}
+
+
 TEST_CASE ("Quantize individual samples", "[quantize_sample]")
 {
 
