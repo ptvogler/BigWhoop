@@ -16,8 +16,9 @@
 /**                                                                                               
  *        @file   H5Zbwc.c
  *
- *       |                                                                                |
- *        DETAILED DESCRIPTION NEEDED
+ *        This code aims to expose the HDF5 library to the compression functionality of
+ *        BigWhoop. The work is based on the internal filter options of HDF5 and is not
+ *        intended to plagiarize, but to respect its coding paradigm.
  *                                                                                                */
 /*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
@@ -49,6 +50,7 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+#include "H5Zmodule.h"                                  //!< H5Z module
 #include "H5private.h"                                  //!< Generic Functions
 #include "H5Eprivate.h"                                 //!< Error handling
 #include "H5Fprivate.h"                                 //!< File access
@@ -60,9 +62,11 @@
 #include "H5Tprivate.h"                                 //!< Datatypes
 #include "H5Zpkg.h"                                     //!< Data filters
 
-#ifdef H5_HAVE_FILTER_SZIP
+#include "H5Zbwc_sup.h"
+
+#ifdef H5_HAVE_FILTER_BWC
   
-  #ifdef H5_HAVE_SZLIB_H
+  #ifdef H5_HAVE_BWC_H
     #include "bwc.h"
   #endif
 
@@ -88,17 +92,17 @@
   \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
   //==========|==========================|======================|======|=======|====================
   static 
-  htri_t       H5Z_can_apply_bwc          (hid_t                                dcpl_id,
+  htri_t       H5Z__can_apply_bwc         (hid_t                                dcpl_id,
                                            hid_t                                type_id,
                                            hid_t                                space_id);
   //==========|==========================|======================|======|=======|====================
   static 
-  herr_t       H5Z_set_local_bwc          (hid_t                                dcpl_id,
+  herr_t       H5Z__set_local_bwc         (hid_t                                dcpl_id,
                                            hid_t                                type_id,
                                            hid_t                                space_id);
   //==========|==========================|======================|======|=======|====================
   static 
-  size_t       H5Z_filter_bwc             (unsigned int                         flags,
+  size_t       H5Z__filter_bwc            (unsigned int                         flags,
                                            size_t                               cd_nelmts,
                                            unsigned int                 const   cd_values[],
                                            size_t                               nbytes, 
@@ -123,9 +127,9 @@
     1,                                                  //!< Encoder present flag (set to true)
     1,                                                  //!< Decoder present flag (set to true)
     "bwc",                                              //!< Filter name for debugging
-    H5Z_can_apply_bwc,                                  //!< The "can apply" callback
-    H5Z_set_local_bwc,                                  //!< The "set local" callback
-    H5Z_filter_bwc,                                     //!< The actual filter function
+    H5Z__can_apply_bwc,                                 //!< The "can apply" callback
+    H5Z__set_local_bwc,                                 //!< The "set local" callback
+    H5Z__filter_bwc,                                    //!< The actual filter function
   }};
 
 
@@ -152,9 +156,9 @@
    */
   /*==============================================================================================*/
   static htri_t
-  H5Z_can_apply_bwc(hid_t H5_ATTR_UNUSED dcpl_id, 
-                    hid_t                type_id, 
-                    hid_t H5_ATTR_UNUSED space_id)
+  H5Z__can_apply_bwc(hid_t H5_ATTR_UNUSED dcpl_id, 
+                     hid_t                type_id, 
+                     hid_t H5_ATTR_UNUSED space_id)
   {
     /*-----------------------*\
     ! DEFINE INT VARIABLES:   !
@@ -165,7 +169,7 @@
 
     unsigned int            dtype_ndims;
     unsigned int            dtype_udims;
-    unsigned int            dtype_size;
+    size_t                  dtype_size;
 
     unsigned int            i;
 
@@ -182,12 +186,12 @@
     /* Determines class and size of the data type and checks  *
      * whether they are valid for the BigWhoop library.       */
     if ((dtype_class = H5Tget_class(type_id)) == H5T_NO_CLASS)
-      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL,
         "bad datatype class")
 
     if (dtype_class != H5T_FLOAT)
       HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FALSE, 
-        "only supports the H5T_FLOAT datatype class")
+        "BigWhoop only supports the H5T_FLOAT datatype class")
 
     if ((dtype_size = H5Tget_size(type_id)) == 0)
       HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
@@ -195,7 +199,7 @@
 
     if (dtype_size != 4 && dtype_size != 8)
       HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FALSE, 
-        "only supports 4- or 8-byte floating point values")
+        "BigWhoop only supports 4- or 8-byte floating point values")
 
 
     /* Determin the number of non-unity dimensions and check  *
@@ -212,7 +216,7 @@
 
     if ((dtype_udims <= 1) || (dtype_udims > 4))
       HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FALSE, 
-        "only supports 2 to 4 non-unity dimensions")
+        "BigWhoop only supports 2 to 4 non-unity dimensions")
 
 
     /* Make sure that the endianess is consistent between the *
@@ -252,206 +256,103 @@
    */
   /*==============================================================================================*/
   static herr_t
-  H5Z_set_local_bwc(hid_t dcpl_id,
-                    hid_t type_id,
-                    hid_t space_id)
+  H5Z__set_local_bwc(hid_t dcpl_id,
+                     hid_t type_id,
+                     hid_t space_id)
   {
     /*-----------------------*\
     ! DEFINE INT VARIABLES:   !
     \*-----------------------*/
     herr_t                  ret_value = SUCCEED;
 
+    size_t                  cd_nelmts = H5Z_SZIP_USER_NPARMS;
+    unsigned int            cd_values[H5Z_SZIP_TOTAL_NPARMS];
+
+    hid_t                   ntype_id;
+    hsize_t                 dtype_dims[H5S_MAX_RANK];
+
+    unsigned int            dtype_ndims;
+    unsigned int            dtype_udims;
+    unsigned int            dtype_size;
+
+    unsigned int            i;
+
     /*-----------------------*\
     ! DEFINE STRUCTS:         !
     \*-----------------------*/
 
-  if (0 > (dclass = H5Tget_class(type_id)))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_ARGS, H5E_BADTYPE, -1, "not a datatype");
+    const H5T_t    *type;                             /* Datatype */
+    const H5S_t    *ds;                               /* Dataspace */
+    unsigned        flags;                            /* Filter flags */
+    hsize_t         dims[H5O_LAYOUT_NDIMS];           /* Dataspace (i.e. chunk) dimensions */
+    size_t          dtype_size;                       /* Datatype's size (in bits) */
+    size_t          dtype_precision;                  /* Datatype's precision (in bits) */
+    hsize_t         scanline;                         /* Size of dataspace's fastest changing dimension */
 
-    if (0 == (dsize = H5Tget_size(type_id)))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_ARGS, H5E_BADTYPE, -1, "not a datatype");
+    FUNC_ENTER_PACKAGE
 
-    if (0 > (ndims = H5Sget_simple_extent_dims(chunk_space_id, dims, 0)))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_ARGS, H5E_BADTYPE, -1, "not a data space");
 
-    /* setup zfp data type for meta header */
-    if (dclass == H5T_FLOAT)
-    {
-        if (dsize == sizeof(float))
-            zt = zfp_type_float;
-        else if (dsize == sizeof(double))
-            zt = zfp_type_double;
-        else
-            H5Z_ZFP_PUSH_AND_GOTO(H5E_ARGS, H5E_BADTYPE, -1, "invalid datatype size");
-    }
-    else
-    {
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADTYPE, 0,
-            "datatype class must be H5T_FLOAT or H5T_INTEGER");
-    }
+    /* Determines class and size of the data type and checks  *
+     * whether they are valid for the BigWhoop library.       */
+    if ((dtype_class = H5Tget_class(type_id)) == H5T_NO_CLASS)
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL,
+        "bad datatype class")
 
-    /* computed used (e.g. non-unity) dimensions in chunk */
-    for (i = 0; i < ndims; i++)
-    {
-        if (dims[i] <= 1) continue;
-        dims_used[ndims_used] = dims[i];
-        ndims_used++;
-    }
+    if (dtype_class != H5T_FLOAT)
+      HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
+        "BigWhoop only supports the H5T_FLOAT datatype class")
 
-    /* set up dummy zfp field to compute meta header */
-    switch (ndims_used)
-    {
-        case 1: dummy_field = Z zfp_field_1d(0, zt, dims_used[0]); break;
-        case 2: dummy_field = Z zfp_field_2d(0, zt, dims_used[1], dims_used[0]); break;
-        case 3: dummy_field = Z zfp_field_3d(0, zt, dims_used[2], dims_used[1], dims_used[0]); break;
-#if ZFP_VERSION_NO >= 0x0540
-        case 4: dummy_field = Z zfp_field_4d(0, zt, dims_used[3], dims_used[2], dims_used[1], dims_used[0]); break;
-#endif
-#if ZFP_VERSION_NO < 0x0530
-        default: H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADVALUE, 0,
-                     "chunks may have only 1...3 non-unity dims");
-#else
-        default: H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADVALUE, 0,
-                     "chunks may have only 1...4 non-unity dims");
-#endif
-    }
-    if (!dummy_field)
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_RESOURCE, H5E_NOSPACE, 0, "zfp_field_Xd() failed");
+    if ((dtype_size = H5Tget_size(type_id)) == 0)
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
+        "bad datatype size")
 
-    /* get current cd_values and re-map to new cd_value set */
-    if (0 > H5Pget_filter_by_id(dcpl_id, H5Z_FILTER_ZFP, &flags, &mem_cd_nelmts, mem_cd_values, 0, NULL, NULL))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_CANTGET, 0, "unable to get current ZFP cd_values");
+    if (dtype_size != 4 && dtype_size != 8)
+      HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
+        "BigWhoop only supports 4- or 8-byte floating point values")
 
-    /* Handle default case when no cd_values are passed by using ZFP library defaults. */
-    if (mem_cd_nelmts == 0)
-    {
-        /* check for filter controls in the properites */
-        if (0 < H5Pexist(dcpl_id, "zfp_controls"))
-        {
-            if (0 > H5Pget(dcpl_id, "zfp_controls", &ctrls))
-                H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_CANTGET, 0, "unable to get ZFP controls");
-            have_zfp_controls = 1;
-        }
-        else /* just use ZFP library defaults */
-        {
-            mem_cd_nelmts = H5Z_ZFP_CD_NELMTS_MEM;
-            H5Pset_zfp_expert_cdata(ZFP_MIN_BITS, ZFP_MAX_BITS, ZFP_MAX_PREC, ZFP_MIN_EXP, mem_cd_nelmts, mem_cd_values);
-        }
-    }
-        
-    /* Into hdr_cd_values, we encode ZFP library and H5Z-ZFP plugin version info at
-       entry 0 and use remaining entries as a tiny buffer to write ZFP native header. */
-    hdr_cd_values[0] = (unsigned int) ((ZFP_VERSION_NO<<16) | (ZFP_CODEC<<12) | H5Z_FILTER_ZFP_VERSION_NO);
-    if (0 == (dummy_bstr = B stream_open(&hdr_cd_values[1], sizeof(hdr_cd_values))))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_RESOURCE, H5E_NOSPACE, 0, "stream_open() failed");
 
-    if (0 == (dummy_zstr = Z zfp_stream_open(dummy_bstr)))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_RESOURCE, H5E_NOSPACE, 0, "zfp_stream_open() failed");
+    /* Determin the number of non-unity dimensions and check  *
+     * whether this is valid for the BigWhoop library.        */
+    if ((dtype_ndims = H5Sget_simple_extent_dims(space_id, dtype_dims, NULL)) < 0)
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
+        "bad datatype dimension")
 
-    /* Set the ZFP stream mode from zfp_control properties or mem_cd_values[0] */
-    if (have_zfp_controls)
-    {
-        switch (ctrls.mode)
-        {
-            case H5Z_ZFP_MODE_RATE:
-                Z zfp_stream_set_rate(dummy_zstr, ctrls.details.rate, zt, ndims_used, 0);
-                break;
-            case H5Z_ZFP_MODE_PRECISION:
-#if ZFP_VERSION_NO < 0x0510
-                Z zfp_stream_set_precision(dummy_zstr, ctrls.details.prec, zt);
-#else
-                Z zfp_stream_set_precision(dummy_zstr, ctrls.details.prec);
-#endif
-                break;
-            case H5Z_ZFP_MODE_ACCURACY:
-#if ZFP_VERSION_NO < 0x0510
-                Z zfp_stream_set_accuracy(dummy_zstr, ctrls.details.acc, zt);
-#else
-                Z zfp_stream_set_accuracy(dummy_zstr, ctrls.details.acc);
-#endif
-                break;
-            case H5Z_ZFP_MODE_EXPERT:
-                Z zfp_stream_set_params(dummy_zstr, ctrls.details.expert.minbits,
-                    ctrls.details.expert.maxbits, ctrls.details.expert.maxprec,
-                    ctrls.details.expert.minexp);
-                break;
-#if ZFP_VERSION_NO >= 0x0550
-            case H5Z_ZFP_MODE_REVERSIBLE:
-                Z zfp_stream_set_reversible(dummy_zstr);
-                break;
-#endif
-            default:
-                H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADVALUE, 0, "invalid ZFP mode");
-        }
-    }
-    else
-    {
-        switch (mem_cd_values[0])
-        {
-            case H5Z_ZFP_MODE_RATE:
-                Z zfp_stream_set_rate(dummy_zstr, *((double*) &mem_cd_values[2]), zt, ndims_used, 0);
-                break;
-            case H5Z_ZFP_MODE_PRECISION:
-#if ZFP_VERSION_NO < 0x0510
-                Z zfp_stream_set_precision(dummy_zstr, mem_cd_values[2], zt);
-#else
-                Z zfp_stream_set_precision(dummy_zstr, mem_cd_values[2]);
-#endif
-                break;
-            case H5Z_ZFP_MODE_ACCURACY:
-#if ZFP_VERSION_NO < 0x0510
-                Z zfp_stream_set_accuracy(dummy_zstr, *((double*) &mem_cd_values[2]), zt);
-#else
-                Z zfp_stream_set_accuracy(dummy_zstr, *((double*) &mem_cd_values[2]));
-#endif
-                break;
-            case H5Z_ZFP_MODE_EXPERT:
-                Z zfp_stream_set_params(dummy_zstr, mem_cd_values[2], mem_cd_values[3],
-                    mem_cd_values[4], (int) mem_cd_values[5]);
-                break;
-#if ZFP_VERSION_NO >= 0x0550
-            case H5Z_ZFP_MODE_REVERSIBLE:
-                Z zfp_stream_set_reversible(dummy_zstr);
-                break;
-#endif
-            default:
-                H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADVALUE, 0, "invalid ZFP mode");
-        }
-    }
+    for (i = 0, dtype_udims = 0; i < dtype_ndims; ++i)
+      {
+        if (dtype_dims[i] > 1)
+          dtype_udims++;
+      }
 
-    /* Use ZFP's write_header method to write the ZFP header into hdr_cd_values array */
-    if (0 == (hdr_bits = Z zfp_write_header(dummy_zstr, dummy_field, ZFP_HEADER_FULL)))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_CANTINIT, 0, "unable to write header");
+    if ((dtype_udims <= 1) || (dtype_udims > 4))
+      HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
+        "BigWhoop only supports 2 to 4 non-unity dimensions")
 
-    /* Flush the ZFP stream */
-    Z zfp_stream_flush(dummy_zstr);
 
-    /* compute necessary hdr_cd_values size */
-    hdr_bytes     = 1 + ((hdr_bits  - 1) / 8);
-    hdr_cd_nelmts = 1 + ((hdr_bytes - 1) / sizeof(hdr_cd_values[0]));
-    hdr_cd_nelmts++; /* for slot 0 holding version info */
+    /* Make sure that the endianess is consistent between the *
+     * datatype and native type.                              */
+    if((ntype_id = H5Tget_native_type(type_id, H5T_DIR_ASCEND)) == H5I_INVALID_HID)
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
+        "bad native datatype")
+ 
+    if ((dtype_order = H5Tget_order(type_id)) == H5T_ORDER_ERROR)
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
+        "can't retrieve datatype endianness order")
 
-    if (hdr_cd_nelmts > H5Z_ZFP_CD_NELMTS_MAX)
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADVALUE, -1, "buffer overrun in hdr_cd_values");
+    if ((ntype_order = H5Tget_order(ntype_id)) == H5T_ORDER_ERROR)
+      HGOTO_ERROR(H5E_PLINE, H5E_BADTYPE, FAIL, 
+        "can't retrieve native type endianness order")
 
-    /* Now, update cd_values for the filter */
-    if (0 > H5Pmodify_filter(dcpl_id, H5Z_FILTER_ZFP, flags, hdr_cd_nelmts, hdr_cd_values))
-        H5Z_ZFP_PUSH_AND_GOTO(H5E_PLINE, H5E_BADVALUE, 0,
-            "failed to modify cd_values");
+    if (dtype_order != ntype_order)
+      HGOTO_ERROR(H5E_ARGS, H5E_BADVALUE, FAIL, 
+        "BigWhoop does not allow for endian targetting")
 
-    /* cleanup the dummy ZFP stuff we used to generate the header */
-    Z zfp_field_free(dummy_field); dummy_field = 0;
-    Z zfp_stream_close(dummy_zstr); dummy_zstr = 0;
-    B stream_close(dummy_bstr); dummy_bstr = 0;
 
-    retval = 1;
+    /* Determines class and size of the data type and checks  *
+     * whether they are valid for the BigWhoop library.       */
+    if (H5Pget_filter_by_id(dcpl_id, H5Z_FILTER_BWC, &flags, &cd_nelmts, cd_values, 0, NULL, NULL) < 0)
+      HGOTO_ERROR(H5E_PLINE, H5E_CANTGET, FAIL, 
+        "can't get bwc parameters");
 
-done:
-
-    if (dummy_field) Z zfp_field_free(dummy_field);
-    if (dummy_zstr) Z zfp_stream_close(dummy_zstr);
-    if (dummy_bstr) B stream_close(dummy_bstr);
-    return retval;
   done:
       FUNC_LEAVE_NOAPI(ret_value)
   }
@@ -470,7 +371,7 @@ done:
    */
   /*==============================================================================================*/
   static size_t
-  H5Z_filter_szip(unsigned int          flags, 
+  H5Z__filter_bwc(unsigned int          flags, 
                   size_t                cd_nelmts,
                   unsigned int  const   cd_values[], 
                   size_t                nbytes,

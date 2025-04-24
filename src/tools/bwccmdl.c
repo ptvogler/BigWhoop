@@ -1412,7 +1412,7 @@ int main(int argc, char *argv[])
         }
 
       /* Evaluate the input and output buffer size and initial- *
-       * size the BigWhoop data and coder structs.              */
+       * ize the BigWhoop data and coder structs.               */
       size = data->params.ndim1 * data->params.ndim2 *
              data->params.ndim3 * data->params.nts   *
              data->params.npar;
