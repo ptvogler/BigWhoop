@@ -1657,7 +1657,11 @@ int main(int argc, char *argv[])
         }
 
       /* Retrieve header information and allocate output buffer. */
-      header = bwc_open_header(input);
+      if((header = bwc_open_header(input)) == NULL)
+      {
+        error_handle = EXIT_FAILURE;
+        goto OUT;
+      }
       size = header->info.nX * header->info.nY * header->info.nZ *
              header->info.nTS * header->info.nPar;
       if(header->info.data_prec == bwc_precision_double)
