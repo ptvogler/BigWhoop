@@ -597,7 +597,7 @@ assemble_tile(bwc_codec *const codec, bwc_tile *const tile, bitstream *const str
 !                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-bwc_codec*
+uchar
 parse_main_header(bwc_codec *const codec, bwc_stream *const data, bitstream *const stream)
 {
    /*-----------------------*\
@@ -653,6 +653,7 @@ parse_main_header(bwc_codec *const codec, bwc_stream *const data, bitstream *con
          // Invalid Codestream
          fprintf(stderr, CSERROR);
          status |= CODESTREAM_ERROR;
+         break;
       }
 
       switch(marker)
@@ -981,7 +982,7 @@ parse_main_header(bwc_codec *const codec, bwc_stream *const data, bitstream *con
                      }
                   }
                }
-               return codec;
+               return EXIT_SUCCESS;
             }
             else
             {
@@ -1020,7 +1021,7 @@ parse_main_header(bwc_codec *const codec, bwc_stream *const data, bitstream *con
       }
       index++;
    }
-   return NULL;
+   return EXIT_FAILURE;
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
@@ -1467,8 +1468,7 @@ parse_codestream(bwc_codec *const codec, bwc_stream *const data, uint8 const lay
    ! Parse the main header and set up the codec structure for !
    ! the current decompression run.                           !
    \*--------------------------------------------------------*/
-   parse_main_header(codec, data, stream);
-   if(!codec)
+   if(parse_main_header(codec, data, stream) == EXIT_FAILURE)
    {
       return NULL;
    }

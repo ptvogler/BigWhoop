@@ -2852,8 +2852,7 @@ bwc_header* bwc_open_header(void *const inpbuf)
    /*--------------------------------------------------------*\
    ! Parse the main header into the codec structure.          !
    \*--------------------------------------------------------*/
-   parse_main_header(codec, data, stream);
-   if(!codec)
+   if(parse_main_header(codec, data, stream) == EXIT_FAILURE)
    {
       return NULL;
    }
