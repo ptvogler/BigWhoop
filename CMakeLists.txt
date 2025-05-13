@@ -44,7 +44,7 @@
 #----------------------------------------------------------#
 # Check if the version requirement for cmake is met.       #
 #----------------------------------------------------------#
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.5.1...3.31.6)
 
 #----------------------------------------------------------#
 # Set the project name and description.                    #
