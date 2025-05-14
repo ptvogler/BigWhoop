@@ -1444,7 +1444,7 @@ assemble_codestream(bwc_codec *const codec, bwc_stream *const data)
 !                05.08.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
-bwc_codec*
+uchar
 parse_codestream(bwc_codec *const codec, bwc_stream *const data, uint8 const layer)
 {
    /*-----------------------*\
@@ -1470,7 +1470,7 @@ parse_codestream(bwc_codec *const codec, bwc_stream *const data, uint8 const lay
    \*--------------------------------------------------------*/
    if(parse_main_header(codec, data, stream) == EXIT_FAILURE)
    {
-      return NULL;
+      return EXIT_FAILURE;
    }
 
    /*--------------------------------------------------------*\
@@ -1499,7 +1499,7 @@ parse_codestream(bwc_codec *const codec, bwc_stream *const data, uint8 const lay
    if(parse_body(codec, stream))
    {
       bwc_free_codec(codec);
-      return NULL;
+      return EXIT_FAILURE;
    }
 
    /*--------------------------------------------------------*\
@@ -1508,5 +1508,5 @@ parse_codestream(bwc_codec *const codec, bwc_stream *const data, uint8 const lay
    \*--------------------------------------------------------*/
    free(stream);
 
-   return codec;
+   return EXIT_SUCCESS;
 }
