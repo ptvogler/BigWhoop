@@ -104,7 +104,7 @@
                                            bwc_stream                   *const data,
                                            bitstream                    *const stream);
   //==========|==========================|======================|======|======|=====================
-  bwc_codec*   parse_codestream           (bwc_codec                    *const  codec,
+  uchar        parse_codestream           (bwc_codec                    *const  codec,
                                            bwc_stream                   *const  stream,
                                            uint8                         const  layer);
 #endif
