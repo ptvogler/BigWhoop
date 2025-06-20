@@ -365,7 +365,7 @@ bwc_to_eas3(bwc_stream *const stream, eas3_data *const data)
    {
       // memory allocation error
       fprintf(stderr, MEMERROR);
-      free(buffer_char);
+      free(data->aux.ptr);
       return 1;
    }
    aux_dequeue(data->aux, buffer_char, params->nts * sizeof(uint64));
@@ -377,7 +377,7 @@ bwc_to_eas3(bwc_stream *const stream, eas3_data *const data)
       {
          // memory allocation error
          fprintf(stderr, MEMERROR);
-         free(buffer_char);
+         free(data->aux.ptr);
          return 1;
       }
       aux_dequeue(data->aux, buffer_char, params->nts * ATTRLEN * sizeof(char));
@@ -389,6 +389,7 @@ bwc_to_eas3(bwc_stream *const stream, eas3_data *const data)
          memset(param_name, 0, ATTRLEN + 1);
       }
    }
+   free(buffer_char);
 
    size = params->ndim1 * params->ndim2 * params->ndim3 *
           params->nts * params->npar;
@@ -397,12 +398,26 @@ bwc_to_eas3(bwc_stream *const stream, eas3_data *const data)
    {
      data->field.d = NULL;
      data->field.f = calloc(size, sizeof(float));
+     if(!data->field.f)
+      {
+       // memory allocation error
+       fprintf(stderr, MEMERROR);
+       free(data->aux.ptr);
+       return 1;
+      }
      memcpy(data->field.f, stream->out, size*sizeof(float));
    }
    else if(params->accuracy == 2)
    {
      data->field.f = NULL;
      data->field.d = calloc(size, sizeof(double));
+     if(!data->field.d)
+      {
+        // memory allocation error
+        fprintf(stderr, MEMERROR);
+        free(data->aux.ptr);
+        return 1;
+      }
      memcpy(data->field.d, stream->out, size*sizeof(double));
    }
 
@@ -891,7 +906,6 @@ write_eas3_header(FILE *const fp, eas3_data *const data)
             {
                // invalid read
                fprintf(stderr, WRTERROR);
-               free(buffer_char);
                return 1;
             }
 

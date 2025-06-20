@@ -1593,9 +1593,13 @@ int main(int argc, char *argv[])
         {
           output = calloc(size, sizeof(float));
         }
-      bwc_close_header(header);
 
-      printctrl(&header->control);
+      if(arguments.verbose == true)
+        {
+          printctrl(&header->control);
+        }
+
+      bwc_close_header(header);
 
       /* Initialize and run the decompression. */
       stream = bwc_init_stream(input, output, comp);
@@ -1730,9 +1734,9 @@ int main(int argc, char *argv[])
         {
           output = calloc(size, sizeof(float));
         }
-      bwc_close_header(header);
-
+        
       printctrl(&header->control);
+      bwc_close_header(header);
     }
   else
     {
@@ -1750,7 +1754,30 @@ OUT:
     eas3_free_data(ref_data);
 
   if (stream !=NULL)
-    free(stream);
+    {
+      if(stream->codestream.aux != NULL)
+        {
+          if(stream->codestream.aux->memory != NULL)
+            {
+              free(stream->codestream.aux->memory);
+            }
+          free(stream->codestream.aux);
+        }
+
+      if(stream->codestream.com != NULL)
+        {
+          if(stream->codestream.com->memory != NULL)
+            {
+              free(stream->codestream.com->memory);
+            }
+          free(stream->codestream.com);
+        }
+          
+      free(stream);
+    }
+
+  if (input != NULL && arguments.mode != cli_cmp)
+    free(input);
 
   if (output != NULL)
     free(output);

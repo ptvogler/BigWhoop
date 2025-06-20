@@ -2854,6 +2854,9 @@ bwc_header* bwc_open_header(void *const inpbuf)
    \*--------------------------------------------------------*/
    if(parse_main_header(codec, data, stream) == EXIT_FAILURE)
    {
+      bwc_free_codec(codec);
+      free(data);
+      free(stream);
       return NULL;
    }
 
@@ -2861,8 +2864,33 @@ bwc_header* bwc_open_header(void *const inpbuf)
    ! Allocate header and copy info and control structures.    !
    \*--------------------------------------------------------*/
    header = calloc(1, sizeof(bwc_header));
+   if(!header)
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      bwc_free_codec(codec);
+      free(data);
+      free(stream);
+      return NULL;
+   }
    header->info = codec->info;
    header->control = codec->control;
+
+   header->control.bitrate = calloc(header->control.nLayers, sizeof(float));
+   if(!header->control.bitrate)
+   {
+      // memory allocation error
+      fprintf(stderr, MEMERROR);
+      bwc_free_codec(codec);
+      free(data);
+      free(stream);
+      free(header);
+      return NULL;
+   }
+   memcpy(header->control.bitrate, 
+          codec->control.bitrate, 
+          header->control.nLayers * sizeof(float));
+   bwc_free_codec(codec);
 
    /*--------------------------------------------------------*\
    ! Shallow copy aux data to span.                           !
@@ -2882,9 +2910,14 @@ bwc_header* bwc_open_header(void *const inpbuf)
      header->com.size = data->codestream.com->size;
    }
 
+   if(data->codestream.aux != NULL)
+     free(data->codestream.aux);
+
+   if(data->codestream.com != NULL)
+     free(data->codestream.com);
+
    free(stream);
    free(data);
-   free(codec);
 
    return header;
 }
@@ -2908,6 +2941,10 @@ void bwc_close_header(bwc_header *const header)
      {
        free(header->com.memory);
      }
+     if (header->control.bitrate)
+     {
+      free(header->control.bitrate);
+     } 
      free(header);
    }
 }
