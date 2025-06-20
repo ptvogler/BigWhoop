@@ -1305,11 +1305,6 @@ static struct argp argp = {options, parse_opt, 0, doc, 0, 0, 0};
 int main(int argc, char *argv[])
 {
   /*-----------------------*\
-  ! DEFINE BOOL VARIABLES:  !
-  \*-----------------------*/
-  bool                    delim = false;
-
-  /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
   uint64_t                size = 0;

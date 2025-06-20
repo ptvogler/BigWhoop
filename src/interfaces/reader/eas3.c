@@ -250,9 +250,6 @@ eas3_free_data(eas3_data* data)
 void
 eas3_add_param_name(eas3_data *const data, char *name)
 {
-   eas3_param_names *param_names;
-   assert(data);
-   param_names = data->param_names;
    /*--------------------------------------------------------*\
    ! Check if the specified parameter name has the proper     !
    ! length.                                                  !
@@ -317,7 +314,6 @@ bwc_to_eas3(bwc_stream *const stream, eas3_data *const data)
    /*-----------------------*\
    ! DEFINE INT VARIABLES:   !
    \*-----------------------*/
-   uint64   Lread;
    uint64   size;
    uint64   i;
 
