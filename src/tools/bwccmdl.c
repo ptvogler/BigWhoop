@@ -1081,17 +1081,27 @@ printheaderIO(char const *input, char const *output, char const *reference)
   strcat(cli_verbose, bwc_header_art);
   strcat(cli_verbose, "---------------------------   I/O   --------------------------\n\n");
 
-  sprintf(cli_buffer,"  Input:  %s \n", input);
+  if (input != NULL)
+    sprintf(cli_buffer,"  Input:  %s \n", input);
+  else
+    sprintf(cli_buffer,"  Input:  - \n");
   strcat(cli_verbose, cli_buffer);
   memset(cli_buffer, '0', sizeof(char) * 1024);
 
-  sprintf(cli_buffer,"  Output: %s \n", output);
+  if (output != NULL)
+    sprintf(cli_buffer,"  Output: %s \n", output);
+  else
+    sprintf(cli_buffer,"  Output: - \n");
   strcat(cli_verbose, cli_buffer);
   memset(cli_buffer, '0', sizeof(char) * 1024);
 
-  sprintf(cli_buffer,"  Reference: %s \n", reference);
+  if (reference != NULL)
+    sprintf(cli_buffer,"  Reference: %s \n", reference);
+  else
+    sprintf(cli_buffer,"  Reference: - \n");
   strcat(cli_verbose, cli_buffer);
   memset(cli_buffer, '0', sizeof(char) * 1024);
+  
   printf("%s", cli_verbose);
 }
 
