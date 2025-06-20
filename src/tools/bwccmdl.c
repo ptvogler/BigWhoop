@@ -1681,12 +1681,13 @@ int main(int argc, char *argv[])
         {
           output = calloc(size, sizeof(float));
         }
-      bwc_close_header(header);
 
       if(arguments.verbose == true)
         {
           printctrl(&header->control);
         }
+
+      bwc_close_header(header);
 
       /* Initialize and run the decompression. */
       stream = bwc_init_stream(input, output, comp);
