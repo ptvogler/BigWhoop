@@ -3492,13 +3492,13 @@ bwc_decompress(bwc_codec *const codec, bwc_stream *const stream)
    #ifdef BWC_PROFILE
       double   start, end;
 
-      double   ttl;
+      double   ttl = 0;
 
-      double   cpy;
-      double   nrm;
+      double   cpy = 0;
+      double   nrm = 0;
 
-      double   wav;
-      double   ent;
+      double   wav = 0;
+      double   ent = 0;
    #endif
 
    /*-----------------------*\
