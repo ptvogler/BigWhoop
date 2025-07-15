@@ -1603,7 +1603,7 @@ int main(int argc, char *argv[])
       printctrl(&header->control);
 
       /* Initialize and run the decompression. */
-      stream = bwc_init_stream(input, output, comp);
+      stream = bwc_init_stream(input, output, decomp);
       coder  = bwc_alloc_decoder();
       if (bwc_create_decompression(coder, stream, 0) == EXIT_FAILURE)
         {
