@@ -206,6 +206,15 @@ else()
 endif()
 
 #----------------------------------------------------------#
+# Add the H5Z_BWC source code if requested.                #
+#----------------------------------------------------------#
+if(${BUILD_H5Z_BWC})
+  find_package(HDF5 REQUIRED COMPONENTS C)
+  add_subdirectory(src/interfaces/HDF5)
+endif()
+
+
+#----------------------------------------------------------#
 # Config-file packaging                                    #
 #----------------------------------------------------------#
 export(TARGETS bwclib NAMESPACE bwc:: FILE "bwc-targets.cmake")

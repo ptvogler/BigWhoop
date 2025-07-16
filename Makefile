@@ -56,7 +56,6 @@
 .PHONY: profiling
 .PHONY: omp
 .PHONY: eas3
-.PHONY: netCDF
 
 .PHONY: build_debug
 
@@ -67,6 +66,9 @@
 
 .PHONY: cmdl
 .PHONY: cldebug
+
+.PHONY: hdf5
+.PHONY: h5z_bwc
 
 #*--------------------------------------------------------*#
 # Initialize the compiler flags used to build the library. #
@@ -79,13 +81,13 @@ BIGWHOOP_PRECISION="Double"
 
 BUILD_UTILITIES="False"
 
+BUILD_H5Z_BWC="False"
+
 BIGWHOOP_WITH_PROFILING="False"
 
 BIGWHOOP_WITH_OPENMP="False"
 
 BIGWHOOP_WITH_EAS3="False"
-
-BIGWHOOP_WITH_NETCDF="False"
 
 #*--------------------------------------------------------*#
 # Define default target.     				               #
@@ -125,6 +127,12 @@ help:
 	@echo	"                                                          enabled if applicable). Code optimization is set to"
 	@echo	"                                                          the highest level."
 	@echo   ""
+	@echo	"   hdf5                                                   Removes all files and folders created during a pre-"
+	@echo	"                                                          vious compile run. Compiles the HDF5 plugin with   "
+	@echo	"														   statically linked BigWhoop library and OpenMP      "
+	@echo 	"														   enabled if applicable. Code optimization is set to "
+	@echo	"                                                          the highest level."
+	@echo   ""
 	@echo	"   clean                                                  Removes all files and folders created during a pre-"
 	@echo	"                                                          vious compile run."
 	@echo   ""
@@ -144,9 +152,6 @@ help:
 	@echo	"   omp                                                    Enable OpenMP parallelization."
 	@echo   ""
 	@echo	"   eas3                                                   Adds support for the eas3 file format to the com-"
-	@echo	"                                                          mand line tool."
-	@echo   ""
-	@echo	"   netCDF                                                 Adds support for the eas3 file format to the com-"
 	@echo	"                                                          mand line tool."
 
 #*--------------------------------------------------------*#
@@ -171,6 +176,12 @@ utilities:
 	$(eval BUILD_UTILITIES="True")
 
 #*--------------------------------------------------------*#
+# Define target used to activate command line tool build.  #
+#*--------------------------------------------------------*#
+h5z_bwc:
+	$(eval BUILD_H5Z_BWC="True")
+
+#*--------------------------------------------------------*#
 # Define target used to activate profiling.  #
 #*--------------------------------------------------------*#
 profiling:
@@ -188,9 +199,6 @@ omp:
 eas3:
 	$(eval BIGWHOOP_WITH_EAS3="True")
 
-netCDF:
-	$(eval BIGWHOOP_WITH_NETCDF="True")
-
 #*--------------------------------------------------------*#
 # Define the wrappers for the compile command targets.     #
 #*--------------------------------------------------------*#
@@ -198,6 +206,7 @@ debug:   	| clean build_debug build_bwc display
 full:    	| clean build_bwc display
 release:	| build_bwc display
 cmdl:		| clean utilities profiling eas3 build_bwc display
+hdf5:		| clean h5z_bwc static build_bwc display
 cldebug:    | clean build_debug utilities profiling eas3 build_bwc display
 
 #*--------------------------------------------------------*#
@@ -233,7 +242,15 @@ display:
 # Define the main compile command targets.                 #
 #*--------------------------------------------------------*#
 build_bwc:
-	mkdir -p build && cd build && cmake .. "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" "-DBUILD_SHARED_LIBS=${BUILD_SHARED}" "-DBIGWHOOP_PRECISION:STRING=${BIGWHOOP_PRECISION}" "-DBUILD_UTILITIES=${BUILD_UTILITIES}" "-DBIGWHOOP_WITH_PROFILING=${BIGWHOOP_WITH_PROFILING}" "-DBIGWHOOP_WITH_OPENMP=${BIGWHOOP_WITH_OPENMP}" "-DBIGWHOOP_WITH_EAS3=${BIGWHOOP_WITH_EAS3}" "-DBIGWHOOP_WITH_NETCDF=${BIGWHOOP_WITH_NETCDF}" && $(MAKE) -j
+	mkdir -p build && cd build && cmake .. \
+	"-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
+	"-DBUILD_SHARED_LIBS=${BUILD_SHARED}" \
+	"-DBIGWHOOP_PRECISION:STRING=${BIGWHOOP_PRECISION}" \
+	"-DBUILD_UTILITIES=${BUILD_UTILITIES}" \
+	"-DBUILD_H5Z_BWC=${BUILD_H5Z_BWC}" \
+	"-DBIGWHOOP_WITH_PROFILING=${BIGWHOOP_WITH_PROFILING}" \
+	"-DBIGWHOOP_WITH_OPENMP=${BIGWHOOP_WITH_OPENMP}" \
+	"-DBIGWHOOP_WITH_EAS3=${BIGWHOOP_WITH_EAS3}" && $(MAKE) -j
 
 clean:
 	- /bin/rm -rf build/ include/library/public

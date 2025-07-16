@@ -42,5 +42,48 @@
 #|                                                                                                |#
 #*================================================================================================*#
 #----------------------------------------------------------#
-# -                                                        #
+# Define the library target                                #
 #----------------------------------------------------------#
+add_library(h5z_bwc SHARED H5Zbwc.c)
+
+#----------------------------------------------------------#
+# Setup up the include directory for the BigWhoop library. #
+#----------------------------------------------------------#
+target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/library/public>
+                                   PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                                           ${HDF5_INCLUDE_DIRS})
+message("THIS IS A TEST ${HDF5_PLUGIN_PATH}")
+#----------------------------------------------------------#
+# Link the BigWhoop library to the math.h library.         #
+#----------------------------------------------------------#
+target_link_libraries(h5z_bwc PRIVATE bwclib ${HDF5_LIBRARIES})
+
+#----------------------------------------------------------#
+# Set the Version and SOVersion and define the public API  # 
+# for the HDF5 plugin.                                     #
+#----------------------------------------------------------#
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/H5Zbwc.c _H5Zbwc_c_contents)
+string(REGEX REPLACE ".*#define[ \t]+H5Z_BWC_VERSION_MAJOR[ \t]+([0-9]+).*"
+     "\\1" H5Z_BWC_VERSION_MAJOR ${_H5Zbwc_c_contents})
+string(REGEX REPLACE ".*#define[ \t]+H5Z_BWC_VERSION_MINOR[ \t]+([0-9]+).*"
+     "\\1" H5Z_BWC_VERSION_MINOR ${_H5Zbwc_c_contents})
+string(REGEX REPLACE ".*#define[ \t]+H5Z_BWC_VERSION_PATCH[ \t]+([0-9]+).*"
+     "\\1" H5Z_BWC_VERSION_PATCH ${_H5Zbwc_c_contents})
+set(H5Z_BWC_VERSION "${H5Z_BWC_VERSION_MAJOR}.${H5Z_BWC_VERSION_MINOR}.${H5Z_BWC_VERSION_PATCH}")
+
+set_target_properties(h5z_bwc PROPERTIES VERSION "${H5Z_BWC_VERSION}"
+                                       SOVERSION "${H5Z_BWC_VERSION_MAJOR}"
+                                   PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Z_bwc.h"
+                                   OUTPUT_NAME   h5z_bwc)
+
+#----------------------------------------------------------#
+# Setup the install directories and target exporting for   #
+# config-file packaging.                                   #
+#----------------------------------------------------------#
+install(TARGETS                   h5z_bwc
+        LIBRARY DESTINATION       ${CMAKE_INSTALL_LIBDIR}/plugin
+        ARCHIVE DESTINATION       ${CMAKE_INSTALL_LIBDIR}/plugin
+        RUNTIME DESTINATION       ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
