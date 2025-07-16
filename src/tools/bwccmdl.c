@@ -848,7 +848,10 @@ parse_opt(int                key,
             {
               argp_error(state, "The wavelet kernels can only be defined once.\n");
             }
-
+          // Platform-specific strtok implementation
+          #ifdef _MSC_VER
+            #define strtok_r strtok_s
+          #endif
           for(token =  strtok_r(arg, ",", &ptr), i = 0;
               token != NULL && i < 4;
               token = strtok_r(NULL, ",", &ptr), i++)

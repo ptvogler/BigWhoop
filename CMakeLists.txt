@@ -147,8 +147,12 @@ endif()
 # Add all necessary compiler warnings for debugging.       #
 #----------------------------------------------------------#
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS} -Wall -Wextra")
-  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+  set(BWC_DEBUG_FLAGS "-Wall")
+  if(NOT MSVC)
+    set(BWC_DEBUG_FLAGS "${BWC_DEBUG_FLAGS} -Wall -Wextra")
+  endif()
+  set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS} ${BWC_DEBUG_FLAGS}")
+  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${BWC_DEBUG_FLAGS}")
 endif()
 
 #----------------------------------------------------------#

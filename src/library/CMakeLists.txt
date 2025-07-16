@@ -110,8 +110,12 @@ target_include_directories(bwclib PRIVATE ${CMAKE_SOURCE_DIR}/include/library/pr
 
 #----------------------------------------------------------#
 # Link the BigWhoop library to the math.h library.         #
+# With MSVC Math functions are built into the C runtime,   #
+# no separate linking needed                               #
 #----------------------------------------------------------#
-target_link_libraries(bwclib PRIVATE m)
+if(NOT MSVC)
+  target_link_libraries(bwclib PRIVATE m)
+endif()
 
 #----------------------------------------------------------#
 # Setup the install directories and target exporting for   #
