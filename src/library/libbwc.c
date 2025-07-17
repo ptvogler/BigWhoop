@@ -3023,12 +3023,8 @@ bwc_create_compression(bwc_codec *codec, bwc_stream *stream, char *rate_control)
    }
    else
    {
-      // Platform-specific strtok implementation
-      #ifdef _MSC_VER
-         #define strtok_r strtok_s
-      #endif
       token = strtok_r(rate_control, "-, ", &ptr);
-      // Unix/Linux systems already have strtok_r
+
       if(token)
       {
          for(control->nLayers = 0; token; token = strtok_r(NULL, "-, ", &ptr))
