@@ -182,7 +182,7 @@ else:
   file = "prim_types_double.h"
 
 print_flag = False
-with open(source.joinpath(file)) as f:
+with open(source.joinpath(file), encoding='utf-8') as f:
   for line in f:
     if("/*" in line and print_flag == 1):
       break
@@ -204,7 +204,7 @@ public_header.write(ubox + tab + sbox + lspaces * " " + "_  _ ____ ____ ____ ___
                            tab + sbox + lspaces * " " + "|  | |  | |___ |  \ |__| ___]" + rspaces * " " + "||\n" + 
                            tab + sbox + (text_width - 2*len(sbox) - len(tab)) * " " + "||\n" + lbox)
 
-with open(source.joinpath(file)) as f:
+with open(source.joinpath(file), encoding='utf-8') as f:
   for line in f:
     if("#define" in line):
       if("MAXIMUM_NO_PASSES" in line or
@@ -220,7 +220,7 @@ buff        = ""
 brktCnt     = 0
 
 for file in include_files:
-  with open(source.joinpath(file)) as f:
+  with open(source.joinpath(file), encoding='utf-8') as f:
     for line in f:
       if("BWC_" in line):
         if("ifndef" in line):
@@ -257,7 +257,7 @@ delimFlg    = False
 buff        = ""
 
 for file in include_files:
-  with open(source.joinpath(file)) as f:
+  with open(source.joinpath(file), encoding='utf-8') as f:
     for line in f:
       if("typedef enum" in line):
         while True:
@@ -295,7 +295,7 @@ buff        = ""
 brktCnt     = 0
 
 for file in include_files:
-  with open(source.joinpath(file)) as f:
+  with open(source.joinpath(file), encoding='utf-8') as f:
     for line in f:
       if("typedef struct" in line or
          "typedef union"  in line):
@@ -347,7 +347,7 @@ tmp      = ""
 buff     = ""
 
 for file in files:
-  with open(source.joinpath(file)) as f:
+  with open(source.joinpath(file), encoding='utf-8') as f:
     for line in f:
       if("#if defined" in line):
         line = next(f)

@@ -57,7 +57,7 @@
 #endif
 
 TEST_CASE( "Bit stream initialization", "[init_bitstream]" ) {
-    uint32 size = 4;
+    constexpr uint32 size = 4;
     uchar inp_mem[size];
     uchar out_mem[size];
     out_mem[3] = inp_mem[0] = 1;

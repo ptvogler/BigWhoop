@@ -58,6 +58,11 @@
 #include "eas3.h"
 #include "bwc.h"
 
+/* Definitions used to compile on Windows.                */
+#ifdef _MSC_VER
+  #define strtok_r strtok_s
+#endif
+
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                 _  _ ____ ____ ____ ____ ____                                  ||
 ||                                 |\/| |__| |    |__/ |  | [__                                   ||

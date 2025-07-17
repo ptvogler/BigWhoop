@@ -56,7 +56,7 @@
 #endif
 
 TEST_CASE( "Stream initialization", "[bwc_init_stream]" ) {
-    uint32 size = 4;
+    constexpr uint32 size = 4;
     uchar inp_mem[size];
     uchar out_mem[size];
     out_mem[3] = inp_mem[0] = 1;
