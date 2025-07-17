@@ -206,8 +206,9 @@ debug:   	| clean build_debug build_bwc display
 full:    	| clean build_bwc display
 release:	| build_bwc display
 cmdl:		| clean utilities profiling eas3 build_bwc display
-hdf5:		| clean h5z_bwc static build_bwc display
 cldebug:    | clean build_debug utilities profiling eas3 build_bwc display
+hdf5:		| clean h5z_bwc static build_bwc display
+hf5debug:	| clean build_debug h5z_bwc static build_bwc display
 
 #*--------------------------------------------------------*#
 # Define target used to output compile information.        #
