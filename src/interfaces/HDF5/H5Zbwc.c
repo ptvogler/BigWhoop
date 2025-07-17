@@ -105,7 +105,7 @@
 /*================================================================================================*/
 /**
  * @details Simple wrapper for the H5Epush_goto function used to push the appropriate ret_val.
- * 
+ */
 /*===================================================|============================================*/
 #define BWC_GOTO_ERROR(MJ, MN, RV, MG)                \
 do {                                                  \
@@ -188,9 +188,9 @@ H5Z_class2_t H5Z_BWC[1] =
  */
 /*================================================================================================*/
 static htri_t
-H5Z__can_apply_bwc(hid_t dcpl_id, 
-                   hid_t type_id, 
-                   hid_t space_id)
+H5Z__can_apply_bwc(hid_t  __attribute__((unused)) dcpl_id, 
+                   hid_t                          type_id, 
+                   hid_t  __attribute__((unused)) space_id)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
@@ -202,7 +202,7 @@ H5Z__can_apply_bwc(hid_t dcpl_id,
 
   size_t                  dtSize = {0};
 
-  unsigned int            nDims     = 0;
+  int                     nDims     = 0;
   unsigned int            valNoDims = 0;
 
   unsigned int            i;
@@ -244,7 +244,7 @@ H5Z__can_apply_bwc(hid_t dcpl_id,
     BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
       "bad datatype dimension");
 
-  for (i = 0, valNoDims = 0; i < nDims; ++i)
+  for (i = 0, valNoDims = 0; i < (unsigned int) nDims; ++i)
     {
       if (dims[i] > 1)
         valNoDims++;
@@ -310,7 +310,7 @@ H5Z__set_local_bwc(hid_t dcpl_id,
 
   unsigned int            cd_values[H5Z_BWC_TOTAL_NPARMS] = {0};
 
-  unsigned int            nDims     = 0;
+  int                     nDims     = 0;
   unsigned int            valNoDims = 0;
 
   unsigned                flags;
@@ -351,11 +351,13 @@ H5Z__set_local_bwc(hid_t dcpl_id,
     BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
       "bad datatype dimension");
 
-  for (i = 0, valNoDims = 0; i < nDims; ++i)
+  for (i = 0, valNoDims = 0; i < (unsigned int) nDims; ++i)
     {
       if (dims[i] > 1)
-        vdSize[j] = dims[valNoDims];
-        j++;
+        {
+          vdSize[j] = dims[valNoDims];
+          j++;
+        }
     }
 
   if ((valNoDims <= 1) || (valNoDims > 4))
@@ -447,6 +449,10 @@ H5Z__filter_bwc(unsigned int          flags,
   bwc_stream             *stream = NULL;
   bwc_codec              *coder  = NULL;
 
+  /* Check the number of filter arguments.                  */
+  if (cd_nelmts != 26)
+    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
+      "invalid number of filter parameters");
 
   /* Filter invoked to decompress codestream.               */
   if (flags & H5Z_FLAG_REVERSE) 
