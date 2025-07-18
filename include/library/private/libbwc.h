@@ -57,11 +57,6 @@
   #include "mq_types.h"
   #include "types.h"
 
-  /* Definitions used to compile on Windows.                */
-  #ifdef _MSC_VER
-    #define strtok_r strtok_s
-  #endif
-
   /************************************************************************************************\
   ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||
   ||            |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__             ||
