@@ -67,7 +67,7 @@
  * @details Simple Macros defining core attributes of the HDF5 filter.
  */
 /*===================================================|============================================*/
-#define  H5Z_FILTER_BWC         32000                 //!< Filter id number
+#define  H5Z_FILTER_BWC         33000                 //!< Filter id number
 
 #define  H5Z_BWC_VERSION_MAJOR  0                     //!< H5Z_BWC Major Version
 #define  H5Z_BWC_VERSION_MINOR  1                     //!< H5Z_BWC Minor Version
@@ -171,6 +171,32 @@ H5Z_class2_t H5Z_BWC[1] =
 ||             |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]             ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*================================================================================================*/
+/**
+ * @details This function returns an HDF5 type identifying the implementation as a filter.
+ * 
+ * @return  HDF5 Type
+ */
+/*================================================================================================*/
+H5PL_type_t
+H5PLget_plugin_type(void)
+{
+  return H5PL_TYPE_FILTER;
+}
+
+/*================================================================================================*/
+/**
+ * @details This function returns the H5Z structure defining the BigWhoop HDF5 filter.
+ * 
+ * @return  H5Z struct
+ */
+/*================================================================================================*/
+const void*
+H5PLget_plugin_info(void)
+{
+  return &H5Z_BWC;
+}
+
 /*================================================================================================*/
 /**
  * @details This function probes the dataset defined by the supplied identifiers and
@@ -304,7 +330,7 @@ H5Z__set_local_bwc(hid_t dcpl_id,
   hsize_t                 dims[H5S_MAX_RANK]   = {0};
   hsize_t                 vdSize[H5S_MAX_RANK] = {0};
 
-  size_t                  cd_nelmts = H5Z_BWC_USER_NPARMS;
+  size_t                  cd_nelmts = 26;
 
   size_t                  dtSize = 0;
 
@@ -321,7 +347,6 @@ H5Z__set_local_bwc(hid_t dcpl_id,
   ! DEFINE CHAR VARIABLES:  !
   \*-----------------------*/
   static char const *_funcname_ = "H5Z__set_local_bwc";
-
 
   /* Fetch the filter-specific client data and check that   *
    * the cd_values array has the required number of values. */
@@ -351,13 +376,13 @@ H5Z__set_local_bwc(hid_t dcpl_id,
     BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
       "bad datatype dimension");
 
+  for (i = 0; i < H5S_MAX_RANK; ++i)
+    vdSize[i] = 1;
+
   for (i = 0, valNoDims = 0; i < (unsigned int) nDims; ++i)
     {
       if (dims[i] > 1)
-        {
-          vdSize[j] = dims[valNoDims];
-          j++;
-        }
+        vdSize[valNoDims++] = dims[i];
     }
 
   if ((valNoDims <= 1) || (valNoDims > 4))
@@ -521,6 +546,7 @@ H5Z__filter_bwc(unsigned int          flags,
       dtSize = (size_t)cd_values[H5Z_BWC_DT];
 
       dSize = nX * nY * nZ * nTS * nPar * dtSize;
+
       if (nbytes != dSize)
         BWC_GOTO_ERROR(H5E_PLINE, H5E_BADVALUE, -1, 
           "size of inbut buffer differs from specified domain size");
