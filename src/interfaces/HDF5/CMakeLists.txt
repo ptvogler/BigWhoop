@@ -104,11 +104,6 @@ set_property(TARGET test_hdf5 PROPERTY OUTPUT_NAME test_hdf5)
 target_include_directories(test_hdf5 PRIVATE ${CMAKE_SOURCE_DIR}/include/interfaces/HDF5)
 
 #----------------------------------------------------------#
-# Setup the install directories.                           #
-#----------------------------------------------------------#
-#install(TARGETS test_hdf5 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-#----------------------------------------------------------#
 # Link the bwc utility to the bwc library.                 #
 #----------------------------------------------------------#
 target_link_libraries(test_hdf5 PRIVATE bwclib m ${HDF5_LIBRARIES})
