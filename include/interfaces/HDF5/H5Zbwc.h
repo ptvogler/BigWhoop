@@ -184,7 +184,7 @@
         CD[19] =                                        \
         CD[21] = (unsigned)(TL & 0xFFFFFFFF);           \
         CD[16] =                                        \
-        cd[18] =                                        \
+        CD[18] =                                        \
         CD[20] =                                        \
         CD[22] = (unsigned int)(((uint64_t)TL >> 32) &  \
                                          0xFFFFFFFF);   \
@@ -204,8 +204,8 @@
         CD[15] = (unsigned int)(TX & 0xFFFFFFFF);       \
         CD[16] = (unsigned int)(((uint64_t)TX >> 32) &  \
                                          0xFFFFFFFF);   \
-        cd[17] = (unsigned int)(TY & 0xFFFFFFFF);       \
-        cd[18] = (unsigned int)(((uint64_t)TY >> 32) &  \
+        CD[17] = (unsigned int)(TY & 0xFFFFFFFF);       \
+        CD[18] = (unsigned int)(((uint64_t)TY >> 32) &  \
                                          0xFFFFFFFF);   \
         CD[19] = (unsigned int)(TZ & 0xFFFFFFFF);       \
         CD[20] = (unsigned int)(((uint64_t)TZ >> 32) &  \
