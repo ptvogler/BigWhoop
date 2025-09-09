@@ -54,7 +54,7 @@ target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}
                                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
                                            ${HDF5_INCLUDE_DIRS})
-message("THIS IS A TEST ${HDF5_PLUGIN_PATH}")
+
 #----------------------------------------------------------#
 # Link the BigWhoop library to the math.h library.         #
 #----------------------------------------------------------#
@@ -87,3 +87,33 @@ install(TARGETS                   h5z_bwc
         ARCHIVE DESTINATION       ${CMAKE_INSTALL_LIBDIR}/plugin
         RUNTIME DESTINATION       ${CMAKE_INSTALL_BINDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+#----------------------------------------------------------#
+# Add the HDF5 test utility to the current project.        #
+#----------------------------------------------------------#
+add_executable(test_hdf5  test_hdf5.c)
+
+#----------------------------------------------------------#
+# Define the output name for the utility binaries.         #
+#----------------------------------------------------------#
+set_property(TARGET test_hdf5 PROPERTY OUTPUT_NAME test_hdf5)
+
+#----------------------------------------------------------#
+# Setup up the include directory for the bwc utilities.    #
+#----------------------------------------------------------#
+target_include_directories(test_hdf5 PRIVATE ${CMAKE_SOURCE_DIR}/include/interfaces/HDF5)
+
+#----------------------------------------------------------#
+# Setup the install directories.                           #
+#----------------------------------------------------------#
+#install(TARGETS test_hdf5 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+#----------------------------------------------------------#
+# Link the bwc utility to the bwc library.                 #
+#----------------------------------------------------------#
+target_link_libraries(test_hdf5 PRIVATE bwclib m ${HDF5_LIBRARIES})
+
+#----------------------------------------------------------#
+# Add the utility to the test regiment.                    #
+#----------------------------------------------------------#
+add_test(NAME test_hdf5 COMMAND test_hdf5)

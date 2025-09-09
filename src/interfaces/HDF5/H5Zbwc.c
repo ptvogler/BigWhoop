@@ -286,7 +286,7 @@ H5Z__can_apply_bwc(hid_t  __attribute__((unused)) dcpl_id,
   if((nTypeID = H5Tget_native_type(type_id, H5T_DIR_ASCEND)) == H5I_INVALID_HID)
     BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
       "bad native datatype");
-  
+
   if ((dtOrder = H5Tget_order(type_id)) == H5T_ORDER_ERROR)
     BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
       "can't retrieve datatype endianness order");
