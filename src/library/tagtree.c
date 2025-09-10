@@ -546,7 +546,7 @@ decode_tagtree(bwc_tagtree *const tagtree, bitstream *const stream, const uint32
       node = node->parent;
    }
 
-   for(*branch_ptr--, node = *branch_ptr--, threshold_min = 0; ; node = *branch_ptr--)
+   for((void)*branch_ptr--, node = *branch_ptr--, threshold_min = 0; ; node = *branch_ptr--)
    {
       if(node->threshold < threshold_min)
       {
