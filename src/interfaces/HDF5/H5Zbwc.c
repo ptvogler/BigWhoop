@@ -50,10 +50,10 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
-#include "bwc.h"                                        //!< BigWhoop public header
-#include "hdf5.h"                                       //!< HDF5 public header
-#include "stdlib.h"                                     //!< Standard C library
+#include <hdf5.h>                                       //!< HDF5 public header
+#include <stdlib.h>                                     //!< Standard C library
 
+#include "bwc.h"                                        //!< BigWhoop public header
 
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
