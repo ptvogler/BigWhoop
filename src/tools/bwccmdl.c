@@ -1351,7 +1351,7 @@ int main(int argc, char *argv[])
   /*-----------------------*\
   ! DEFINE DER. VARIABLES:  !
   \*-----------------------*/
-  bwc_precision           precision;
+  bwc_precision           precision = bwc_precision_double;
   bwc_header             *header;
   bwc_stream             *stream = NULL;
   bwc_codec              *coder  = NULL;
