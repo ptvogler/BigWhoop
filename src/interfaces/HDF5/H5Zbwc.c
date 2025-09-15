@@ -124,9 +124,9 @@ do {                                                  \
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 //==========|==========================|======================|======|=======|======================
 static 
-htri_t       H5Z__can_apply_bwc         (hid_t                                dcpl_id,
+htri_t       H5Z__can_apply_bwc         (hid_t  __attribute__((unused))       dcpl_id,
                                          hid_t                                type_id,
-                                         hid_t                                space_id);
+                                         hid_t  __attribute__((unused))       space_id);
 //==========|==========================|======================|======|=======|======================
 static 
 herr_t       H5Z__set_local_bwc         (hid_t                                dcpl_id,
@@ -137,8 +137,8 @@ static
 size_t       H5Z__filter_bwc            (unsigned int                         flags,
                                          size_t                               cd_nelmts,
                                          unsigned int                 const   cd_values[],
-                                         size_t                               nbytes, 
-                                         size_t                              *buf_size, 
+                                         size_t                               nbytes,
+                                         size_t                              *buf_size,
                                          void                               **buf);
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
@@ -194,7 +194,7 @@ H5PLget_plugin_type(void)
 const void*
 H5PLget_plugin_info(void)
 {
-  return &H5Z_BWC;
+  return H5Z_BWC;
 }
 
 /*================================================================================================*/
@@ -341,7 +341,7 @@ H5Z__set_local_bwc(hid_t dcpl_id,
 
   unsigned                flags;
 
-  unsigned int            i,j;
+  unsigned int            i;
 
   /*-----------------------*\
   ! DEFINE CHAR VARIABLES:  !

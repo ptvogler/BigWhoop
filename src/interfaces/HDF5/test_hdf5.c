@@ -109,9 +109,6 @@ init_3d_field(hsize_t *dims,
 
   hsize_t                 n;
   hsize_t                 i, j, k;
-  hsize_t                 x, y, z;
-
-  const uint16_t          N = 256;
 
   /*-----------------------*\
   ! DEFINE FLOAT VARIABLES: !
@@ -248,18 +245,19 @@ init_bwc_filter(unsigned int *cd_values,
  */
 /*================================================================================================*/
 int 
-main(int    argc, 
-     char **argv)
+main(int  __attribute__((unused))   argc, 
+     char __attribute__((unused)) **argv)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  int                     i, p;
+  int                     p;
   size_t                  ret_value = EXIT_SUCCESS;
 
   size_t                  cd_nelmts = 26;
   unsigned int            cd_values[26] = {0};
 
+  hsize_t                 i;
   hsize_t                 nDims   = 3;
   hsize_t                 nPoints = 0;
   hsize_t                 dims[] = {256, 256, 256};
@@ -286,11 +284,6 @@ main(int    argc,
   double                  peakVal;
   double                  sum;
   double                  minVal, maxVal;
-
-  double                  MSER, PSNRR;
-  double                 *compr, *decompr;
-  bwc_stream             *stream = NULL;
-  bwc_codec              *coder  = NULL;
 
   /* Initialize the HDF5 output file.                       */
   if((file_id = H5Fcreate("tmp.hf5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0)
