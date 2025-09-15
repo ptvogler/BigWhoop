@@ -68,6 +68,7 @@
 .PHONY: cldebug
 
 .PHONY: hdf5
+.PHONY: hdf5debug
 .PHONY: h5z_bwc
 
 #*--------------------------------------------------------*#
@@ -129,9 +130,15 @@ help:
 	@echo   ""
 	@echo	"   hdf5                                                   Removes all files and folders created during a pre-"
 	@echo	"                                                          vious compile run. Compiles the HDF5 plugin with   "
-	@echo	"														   statically linked BigWhoop library and OpenMP      "
-	@echo 	"														   enabled if applicable. Code optimization is set to "
+	@echo	"                                                          statically linked BigWhoop library and OpenMP      "
+	@echo 	"                                                          enabled if applicable. Code optimization is set to "
 	@echo	"                                                          the highest level."
+	@echo   ""
+	@echo	"   hdf5debug                                              Removes all files and folders created during a pre-"
+	@echo	"                                                          vious compile run. Compiles the HDF5 plugin with   "
+	@echo	"                                                          statically linked BigWhoop library and OpenMP      "
+	@echo 	"                                                          enabled if applicable. All relevant debug flags    "
+	@echo	"                                                          are set.                                           "
 	@echo   ""
 	@echo	"   clean                                                  Removes all files and folders created during a pre-"
 	@echo	"                                                          vious compile run."
@@ -208,7 +215,7 @@ release:	| build_bwc display
 cmdl:		| clean utilities profiling eas3 build_bwc display
 cldebug:    | clean build_debug utilities profiling eas3 build_bwc display
 hdf5:		| clean h5z_bwc static build_bwc display
-hf5debug:	| clean build_debug h5z_bwc static build_bwc display
+hdf5debug:	| clean build_debug h5z_bwc static build_bwc display
 
 #*--------------------------------------------------------*#
 # Define target used to output compile information.        #
