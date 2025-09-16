@@ -140,13 +140,13 @@
   #define H5Pset_bwc_precinct(PC, CN, CD)               \
   do {                                                  \
     if (CN >= 26 && ((CD[0] & (0x01 << 3)) == 0) &&     \
-        CB >= 0 && CB < 512)                            \
+        PC >= 0 && PC < 512)                            \
       {                                                 \
         CD[0] ^= (0x01 << 3);                           \
-        CD[14] = ((0xFF & CB) << 24)  |                 \
-                 ((0xFF & CB) << 16)  |                 \
-                 ((0xFF & CB) << 8)   |                 \
-                 ((0xFF & CB));                         \
+        CD[14] = ((0xFF & PC) << 24)  |                 \
+                 ((0xFF & PC) << 16)  |                 \
+                 ((0xFF & PC) << 8)   |                 \
+                 ((0xFF & PC));                         \
       }                                                 \
   } while(0)
 
