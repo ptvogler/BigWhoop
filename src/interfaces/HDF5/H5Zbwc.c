@@ -124,17 +124,17 @@ do {                                                  \
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 //==========|==========================|======================|======|=======|======================
 static 
-htri_t       H5Z__can_apply_bwc         (hid_t  __attribute__((unused))       dcpl_id,
+htri_t       H5Z_bwc_can_apply          (hid_t  __attribute__((unused))       dcpl_id,
                                          hid_t                                type_id,
                                          hid_t  __attribute__((unused))       space_id);
 //==========|==========================|======================|======|=======|======================
 static 
-herr_t       H5Z__set_local_bwc         (hid_t                                dcpl_id,
+herr_t       H5Z_bwc_set_local          (hid_t                                dcpl_id,
                                          hid_t                                type_id,
                                          hid_t                                space_id);
 //==========|==========================|======================|======|=======|======================
 static 
-size_t       H5Z__filter_bwc            (unsigned int                         flags,
+size_t       H5Z_bwc_filter             (unsigned int                         flags,
                                          size_t                               cd_nelmts,
                                          unsigned int                 const   cd_values[],
                                          size_t                               nbytes,
@@ -152,16 +152,16 @@ size_t       H5Z__filter_bwc            (unsigned int                         fl
  * @details This message derives from H5Z.
  */
 /*===================================================|============================================*/
-H5Z_class2_t H5Z_BWC[1] = 
+const H5Z_class2_t H5Z_BWC[1] = 
 {{
   H5Z_CLASS_T_VERS,                                   //!< H5Z_class_t version
-  H5Z_FILTER_BWC,                                     //!< Filter id number
+  (H5Z_filter_t)H5Z_FILTER_BWC,                       //!< Filter id number
   1,                                                  //!< Encoder present flag (set to true)
   1,                                                  //!< Decoder present flag (set to true)
-  "bwc",                                              //!< Filter name for debugging
-  H5Z__can_apply_bwc,                                 //!< The "can apply" callback
-  H5Z__set_local_bwc,                                 //!< The "set local" callback
-  H5Z__filter_bwc,                                    //!< The actual filter function
+  "HDF5 bwc filter",                                  //!< Filter name for debugging
+  (H5Z_can_apply_func_t)H5Z_bwc_can_apply,            //!< The "can apply" callback
+  (H5Z_set_local_func_t)H5Z_bwc_set_local,            //!< The "set local" callback
+  (H5Z_func_t)H5Z_bwc_filter,                         //!< The actual filter function
 }};
 
 
@@ -214,9 +214,9 @@ H5PLget_plugin_info(void)
  */
 /*================================================================================================*/
 static htri_t
-H5Z__can_apply_bwc(hid_t  __attribute__((unused)) dcpl_id, 
-                   hid_t                          type_id, 
-                   hid_t  __attribute__((unused)) space_id)
+H5Z_bwc_can_apply(hid_t  __attribute__((unused)) dcpl_id, 
+                  hid_t                          type_id, 
+                  hid_t  __attribute__((unused)) space_id)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
@@ -318,9 +318,9 @@ done:
  */
 /*================================================================================================*/
 static herr_t
-H5Z__set_local_bwc(hid_t dcpl_id,
-                   hid_t type_id,
-                   hid_t space_id)
+H5Z_bwc_set_local(hid_t dcpl_id,
+                  hid_t type_id,
+                  hid_t space_id)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
@@ -430,12 +430,12 @@ done:
  */
 /*================================================================================================*/
 static size_t
-H5Z__filter_bwc(unsigned int          flags, 
-                size_t                cd_nelmts,
-                unsigned int  const   cd_values[], 
-                size_t                nbytes,
-                size_t               *buf_size,
-                void                **buf)
+H5Z_bwc_filter(unsigned int          flags, 
+               size_t                cd_nelmts,
+               unsigned int  const   cd_values[], 
+               size_t                nbytes,
+               size_t               *buf_size,
+               void                **buf)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
