@@ -305,7 +305,16 @@ main(int  __attribute__((unused))   argc,
       goto done;
     }
 
+  H5Pset_bwc_error_resilience(cd_nelmts, cd_values);
   H5Pset_bwc_bitrate(bitrate, cd_nelmts, cd_values);
+  //H5Pset_bwc_codeblocks(4, cd_nelmts, cd_values);
+  //H5Pset_bwc_codeblocks_d(2, 3, 4, 0, cd_nelmts, cd_values);
+  //H5Pset_bwc_precinct(14, cd_nelmts, cd_values);
+  //H5Pset_bwc_precinct_d(11, 12, 13, 0, cd_nelmts, cd_values);
+  //H5Pset_bwc_tile(128, cd_nelmts, cd_values);
+  //H5Pset_bwc_tile_d(32, 64, 128, 1, cd_nelmts, cd_values);
+  //H5Pset_bwc_decomp(1, cd_nelmts, cd_values);
+  //H5Pset_bwc_decomp_d(1, 2, 3, 0, cd_nelmts, cd_values);
   H5Pset_bwc_qm(32, cd_nelmts, cd_values);
 
   dcpl_id = init_bwc_filter(cd_values, cd_nelmts, nDims, chunk_dims);
