@@ -174,7 +174,7 @@ init_bitstream(uchar* memory, uint32 size, char instr)
   stream->memory    = memory;
   stream->t         = (instr == 'c') ? 8 : 0;
   stream->Lmax      = size;
-  stream->size_incr = (uint64)(size / 2);
+  stream->size_incr = (uint64)((size / 2) ?: 1);
 
   /*--------------------------------------------------------*\
   ! Return the stream memory handle.                         !
