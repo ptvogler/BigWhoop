@@ -236,69 +236,69 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
 
 TEST_CASE ("Test emitting alternating bits", "[emit_bit]")
 {
-  uint32     size               = 1;
-  uchar     *inp_mem            = (uchar*)calloc(size, sizeof(uchar));
-  uchar      byte               = 0x00;
-  char       instr              = 'c';
+  uint32     size    = 1;
+  uchar     *inp_mem = (uchar *)calloc (size, sizeof (uchar));
+  uchar      byte    = 0x00;
+  char       instr   = 'c';
   bitstream *stream;
 
-  stream = init_bitstream (inp_mem, size, instr);
+  stream          = init_bitstream (inp_mem, size, instr);
   uint64 org_Lmax = stream->Lmax;
 
   // 0b01010101
   // Emitting 8 bits
   for (int i = 4; i >= 1; --i)
-  {
-    emit_bit(stream, 0);
-    emit_bit(stream, 1);
-    byte |= (1 << 2*i-2);
-    REQUIRE ((stream && !stream->error));
-    if (i != 1) 
     {
-      REQUIRE (stream->t == 2*i-2); // expected bit position
-      REQUIRE (stream->T == byte); // expected state of T
+      emit_bit (stream, 0);
+      emit_bit (stream, 1);
+      byte |= (1 << 2 * i - 2);
+      REQUIRE ((stream && !stream->error));
+      if (i != 1)
+        {
+          REQUIRE (stream->t == 2 * i - 2);    // expected bit position
+          REQUIRE (stream->T == byte);         // expected state of T
+        }
+      else if (i == 1)
+        {
+          REQUIRE (stream->t == 8);               // reset bit position
+          REQUIRE (stream->T == 0x00);            // reset T buffer
+          REQUIRE (stream->memory[0] == byte);    // filled buffer was transferred
+          REQUIRE (stream->L == 1);               // updated used bytes
+        }
     }
-    else if (i == 1)
-    {
-      REQUIRE (stream->t == 8);            // reset bit position
-      REQUIRE (stream->T == 0x00);         // reset T buffer
-      REQUIRE (stream->memory[0] == byte); // filled buffer was transferred
-      REQUIRE (stream->L == 1);            // updated used bytes
-    }
-  }
-  REQUIRE(stream->Lmax == org_Lmax);
+  REQUIRE (stream->Lmax == org_Lmax);
 
   // 0b10101010
   // Emitting 8 bits
   byte = 0x00;
   for (int i = 4; i >= 1; --i)
-  {
-    emit_bit(stream, 1);
-    emit_bit(stream, 0);
-    byte |= (1 << 2*i-1);
-    REQUIRE ((stream && !stream->error));
-    if (i != 1)
     {
-      REQUIRE (stream->t == 2*i-2); // current bit position
-      REQUIRE (stream->T == byte);  // state of T
+      emit_bit (stream, 1);
+      emit_bit (stream, 0);
+      byte |= (1 << 2 * i - 1);
+      REQUIRE ((stream && !stream->error));
+      if (i != 1)
+        {
+          REQUIRE (stream->t == 2 * i - 2);    // current bit position
+          REQUIRE (stream->T == byte);         // state of T
+        }
+      else if (i == 1)
+        {
+          REQUIRE (stream->t == 8);               // reset bit position
+          REQUIRE (stream->T == 0x00);            // reset T buffer
+          REQUIRE (stream->memory[1] == byte);    // filled buffer was transferred
+          REQUIRE (stream->L == 2);               // updated used bytes
+          REQUIRE (stream->Lmax != org_Lmax);     // updated memory size
+        }
     }
-    else if (i == 1)
-    {
-      REQUIRE (stream->t == 8);            // reset bit position
-      REQUIRE (stream->T == 0x00);         // reset T buffer
-      REQUIRE (stream->memory[1] == byte); // filled buffer was transferred
-      REQUIRE (stream->L == 2);            // updated used bytes
-      REQUIRE(stream->Lmax != org_Lmax);   // updated memory size
-    }
-  }
 }
 
 TEST_CASE ("Pass only significant bits to bitstream", "[emit_bit]")
 {
-  uint32     size               = 1;
-  uchar     *inp_mem            = (uchar*)calloc(size, sizeof(uchar));
-  uchar      byte               = 0x00;
-  char       instr              = 'c';
+  uint32     size    = 1;
+  uchar     *inp_mem = (uchar *)calloc (size, sizeof (uchar));
+  uchar      byte    = 0x00;
+  char       instr   = 'c';
   bitstream *stream;
 
   stream = init_bitstream (inp_mem, size, instr);
@@ -306,45 +306,70 @@ TEST_CASE ("Pass only significant bits to bitstream", "[emit_bit]")
   // 0b11111111
   // Emitting 8 bits
   for (int i = 8; i >= 1; --i)
-  {
-    emit_bit(stream, 1);
-    byte |= (1 << i-1);
-    REQUIRE ((stream && !stream->error));
-    if (i != 1)
     {
-      REQUIRE (stream->t == i-1); // current bit position
-      REQUIRE (stream->T == byte);  // state of T
+      emit_bit (stream, 1);
+      byte |= (1 << i - 1);
+      REQUIRE ((stream && !stream->error));
+      if (i != 1)
+        {
+          REQUIRE (stream->t == i - 1);    // current bit position
+          REQUIRE (stream->T == byte);     // state of T
+        }
+      else if (i == 1)
+        {
+          REQUIRE (stream->t == 7);               // reset bit position
+          REQUIRE (stream->T == 0x00);            // reset T buffer
+          REQUIRE (stream->memory[0] == byte);    // filled buffer was transferred
+          REQUIRE (stream->L == 1);               // updated used bytes
+          REQUIRE (stream->Lmax == 2);            // updated memory size
+        }
     }
-    else if (i == 1)
-    {
-      REQUIRE (stream->t == 7);            // reset bit position
-      REQUIRE (stream->T == 0x00);         // reset T buffer
-      REQUIRE (stream->memory[0] == byte); // filled buffer was transferred
-      REQUIRE (stream->L == 1);            // updated used bytes
-      REQUIRE(stream->Lmax == 2);          // updated memory size
-    }
-  }
 
   // 0b01111111
   // Emitting 7 bits
   byte = 0x00;
   for (int i = 7; i >= 1; --i)
-  {
-    emit_bit(stream, 1);
-    byte |= (1 << i-1);
-    REQUIRE ((stream && !stream->error));
-    if (i != 1)
     {
-      REQUIRE (stream->t == i-1); // current bit position
-      REQUIRE (stream->T == byte);  // state of T
+      emit_bit (stream, 1);
+      byte |= (1 << i - 1);
+      REQUIRE ((stream && !stream->error));
+      if (i != 1)
+        {
+          REQUIRE (stream->t == i - 1);    // current bit position
+          REQUIRE (stream->T == byte);     // state of T
+        }
+      else if (i == 1)
+        {
+          REQUIRE (stream->t == 8);               // reset bit position
+          REQUIRE (stream->T == 0x00);            // reset T buffer
+          REQUIRE (stream->memory[1] == byte);    // filled buffer was transferred
+          REQUIRE (stream->L == 2);               // updated used bytes
+          REQUIRE (stream->Lmax == 2);            // updated memory size
+        }
     }
-    else if (i == 1)
-    {
-      REQUIRE (stream->t == 8);            // reset bit position
-      REQUIRE (stream->T == 0x00);         // reset T buffer
-      REQUIRE (stream->memory[1] == byte); // filled buffer was transferred
-      REQUIRE (stream->L == 2);            // updated used bytes
-      REQUIRE (stream->Lmax == 2);         // updated memory size
-    }
-  }
+
+  // Test error propagation - manually set error flag
+  stream->error = 1;
+
+  // Store current state
+  uint8 current_t = stream->t;
+  uint8 current_T = stream->T;
+  uint64 current_L = stream->L;
+  uint64 current_Lmax = stream->Lmax;
+
+  // Try to emit bits - should do nothing due to error state
+  emit_bit(stream, 1);
+  emit_bit(stream, 0);
+  emit_bit(stream, 1);
+
+  // Verify that NOTHING changed due to error state
+  REQUIRE(stream->t == current_t);       // Bit counter unchanged
+  REQUIRE(stream->T == current_T);       // Bit buffer unchanged
+  REQUIRE(stream->L == current_L);       // Bytes written unchanged
+  REQUIRE(stream->Lmax == current_Lmax); // Max size unchanged
+  REQUIRE(stream->error == 1);           // Error flag still set
+
+  // Memory content should be unchanged
+  REQUIRE(stream->memory[0] == 0xFF);
+  REQUIRE(stream->memory[1] == 0x7F);
 }
