@@ -447,3 +447,52 @@ TEST_CASE ("Retrieve chunk from bitstream", "[get_chunck]")
 
   free(stream);
 }
+
+TEST_CASE("Retrieve symbol from bitstream", "[get_symbol]")
+{
+  uint32 size = 20;
+  uchar inp_mem[size];
+
+  // Initialize with simple sequential values
+  for(int i = 0; i < size; i++) {
+    inp_mem[i] = i + 1;
+  }
+
+  char instr = 'd';
+  bitstream *stream = init_bitstream(inp_mem, size, instr);
+
+  REQUIRE ((stream && !stream->error));
+  REQUIRE(stream->L == 0);
+
+  // TEST 1: Read 4-byte symbol (bytes 1,2,3,4)
+  uint64 symbol = get_symbol(stream, 4);
+  REQUIRE((stream && !stream->error));
+  REQUIRE(stream->L == 4);
+  REQUIRE(symbol == 0x01020304);
+
+  // TEST 2: Read 2-byte symbol (bytes 5,6)
+  symbol = get_symbol(stream, 2);
+  REQUIRE((stream && !stream->error));
+  REQUIRE(stream->L == 6);
+  REQUIRE(symbol == 0x0506);
+
+  // TEST 3: Read 1-byte symbol (byte 7)
+  symbol = get_symbol(stream, 1);
+  REQUIRE((stream && !stream->error));
+  REQUIRE(stream->L == 7);
+  REQUIRE(symbol == 7);
+
+  // TEST 4: Read 8-byte symbol (bytes 8,9,10,11,12,13,14,15)
+  symbol = get_symbol(stream, 8);
+  REQUIRE((stream && !stream->error));
+  REQUIRE(stream->L == 15);
+  REQUIRE(symbol == 0x08090A0B0C0D0E0F);
+
+  // TEST 5: Try to read beyond available data
+  symbol = get_symbol(stream, 10);  // Only 5 bytes left
+  REQUIRE((stream && stream->error));
+  REQUIRE(stream->L == 15);  // L unchanged on failure
+  REQUIRE(symbol == 0);  // Returns 0 on error
+
+  free(stream);
+}
