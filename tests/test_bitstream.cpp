@@ -230,3 +230,82 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
 
   free (stream);
 }
+
+TEST_CASE ("Retrieve chunk from bitstream", "[get_chunck]")
+{
+  uint32     size = 10;
+  uchar      inp_mem[size];
+  inp_mem[0] = 1;
+  inp_mem[1] = 2;
+  inp_mem[2] = 3;
+  inp_mem[3] = 4;
+  inp_mem[4] = 4;
+  inp_mem[5] = 3;
+  inp_mem[6] = 2;
+  inp_mem[7] = 1;
+  inp_mem[8] = 99;
+  inp_mem[9] = 88;
+
+  char       instr = 'd';
+  bitstream *stream;
+  uint64     chunk_size = 4;
+  uchar     *retrieved_chunk;
+
+  stream = init_bitstream (inp_mem, size, instr);
+
+  REQUIRE(stream);
+  REQUIRE(stream->memory);
+  REQUIRE(stream->L == 0);
+  REQUIRE(stream->Lmax == size);
+
+  // TEST 1: Retrieve first chunk and verify content
+  retrieved_chunk = get_chunck(stream, chunk_size);
+  REQUIRE(stream);
+  REQUIRE(!stream->error);
+  REQUIRE(stream->L == chunk_size);
+  REQUIRE(retrieved_chunk != NULL);
+  for(uint64 i = 0; i < chunk_size; i++) {
+    REQUIRE(retrieved_chunk[i] == inp_mem[i]);
+  }
+  free(retrieved_chunk);
+
+  // TEST 2: Retrieve second chunk
+  retrieved_chunk = get_chunck(stream, chunk_size);
+  REQUIRE(stream);
+  REQUIRE(!stream->error);
+  REQUIRE(stream->L == 2*chunk_size);
+  REQUIRE(retrieved_chunk != NULL);
+  for(uint64 i = 0; i < chunk_size; i++) {
+    REQUIRE(retrieved_chunk[i] == inp_mem[i+chunk_size]);
+  }
+  free(retrieved_chunk);
+
+  // TEST 3: Try to read beyond available data - should return NULL
+  retrieved_chunk = get_chunck(stream, 5);  // Only 2 bytes left
+  REQUIRE(stream);
+  REQUIRE(stream->error);  // Error flag should be set
+  REQUIRE(retrieved_chunk == NULL);
+  REQUIRE(stream->L == 8);  // L should not change on failure
+  free(retrieved_chunk);
+
+  // Reset bitstream to try retrieving exact full size chunk
+  stream->L = 0;
+  stream->error = 0;
+
+  // TEST 4: Read exact full size
+  retrieved_chunk = get_chunck(stream, size);
+  REQUIRE(retrieved_chunk != NULL);
+  REQUIRE(stream->L == 10);
+  REQUIRE(stream->L == stream->Lmax);
+  for(uint64 i = 0; i < size; i++) {
+    REQUIRE(retrieved_chunk[i] == inp_mem[i]);
+  }
+  free(retrieved_chunk);
+
+  // TEST 5: Try to read when L == Lmax (no data left)
+  retrieved_chunk = get_chunck(stream, 1);
+  REQUIRE(retrieved_chunk == NULL);
+  REQUIRE(stream->error);
+
+  free(stream);
+}
