@@ -372,4 +372,7 @@ TEST_CASE ("Pass only significant bits to bitstream", "[emit_bit]")
   // Memory content should be unchanged
   REQUIRE(stream->memory[0] == 0xFF);
   REQUIRE(stream->memory[1] == 0x7F);
+
+  free (inp_mem);
+  free (stream);
 }
