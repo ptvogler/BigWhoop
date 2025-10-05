@@ -358,3 +358,97 @@ TEST_CASE("Retrieve symbol from bitstream", "[get_symbol]")
 
   free(stream);
 }
+
+TEST_CASE("Retrieve bits from bitstream", "[get_bit]") {
+  uint32 size = 5;
+  uchar inp_mem[size];
+
+  inp_mem[0] = 0xAA;  // 1010 1010
+  inp_mem[1] = 0x55;  // 0101 0101
+  inp_mem[2] = 0xFF;  // 1111 1111 (special case!)
+  inp_mem[3] = 0x40;  // 0100 0000 (only 7 bits read after 0xFF)
+  inp_mem[4] = 0x00;  // 0000 0000
+
+  char instr = 'd';
+  bitstream *stream = init_bitstream(inp_mem, size, instr);
+
+  REQUIRE(stream);
+  REQUIRE(stream->L == 0);
+  REQUIRE(stream->t == 0);  // Decode mode starts with t=0
+
+  // TEST 1: Read 0xAA = 1010 1010 (MSB first: bit 7 → bit 0)
+  REQUIRE(get_bit(stream) == 1);  // bit 7
+  // updated L and t after first bit from next byte
+  REQUIRE(stream->T == 0xAA); // fetched next byte
+  REQUIRE(stream->L == 1);    // incremented byte position
+  REQUIRE(stream->t == 7);    // decremented bit position t by 1 from 8
+  REQUIRE(get_bit(stream) == 0);  // bit 6
+  REQUIRE(get_bit(stream) == 1);  // bit 5
+  REQUIRE(get_bit(stream) == 0);  // bit 4
+  REQUIRE(get_bit(stream) == 1);  // bit 3
+  REQUIRE(get_bit(stream) == 0);  // bit 2
+  REQUIRE(get_bit(stream) == 1);  // bit 1
+  REQUIRE(get_bit(stream) == 0);  // bit 0
+
+  // TEST 2: Read 0x55 = 0101 0101
+  REQUIRE(get_bit(stream) == 0); // bit 7
+  REQUIRE(stream->T == 0x55); // fetched next byte
+  REQUIRE(stream->L == 2);    // incremented byte position
+  REQUIRE(stream->t == 7);    // decremented bit position t by 1 from 8
+  REQUIRE(get_bit(stream) == 1); // bit 6
+  REQUIRE(get_bit(stream) == 0); // bit 5
+  REQUIRE(get_bit(stream) == 1); // bit 4
+  REQUIRE(get_bit(stream) == 0); // bit 3
+  REQUIRE(get_bit(stream) == 1); // bit 2
+  REQUIRE(get_bit(stream) == 0); // bit 1
+  REQUIRE(get_bit(stream) == 1); // bit 0
+  REQUIRE(stream->t == 0);
+
+  // TEST 3: Read 0xFF = 1111 1111
+  REQUIRE(get_bit(stream) == 1); // bit 7
+  REQUIRE(stream->T == 0xFF); // fetched next byte
+  REQUIRE(stream->L == 3);    // incremented byte position
+  REQUIRE(stream->t == 7);    // decremented bit position t by 1 from 8
+  REQUIRE(get_bit(stream) == 1); // bit 6
+  REQUIRE(get_bit(stream) == 1); // bit 5
+  REQUIRE(get_bit(stream) == 1); // bit 4
+  REQUIRE(get_bit(stream) == 1); // bit 3
+  REQUIRE(get_bit(stream) == 1); // bit 2
+  REQUIRE(get_bit(stream) == 1); // bit 1
+  REQUIRE(get_bit(stream) == 1); // bit 0
+  REQUIRE(stream->t == 0);
+
+  // TEST 4: After 0xFF, only 7 bits from 0x40 = 0100 0000
+  // Bits read: bit 6 → bit 0 (bit 7 is skipped!)
+  REQUIRE(get_bit(stream) == 1);  // bit 6
+  REQUIRE(stream->T == 0x40);     // fetched next byte
+  REQUIRE(stream->L == 4);        // incremented byte position
+  REQUIRE(stream->t == 6);        // bit position t decremneted by 1 from 7
+  REQUIRE(get_bit(stream) == 0);  // bit 5
+  REQUIRE(get_bit(stream) == 0);  // bit 4
+  REQUIRE(get_bit(stream) == 0);  // bit 3
+  REQUIRE(get_bit(stream) == 0);  // bit 2
+  REQUIRE(get_bit(stream) == 0);  // bit 1
+  REQUIRE(get_bit(stream) == 0);  // bit 0
+  REQUIRE(stream->t == 0);  // Back to normal after non-0xFF byte
+
+  // TEST 5: Read 0x00 = 0000 0000
+  REQUIRE(get_bit(stream) == 0); // bit 7
+  REQUIRE(stream->T == 0x00);    // fetched next byte
+  REQUIRE(stream->L == 5);       // incremented byte position
+  REQUIRE(stream->t == 7);       // decremented bit position t by 1 from 8
+  REQUIRE(get_bit(stream) == 0); // bit 6
+  REQUIRE(get_bit(stream) == 0); // bit 5
+  REQUIRE(get_bit(stream) == 0); // bit 4
+  REQUIRE(get_bit(stream) == 0); // bit 3
+  REQUIRE(get_bit(stream) == 0); // bit 2
+  REQUIRE(get_bit(stream) == 0); // bit 1
+  REQUIRE(get_bit(stream) == 0); // bit 0
+  REQUIRE(stream->t == 0);
+
+  // TEST 6: byte position equals length of bistream memory
+  REQUIRE(stream->L == stream->Lmax);
+  REQUIRE(get_bit(stream) == 1);
+
+  free(stream);
+}
