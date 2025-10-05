@@ -307,6 +307,13 @@ TEST_CASE ("Retrieve chunk from bitstream", "[get_chunck]")
   REQUIRE(retrieved_chunk == NULL);
   REQUIRE(stream->error);
 
+  // TEST 6: Zero-size chunk read
+  stream->L = 0;
+  stream->error = 0;
+  retrieved_chunk = get_chunck(stream, 0);
+  REQUIRE(stream->L == 0);  // L should not change
+  if(retrieved_chunk) free(retrieved_chunk);
+
   free(stream);
 }
 
@@ -355,6 +362,14 @@ TEST_CASE("Retrieve symbol from bitstream", "[get_symbol]")
   REQUIRE((stream && stream->error));
   REQUIRE(stream->L == 15);  // L unchanged on failure
   REQUIRE(symbol == 0);  // Returns 0 on error
+
+  // TEST 6: Zero-size symbol read
+  stream->L = 0;
+  stream->error = 0;
+  symbol = get_symbol(stream, 0);
+  REQUIRE(stream->L == 0);  // L should not change
+  REQUIRE(!stream->error);  // Should not error
+  REQUIRE(symbol == 0);  // Should return 0
 
   free(stream);
 }
