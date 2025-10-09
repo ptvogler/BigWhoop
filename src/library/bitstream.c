@@ -390,6 +390,14 @@ emit_bit(bitstream *const stream, const uint64 bit)
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
   assert(stream);
+
+  /*--------------------------------------------------------*\
+  ! Exit if stream has been flagged with an error.           !
+  \*--------------------------------------------------------*/
+  if(stream->error)
+  {
+    return;
+  }
   
   /*--------------------------------------------------------*\
   ! Decrement the bit buffer counter.                        !
@@ -418,35 +426,20 @@ emit_bit(bitstream *const stream, const uint64 bit)
     if(bytes_used(stream) + 1 > stream->Lmax)
     {
       /*--------------------------------------------------------*\
-      ! If the stream is not large enough, check if this is due  !
-      ! to an error encountered in a previous writing operation  !
+      ! Increment the stream size to store the additional byte.  !
       \*--------------------------------------------------------*/
-      if(!stream->error)
-      {
-        /*--------------------------------------------------------*\
-        ! If the error flag is not set, increment the stream size  !
-        ! to store the additional byte.                            !
-        \*--------------------------------------------------------*/
-        stream->Lmax      += stream->size_incr;
-        stream->size_incr  = (uint64)(stream->Lmax / 2);
+      stream->Lmax      += stream->size_incr;
+      stream->size_incr  = (uint64)(stream->Lmax / 2);
 
-        /*--------------------------------------------------------*\
-        ! Reallocate the stream data block.                        !
-        \*--------------------------------------------------------*/
-        stream->memory     = realloc(stream->memory, stream->Lmax);
-        if(!stream->memory)
-        {
-          // memory allocation error
-          stream->error |= 1;
-          stream->Lmax   = 0;
-          return;
-        }
-      }
-      else
+      /*--------------------------------------------------------*\
+      ! Reallocate the stream data block.                        !
+      \*--------------------------------------------------------*/
+      stream->memory     = realloc(stream->memory, stream->Lmax);
+      if(!stream->memory)
       {
-        /*--------------------------------------------------------*\
-        ! Exit to function caller if error flag has been set.      !
-        \*--------------------------------------------------------*/
+        // memory allocation error
+        stream->error |= 1;
+        stream->Lmax   = 0;
         return;
       }
     }
@@ -745,6 +738,14 @@ flush_stream(bitstream *const stream)
   assert(stream);
 
   /*--------------------------------------------------------*\
+  ! Exit if stream has been flagged with an error.           !
+  \*--------------------------------------------------------*/
+  if(stream->error)
+  {
+    return;
+  }
+
+  /*--------------------------------------------------------*\
   ! Check the if the bit buffer contains information.        !
   \*--------------------------------------------------------*/
   if(stream->t != 8)
@@ -756,35 +757,20 @@ flush_stream(bitstream *const stream)
     if((bytes_used(stream) + 1) > stream->Lmax)
     {
       /*--------------------------------------------------------*\
-      ! If the stream is not large enough, check if this is due  !
-      ! to an error encountered in a previous writing operation  !
+      ! Increment the stream size to store the additional byte.  !
       \*--------------------------------------------------------*/
-      if(!stream->error)
-      {
-        /*--------------------------------------------------------*\
-        ! If the error flag is not set, increment the stream size  !
-        ! to store the additional byte.                            !
-        \*--------------------------------------------------------*/
-        stream->Lmax      += stream->size_incr;
-        stream->size_incr  = (uint64)(stream->Lmax / 2);
+      stream->Lmax      += stream->size_incr;
+      stream->size_incr  = (uint64)(stream->Lmax / 2);
 
-        /*--------------------------------------------------------*\
-        ! Reallocate the stream data block.                        !
-        \*--------------------------------------------------------*/
-        stream->memory     = realloc(stream->memory, stream->Lmax);
-        if(!stream->memory)
-        {
-          // memory allocation error
-          stream->error |= 1;
-          stream->Lmax   = 0;
-          return;
-        }
-      }
-      else
+      /*--------------------------------------------------------*\
+      ! Reallocate the stream data block.                        !
+      \*--------------------------------------------------------*/
+      stream->memory     = realloc(stream->memory, stream->Lmax);
+      if(!stream->memory)
       {
-        /*--------------------------------------------------------*\
-        ! Exit to function caller if error flag has been set.      !
-        \*--------------------------------------------------------*/
+        // memory allocation error
+        stream->error |= 1;
+        stream->Lmax   = 0;
         return;
       }
     }
