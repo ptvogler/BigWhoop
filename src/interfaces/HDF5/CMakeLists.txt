@@ -113,3 +113,24 @@ target_link_libraries(test_hdf5 PRIVATE bwclib m ${HDF5_LIBRARIES})
 # Add the utility to the test regiment.                    #
 #----------------------------------------------------------#
 add_test(NAME test_hdf5 COMMAND test_hdf5)
+
+#----------------------------------------------------------#
+# Add the HDF5 test utility to the current project.        #
+#----------------------------------------------------------#
+add_executable(test_MPAS  test_hdf5_MPAS.c)
+
+#----------------------------------------------------------#
+# Define the output name for the utility binaries.         #
+#----------------------------------------------------------#
+set_property(TARGET test_MPAS PROPERTY OUTPUT_NAME test_MPAS)
+
+#----------------------------------------------------------#
+# Setup up the include directory for the bwc utilities.    #
+#----------------------------------------------------------#
+target_include_directories(test_MPAS PRIVATE ${CMAKE_SOURCE_DIR}/include/interfaces/HDF5
+                                     PUBLIC  ${HDF5_INCLUDE_DIRS})
+
+#----------------------------------------------------------#
+# Link the bwc utility to the bwc library.                 #
+#----------------------------------------------------------#
+target_link_libraries(test_MPAS PRIVATE bwclib m ${HDF5_LIBRARIES})
