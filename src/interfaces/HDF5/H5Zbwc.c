@@ -327,8 +327,9 @@ H5Z_bwc_set_local(hid_t dcpl_id,
   \*-----------------------*/
   herr_t                  ret_value = 1;
 
-  hsize_t                 dims[H5S_MAX_RANK]   = {0};
-  hsize_t                 vdSize[H5S_MAX_RANK] = {0};
+  hsize_t                 dims[H5S_MAX_RANK]      = {0};
+  hsize_t                 dimsUSort[H5S_MAX_RANK] = {0};
+  hsize_t                 vdSize[H5S_MAX_RANK]    = {0};
 
   size_t                  cd_nelmts = 26;
 
@@ -376,13 +377,18 @@ H5Z_bwc_set_local(hid_t dcpl_id,
     BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
       "bad datatype dimension");
 
-  for (i = 0; i < H5S_MAX_RANK; ++i)
-    vdSize[i] = 1;
-
   for (i = 0, valNoDims = 0; i < (unsigned int) nDims; ++i)
     {
       if (dims[i] > 1)
-        vdSize[valNoDims++] = dims[i];
+        dimsUSort[valNoDims++] = dims[i];
+    }
+
+  for (i = 0; i < H5S_MAX_RANK; ++i)
+    {
+      if (i <= (valNoDims - 1))
+        vdSize[i] = dimsUSort[valNoDims - 1 - i];
+      else
+        vdSize[i] = 1;
     }
 
   if ((valNoDims <= 1) || (valNoDims > 4))
