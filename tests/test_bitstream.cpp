@@ -348,7 +348,20 @@ TEST_CASE ("Pass only significant bits to bitstream", "[emit_bit]")
         }
     }
 
-  // Test error propagation - manually set error flag
+  free (inp_mem);
+  free (stream);
+}
+
+TEST_CASE ("Error propagation prevents emit_bit operations", "[emit_bit]")
+{
+  uint32     size    = 1;
+  uchar     *inp_mem = (uchar *)calloc (size, sizeof (uchar));
+  bitstream *stream  = init_bitstream (inp_mem, size, 'c');
+
+  REQUIRE (stream);
+  REQUIRE (!stream->error);
+
+  // Manually set error flag to simulate a previous error condition
   stream->error = 1;
 
   // Store current state
@@ -358,20 +371,16 @@ TEST_CASE ("Pass only significant bits to bitstream", "[emit_bit]")
   uint64 current_Lmax = stream->Lmax;
 
   // Try to emit bits - should do nothing due to error state
-  emit_bit(stream, 1);
-  emit_bit(stream, 0);
-  emit_bit(stream, 1);
+  emit_bit (stream, 1);
+  emit_bit (stream, 0);
+  emit_bit (stream, 1);
 
   // Verify that NOTHING changed due to error state
-  REQUIRE(stream->t == current_t);       // Bit counter unchanged
-  REQUIRE(stream->T == current_T);       // Bit buffer unchanged
-  REQUIRE(stream->L == current_L);       // Bytes written unchanged
-  REQUIRE(stream->Lmax == current_Lmax); // Max size unchanged
-  REQUIRE(stream->error == 1);           // Error flag still set
-
-  // Memory content should be unchanged
-  REQUIRE(stream->memory[0] == 0xFF);
-  REQUIRE(stream->memory[1] == 0x7F);
+  REQUIRE (stream->t == current_t);       // Bit counter unchanged
+  REQUIRE (stream->T == current_T);       // Bit buffer unchanged
+  REQUIRE (stream->L == current_L);       // Bytes written unchanged
+  REQUIRE (stream->Lmax == current_Lmax); // Max size unchanged
+  REQUIRE (stream->error == 1);           // Error flag still set
 
   free (inp_mem);
   free (stream);
