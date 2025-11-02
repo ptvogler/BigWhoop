@@ -74,7 +74,7 @@ TEST_CASE ("Bit stream initialization", "[init_bitstream]")
 
   stream = init_bitstream (inp_mem, size, instr);
 
-  REQUIRE (stream);
+  REQUIRE ((stream && !stream->error));
   REQUIRE (stream->memory);
   REQUIRE (stream->Lmax == size);
   REQUIRE (stream->size_incr == size / 2);
@@ -94,7 +94,7 @@ TEST_CASE ("Bit stream initialization", "[init_bitstream]")
   instr  = 'd';
   stream = init_bitstream (inp_mem, size, instr);
 
-  REQUIRE (stream);
+  REQUIRE ((stream && !stream->error));
   REQUIRE (stream->memory);
   REQUIRE (stream->Lmax == size);
   REQUIRE (stream->size_incr == size / 2);
@@ -151,9 +151,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
 
   emit_chunck (stream, chunk1, chunk_size);
 
-  REQUIRE (stream);
-  REQUIRE (!stream->error);
-  REQUIRE (stream->memory);
+  REQUIRE ((stream && !stream->error));
   REQUIRE (stream->L == chunk_size);
   REQUIRE (((uchar *)stream->memory)[0] == 1);
   REQUIRE (((uchar *)stream->memory)[1] == 2);
@@ -162,9 +160,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
 
   emit_chunck (stream, chunk2, chunk_size);
 
-  REQUIRE (stream);
-  REQUIRE (!stream->error);
-  REQUIRE (stream->memory);
+  REQUIRE ((stream && !stream->error));
   REQUIRE (stream->L == 2 * chunk_size);
   REQUIRE (((uchar *)stream->memory)[4] == 4);
   REQUIRE (((uchar *)stream->memory)[5] == 3);
@@ -173,8 +169,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
 
   emit_chunck (stream, chunk2, chunk_size);
 
-  REQUIRE (stream);
-  REQUIRE (stream->error);
+  REQUIRE ((stream && stream->error));
   REQUIRE (stream->Lmax == 0);
 
   free (stream);
@@ -205,9 +200,7 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
       byte         = (uint8)stream->memory[sizeof (symbol) - i];
       test_symbol |= ((uint64)byte << ((i - 1) * 8));
     }
-  REQUIRE (stream);
-  REQUIRE (!stream->error);
-  REQUIRE (stream->memory);
+  REQUIRE ((stream && !stream->error));
   REQUIRE (stream->L == sizeof (symbol));
   REQUIRE (test_symbol == symbol);
 
@@ -219,16 +212,13 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
       byte         = (uint8)stream->memory[2 * sizeof (symbol) - i];
       test_symbol |= ((uint64)byte << ((i - 1) * 8));
     }
-  REQUIRE (stream);
-  REQUIRE (!stream->error);
-  REQUIRE (stream->memory);
+  REQUIRE ((stream && !stream->error));
   REQUIRE (stream->L == 2 * sizeof (symbol));
   REQUIRE (test_symbol == symbol);
 
   // Test invalidation of stream
   emit_symbol (stream, symbol, sizeof (symbol));
-  REQUIRE (stream);
-  REQUIRE (stream->error);
+  REQUIRE ((stream && stream->error));
   REQUIRE (stream->Lmax == 0);
 
   free (stream);
@@ -358,8 +348,7 @@ TEST_CASE ("Error propagation prevents emit_bit operations", "[emit_bit]")
   uchar     *inp_mem = (uchar *)calloc (size, sizeof (uchar));
   bitstream *stream  = init_bitstream (inp_mem, size, 'c');
 
-  REQUIRE (stream);
-  REQUIRE (!stream->error);
+  REQUIRE ((stream && !stream->error));
 
   // Manually set error flag to simulate a previous error condition
   stream->error = 1;
