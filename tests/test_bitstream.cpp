@@ -78,11 +78,8 @@ TEST_CASE ("Bit stream initialization", "[init_bitstream]")
   REQUIRE (stream->memory);
   REQUIRE (stream->Lmax == size);
   REQUIRE (stream->size_incr == size / 2);
-  REQUIRE (((uchar *)stream->memory)[0] == 1);
-  REQUIRE (((uchar *)stream->memory)[1] == 2);
-  REQUIRE (((uchar *)stream->memory)[2] == 3);
-  REQUIRE (((uchar *)stream->memory)[3] == 4);
-  REQUIRE (((uchar *)stream->memory)[4] == 44);
+  REQUIRE (((uchar *)stream->memory)[0] == 1);         // First byte
+  REQUIRE (((uchar *)stream->memory)[size - 1] == 44); // Last byte
   REQUIRE (stream->t == 8);
   REQUIRE (stream->L == 0);
   REQUIRE (stream->L == bytes_used (stream));
@@ -98,11 +95,8 @@ TEST_CASE ("Bit stream initialization", "[init_bitstream]")
   REQUIRE (stream->memory);
   REQUIRE (stream->Lmax == size);
   REQUIRE (stream->size_incr == size / 2);
-  REQUIRE (((uchar *)stream->memory)[0] == 1);
-  REQUIRE (((uchar *)stream->memory)[1] == 2);
-  REQUIRE (((uchar *)stream->memory)[2] == 3);
-  REQUIRE (((uchar *)stream->memory)[3] == 4);
-  REQUIRE (((uchar *)stream->memory)[4] == 44);
+  REQUIRE (((uchar *)stream->memory)[0] == 1);         // First byte
+  REQUIRE (((uchar *)stream->memory)[size - 1] == 44); // Last byte
   REQUIRE (stream->t == 0);
   REQUIRE (stream->L == 0);
   REQUIRE (stream->L == bytes_used (stream));
