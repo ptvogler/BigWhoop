@@ -375,11 +375,9 @@ TEST_CASE("Retrieve symbol from bitstream", "[get_symbol]")
   // Only the last 8 bytes fit in uint64
   stream->L = 0;
   symbol = get_symbol(stream, 10);
-  REQUIRE(!stream->error);
-  REQUIRE(stream->L == 10);
-  // First two bytes 0,1 are shifted out, only bytes 2-9 remain
-  // Bytes 3,4,5,6,7,8,9,10 -> 0x030405060708090A
-  REQUIRE(symbol == 0x030405060708090A);
+  REQUIRE(stream->error);
+  REQUIRE(stream->L == 0);
+  REQUIRE(symbol == 0); // Return 0 on error
 
   free(stream);
 }
