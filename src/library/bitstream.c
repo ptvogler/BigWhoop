@@ -611,6 +611,16 @@ get_symbol(bitstream *const stream, const uint8 size)
   assert(stream);
   
   /*--------------------------------------------------------*\
+  ! The return value of type uint64 is limited to 8 bytes.   !
+  ! Information is lost if size exceeds that threshold.      !
+  \*--------------------------------------------------------*/
+  if(size > 8)
+  {
+    stream->error |= 2;
+    return 0;
+  }
+
+  /*--------------------------------------------------------*\
   ! Check if the number of bytes to be read from the stream  !
   ! does not exceed the number of bytes still present in its !
   ! memory block.                                            !
