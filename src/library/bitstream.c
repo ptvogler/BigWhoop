@@ -183,7 +183,7 @@ init_bitstream(uchar* memory, uint32 size, char instr)
 }
 
 /*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_emit_chunck(bitstream *const stream, const uchar* string, const uint64 length)   !
+!   FUNCTION NAME: void pass_chunk(bitstream *const stream, const uchar* string, const uint64 length)        !
 !   --------------                                                                                           !
 !                                                                                                            !
 !   DESCRIPTION:                                                                                             !
@@ -218,7 +218,7 @@ init_bitstream(uchar* memory, uint32 size, char instr)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-emit_chunck(bitstream *const stream, const uchar* chunck, const uint64 size)
+pass_chunk(bitstream *const stream, const uchar* chunck, const uint64 size)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
@@ -300,7 +300,7 @@ emit_chunck(bitstream *const stream, const uchar* chunck, const uint64 size)
 !                                                                                                            !
 \*----------------------------------------------------------------------------------------------------------*/
 void
-emit_symbol(bitstream *const stream, const uint64 symbol, const uint8 size)
+pass_symbol(bitstream *const stream, const uint64 symbol, const uint8 size)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
