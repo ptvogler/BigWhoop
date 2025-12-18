@@ -57,7 +57,7 @@ if("${BIGWHOOP_PRECISION}" STREQUAL "Single")
 endif()
 
 execute_process(COMMAND python3 public_header.py ${PYTHON_ARGUMENT}
-                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
                 RESULT_VARIABLE result
                 ERROR_VARIABLE error_output)
 
@@ -99,13 +99,13 @@ endif()
 #----------------------------------------------------------#
 set_target_properties(bwclib PROPERTIES VERSION "${BWC_VERSION}"
                                       SOVERSION "${BWC_VERSION_MAJOR}"
-                                  PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/library/public/bwc.h")
+                                  PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/library/public/bwc.h")
 
 #----------------------------------------------------------#
 # Setup up the include directory for the BigWhoop library. #
 #----------------------------------------------------------#
-target_include_directories(bwclib PRIVATE ${CMAKE_SOURCE_DIR}/include/library/private
-                                   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/library/public>
+target_include_directories(bwclib PRIVATE ${PROJECT_SOURCE_DIR}/include/library/private
+                                   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/library/public>
                                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 #----------------------------------------------------------#
