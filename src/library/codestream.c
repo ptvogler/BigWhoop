@@ -181,92 +181,92 @@ codestream_write_header(bitstream   *const stream,
    Leoh = info->nPar * control->nTiles * 2 * PREC_BYTE;
    Lcss = control->codestreamSize;
 
-   emit_symbol(stream, SOC,                                            2);
-   emit_symbol(stream, Lcss,                                           8);
-   emit_symbol(stream, SGI,                                            2);
-   emit_symbol(stream, Linf,                                           2);
-   emit_symbol(stream, info->nX,                                       8);
-   emit_symbol(stream, info->nY,                                       8);
-   emit_symbol(stream, info->nZ,                                       8);
-   emit_symbol(stream, info->nTS,                                      8);
-   emit_symbol(stream, info->nPar,                                     1);
-   emit_symbol(stream, (uint8)info->data_prec,                         1);
-   emit_symbol(stream, (uint8)info->codec_prec,                        1);
+   pass_symbol(stream, SOC,                                            2);
+   pass_symbol(stream, Lcss,                                           8);
+   pass_symbol(stream, SGI,                                            2);
+   pass_symbol(stream, Linf,                                           2);
+   pass_symbol(stream, info->nX,                                       8);
+   pass_symbol(stream, info->nY,                                       8);
+   pass_symbol(stream, info->nZ,                                       8);
+   pass_symbol(stream, info->nTS,                                      8);
+   pass_symbol(stream, info->nPar,                                     1);
+   pass_symbol(stream, (uint8)info->data_prec,                         1);
+   pass_symbol(stream, (uint8)info->codec_prec,                        1);
 
-   emit_symbol(stream, SGC,                                            2);
-   emit_symbol(stream, Lctr,                                           2);
+   pass_symbol(stream, SGC,                                            2);
+   pass_symbol(stream, Lctr,                                           2);
 
-   emit_symbol(stream, control->CSsgc,                                 2);
+   pass_symbol(stream, control->CSsgc,                                 2);
 
-   emit_symbol(stream, control->error_resilience,                      1);
+   pass_symbol(stream, control->error_resilience,                      1);
 
-   emit_symbol(stream, control->quantization_style,                    1);
-   emit_symbol(stream, control->guard_bits,                            1);
+   pass_symbol(stream, control->quantization_style,                    1);
+   pass_symbol(stream, control->guard_bits,                            1);
 
-   emit_symbol(stream, control->qt_exponent,                           1);
-   emit_symbol(stream, control->qt_mantissa,                           2);
+   pass_symbol(stream, control->qt_exponent,                           1);
+   pass_symbol(stream, control->qt_mantissa,                           2);
 
-   emit_symbol(stream, control->progression,                           1);
-   emit_symbol(stream, control->KernelX << 6 | control->KernelY << 4 | 
+   pass_symbol(stream, control->progression,                           1);
+   pass_symbol(stream, control->KernelX << 6 | control->KernelY << 4 | 
                        control->KernelZ << 2 | control->KernelTS,      1);
 
-   emit_symbol(stream, control->decompX,                               1);
-   emit_symbol(stream, control->decompY,                               1);
-   emit_symbol(stream, control->decompZ,                               1);
-   emit_symbol(stream, control->decompTS,                              1);
+   pass_symbol(stream, control->decompX,                               1);
+   pass_symbol(stream, control->decompY,                               1);
+   pass_symbol(stream, control->decompZ,                               1);
+   pass_symbol(stream, control->decompTS,                              1);
 
-   emit_symbol(stream, control->precSizeY  << 4 | control->precSizeX,  1);
-   emit_symbol(stream, control->precSizeTS << 4 | control->precSizeZ,  1);
+   pass_symbol(stream, control->precSizeY  << 4 | control->precSizeX,  1);
+   pass_symbol(stream, control->precSizeTS << 4 | control->precSizeZ,  1);
 
-   emit_symbol(stream, control->cbX,                                   1);
-   emit_symbol(stream, control->cbY,                                   1);
-   emit_symbol(stream, control->cbZ,                                   1);
-   emit_symbol(stream, control->cbTS,                                  1);
+   pass_symbol(stream, control->cbX,                                   1);
+   pass_symbol(stream, control->cbY,                                   1);
+   pass_symbol(stream, control->cbZ,                                   1);
+   pass_symbol(stream, control->cbTS,                                  1);
 
-   emit_symbol(stream, control->Qm,                                    1);
+   pass_symbol(stream, control->Qm,                                    1);
 
-   emit_symbol(stream, control->tileSizeX,                             8);
-   emit_symbol(stream, control->tileSizeY,                             8);
-   emit_symbol(stream, control->tileSizeZ,                             8);
-   emit_symbol(stream, control->tileSizeTS,                            8);
+   pass_symbol(stream, control->tileSizeX,                             8);
+   pass_symbol(stream, control->tileSizeY,                             8);
+   pass_symbol(stream, control->tileSizeZ,                             8);
+   pass_symbol(stream, control->tileSizeTS,                            8);
 
-   emit_symbol(stream, control->nLayers,                               1);
+   pass_symbol(stream, control->nLayers,                               1);
 
    for(l = 0; l < control->nLayers; ++l)
    {
-      emit_symbol(stream, *(uint32 *)&control->bitrate[l], 4);
+      pass_symbol(stream, *(uint32 *)&control->bitrate[l], 4);
    }
 
    if(aux != NULL)
    {
       Laux = aux->size + 4;
 
-      emit_symbol(stream, SAX,         2);
-      emit_symbol(stream, Laux,        4);
-      emit_chunck(stream, aux->memory, aux->size);
+      pass_symbol(stream, SAX,         2);
+      pass_symbol(stream, Laux,        4);
+      pass_chunk(stream, aux->memory, aux->size);
    }
 
    if(com != NULL)
    {
       Lcom = com->size + 2;
 
-      emit_symbol(stream, COM,         2);
-      emit_symbol(stream, Lcom,        2);
-      emit_chunck(stream, com->memory, com->size);
+      pass_symbol(stream, COM,         2);
+      pass_symbol(stream, Lcom,        2);
+      pass_chunk(stream, com->memory, com->size);
    }
 
-   emit_symbol(stream, EOH,  2);
-   emit_symbol(stream, Leoh, 2);
+   pass_symbol(stream, EOH,  2);
+   pass_symbol(stream, Leoh, 2);
 
    for(t = 0; t < control->nTiles; ++t)
    {
       for(p = 0; p < info->nPar; ++p)
       {
 
-         emit_symbol(stream, *(uint64 *)&codec->tile[t].
+         pass_symbol(stream, *(uint64 *)&codec->tile[t].
                                                 parameter[p].info.
                                                 parameter_min, PREC_BYTE);
-         emit_symbol(stream, *(uint64 *)&codec->tile[t].
+         pass_symbol(stream, *(uint64 *)&codec->tile[t].
                                                 parameter[p].info.
                                                 parameter_max, PREC_BYTE);
 
@@ -532,29 +532,29 @@ assemble_tile(bwc_codec *const codec, bwc_tile *const tile, bitstream *const str
    \*--------------------------------------------------------*/
    control = &codec->control;
 
-   emit_symbol(stream, SOT,                        2);
-   emit_symbol(stream, 14,                         2);
-   emit_symbol(stream, tile->info.tile_index,      4);
-   emit_symbol(stream, tile->control.body_size,    8);
-   emit_symbol(stream, SOD,                        2);
+   pass_symbol(stream, SOT,                        2);
+   pass_symbol(stream, 14,                         2);
+   pass_symbol(stream, tile->info.tile_index,      4);
+   pass_symbol(stream, tile->control.body_size,    8);
+   pass_symbol(stream, SOD,                        2);
    for(packet_index = 0; packet_index < tile->control.nPackets; ++packet_index)
    {
       packet = tile->packet_sequence[packet_index];
 
       if(control->error_resilience)
       {
-         emit_symbol(stream, SOP,                        2);
-         emit_symbol(stream, 4,                          2);
-         emit_symbol(stream, packet_index % 0x100000000, 4);
+         pass_symbol(stream, SOP,                        2);
+         pass_symbol(stream, 4,                          2);
+         pass_symbol(stream, packet_index % 0x100000000, 4);
       }
 
       if(packet->header.memory)
       {
-         emit_chunck(stream, packet->header.memory, packet->header.size);
+         pass_chunk(stream, packet->header.memory, packet->header.size);
 
          if(control->error_resilience)
          {
-            emit_symbol(stream, EPH, 2);
+            pass_symbol(stream, EPH, 2);
          }
 
          release_packed_stream(&packet->header);
@@ -562,7 +562,7 @@ assemble_tile(bwc_codec *const codec, bwc_tile *const tile, bitstream *const str
 
       if(packet->body.memory)
       {
-         emit_chunck(stream, packet->body.memory, packet->body.size);
+         pass_chunk(stream, packet->body.memory, packet->body.size);
 
          release_packed_stream(&packet->body);
       }
@@ -1404,7 +1404,7 @@ assemble_codestream(bwc_codec *const codec, bwc_stream *const data)
       assemble_tile(codec, tile, stream);
    }
 
-   emit_symbol(stream, EOC, 2);
+   pass_symbol(stream, EOC, 2);
 
    compressed_size = stream->L;
    free(stream);

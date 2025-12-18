@@ -131,7 +131,7 @@ TEST_CASE ("Check used bytes in bitstream buffer", "[bytes_used]")
   free (stream);
 }
 
-TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
+TEST_CASE ("Pass chunk to bitstream", "[pass_chunk]")
 {
   uint32     size               = 10;
   uchar      inp_mem[size]      = {0};
@@ -143,7 +143,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
 
   stream = init_bitstream (inp_mem, size, instr);
 
-  emit_chunck (stream, chunk1, chunk_size);
+  pass_chunk (stream, chunk1, chunk_size);
 
   REQUIRE ((stream && !stream->error));
   REQUIRE (stream->L == chunk_size);
@@ -152,7 +152,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
   REQUIRE (((uchar *)stream->memory)[2] == 3);
   REQUIRE (((uchar *)stream->memory)[3] == 4);
 
-  emit_chunck (stream, chunk2, chunk_size);
+  pass_chunk (stream, chunk2, chunk_size);
 
   REQUIRE ((stream && !stream->error));
   REQUIRE (stream->L == 2 * chunk_size);
@@ -161,7 +161,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
   REQUIRE (((uchar *)stream->memory)[6] == 2);
   REQUIRE (((uchar *)stream->memory)[7] == 1);
 
-  emit_chunck (stream, chunk2, chunk_size);
+  pass_chunk (stream, chunk2, chunk_size);
 
   REQUIRE ((stream && stream->error));
   REQUIRE (stream->Lmax == 0);
@@ -169,7 +169,7 @@ TEST_CASE ("Pass chunk to bitstream", "[emit_chunck]")
   free (stream);
 }
 
-TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
+TEST_CASE ("Pass symbol to bitstream", "[pass_symbol]")
 {
   // Variables for stream creation
   uint32     size          = 10;
@@ -188,7 +188,7 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
 
   // Test stream validity & first symbol in stream
   symbol = UINT32_MAX;
-  emit_symbol (stream, symbol, sizeof (symbol));
+  pass_symbol (stream, symbol, sizeof (symbol));
   for (i = sizeof (symbol), test_symbol = 0; i > 0; --i)
     {
       byte         = (uint8)stream->memory[sizeof (symbol) - i];
@@ -200,7 +200,7 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
 
   // Test stream validity & second symbol in stream
   symbol = (uint32)31415;
-  emit_symbol (stream, symbol, sizeof (symbol));
+  pass_symbol (stream, symbol, sizeof (symbol));
   for (i = sizeof (symbol), test_symbol = 0; i > 0; --i)
     {
       byte         = (uint8)stream->memory[2 * sizeof (symbol) - i];
@@ -211,7 +211,7 @@ TEST_CASE ("Pass symbol to bitstream", "[emit_symbol]")
   REQUIRE (test_symbol == symbol);
 
   // Test invalidation of stream
-  emit_symbol (stream, symbol, sizeof (symbol));
+  pass_symbol (stream, symbol, sizeof (symbol));
   REQUIRE ((stream && stream->error));
   REQUIRE (stream->Lmax == 0);
 

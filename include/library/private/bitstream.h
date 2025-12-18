@@ -96,11 +96,11 @@
                                            uint32                const          size, 
                                            char                  const          instr);
   //==========|==========================|======================|======|======|=====================
-  void         emit_chunck                (bitstream                    *const  stream, 
-                                           uchar                 const  *const  chunck, 
+  void         pass_chunk                 (bitstream                    *const  stream,
+                                           uchar                 const  *const  chunck,
                                            uint64                const          size);
   //==========|==========================|======================|======|======|=====================
-  void         emit_symbol                (bitstream                    *const  stream, 
+  void         pass_symbol                (bitstream                    *const  stream,
                                            uint64                const          symbol,
                                            uint8                 const          size);
   //==========|==========================|======================|======|======|=====================
