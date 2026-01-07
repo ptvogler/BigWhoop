@@ -108,7 +108,7 @@ TEST_CASE ("Bit stream initialization", "[init_bitstream]")
 
 TEST_CASE ("Check used bytes in bitstream buffer", "[bytes_used]")
 {
-  uint32 size = 5;
+  constexpr uint32 size = 5;
   uchar  inp_mem[size];
   inp_mem[0]       = 1;
   inp_mem[1]       = 2;
@@ -133,9 +133,9 @@ TEST_CASE ("Check used bytes in bitstream buffer", "[bytes_used]")
 
 TEST_CASE ("Pass chunk to bitstream", "[pass_chunk]")
 {
-  uint32     size               = 10;
+  constexpr uint32     size               = 10;
   uchar      inp_mem[size]      = {0};
-  uint64     chunk_size         = 4;
+  constexpr uint64     chunk_size         = 4;
   uchar      chunk1[chunk_size] = {1, 2, 3, 4};
   uchar      chunk2[chunk_size] = {4, 3, 2, 1};
   char       instr              = 'c';
@@ -172,7 +172,7 @@ TEST_CASE ("Pass chunk to bitstream", "[pass_chunk]")
 TEST_CASE ("Pass symbol to bitstream", "[pass_symbol]")
 {
   // Variables for stream creation
-  uint32     size          = 10;
+  constexpr uint32     size          = 10;
   uchar      inp_mem[size] = {0};
   uint32     symbol;
   char       instr = 'c';
@@ -371,7 +371,7 @@ TEST_CASE ("Error propagation prevents emit_bit operations", "[emit_bit]")
 
 TEST_CASE ("Retrieve chunk from bitstream", "[get_chunck]")
 {
-  uint32     size = 10;
+  constexpr uint32     size = 10;
   uchar      inp_mem[size];
   inp_mem[0] = 1;
   inp_mem[1] = 2;
@@ -457,7 +457,7 @@ TEST_CASE ("Retrieve chunk from bitstream", "[get_chunck]")
 
 TEST_CASE("Retrieve symbol from bitstream", "[get_symbol]")
 {
-  uint32 size = 20;
+  constexpr uint32 size = 20;
   uchar inp_mem[size];
 
   // Initialize with simple sequential values
@@ -521,7 +521,7 @@ TEST_CASE("Retrieve symbol from bitstream", "[get_symbol]")
 }
 
 TEST_CASE("Retrieve bits from bitstream", "[get_bit]") {
-  uint32 size = 5;
+  constexpr uint32 size = 5;
   uchar inp_mem[size];
 
   inp_mem[0] = 0xAA;  // 1010 1010
