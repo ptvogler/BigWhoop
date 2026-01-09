@@ -146,6 +146,11 @@ bitstream*
 init_bitstream(uchar* memory, uint32 size, char instr)
 {
   /*-----------------------*\
+  ! DEFINE INT VARIABLES:   !
+  \*-----------------------*/
+  uint64 tmp;
+
+  /*-----------------------*\
   ! DEFINE STRUCTS:         !
   \*-----------------------*/
   bitstream *stream;
@@ -174,8 +179,8 @@ init_bitstream(uchar* memory, uint32 size, char instr)
   stream->memory    = memory;
   stream->t         = (instr == 'c') ? 8 : 0;
   stream->Lmax      = size;
-  uint64 temp = size / 2;
-  stream->size_incr = (uint64)(temp ? temp : 1);
+  tmp               = size / 2;
+  stream->size_incr = (uint64)(tmp ? tmp : 1);
 
   /*--------------------------------------------------------*\
   ! Return the stream memory handle.                         !
