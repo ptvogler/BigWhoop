@@ -42,9 +42,7 @@
 #|                                                                                                |#
 #*================================================================================================*#
 
-list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(CTest)
-include(Catch)
 
 function(bigwhoop_unit_test TESTCASE)
   add_executable(${TESTCASE} "${TESTCASE}.cpp")
