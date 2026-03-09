@@ -51,4 +51,6 @@ This builds the library and places the associated files in the `build/lib` or `b
 This project exists thanks to all the people who contribute.
 
 - Patrick Vogler patrick.vogler@hlrs.de (principal author)
-- Gregor Weiss gregor.weiss@hlrs.de 
+- Gregor Weiss gregor.weiss@hlrs.de
+- Dennis Grieger
+- Martin Aumüller 
