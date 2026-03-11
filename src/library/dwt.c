@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,15 +12,16 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This file describes a set of functions that can be used to performe the forward/        ||
-||        inverse discrete wavelet transform on 1- to 4-dimensional IEEE 754 data-sets.           ||
-||        For more information please refere to JPEG2000 by D. S. Taubman and M. W.               ||
-||        Marcellin.                                                                              ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file dwt.c
+ *
+ *        This file describes a set of functions that can be used to performe the forward/
+ *        inverse discrete wavelet transform on 1- to 4-dimensional IEEE 754 data-sets.
+ *        For more information please refere to JPEG2000 by D. S. Taubman and M. W.
+ *        Marcellin.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -43,14 +44,13 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
-
-/************************************************************************************************************\
-||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
-||                                      | |\ | |    |    |  | |  \ |___                                     ||
-||                                      | | \| |___ |___ |__| |__/ |___                                     ||
-||                                                                                                          ||
-\************************************************************************************************************/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||                                _ _  _ ____ _    _  _ ___  ____                                 ||
+||                                | |\ | |    |    |  | |  \ |___                                 ||
+||                                | | \| |___ |___ |__| |__/ |___                                 ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,57 +64,37 @@
 #include "types.h"
 #include "dwt.h"
 
-/************************************************************************************************************\
-||            ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____           ||
-||            |___  \/   |  |___ |__/ |\ | |__| |       |  | |__| |__/ | |__| |__] |    |___ [__            ||
-||            |___ _/\_  |  |___ |  \ | \| |  | |___     \/  |  | |  \ | |  | |__] |___ |___ ___]           ||
-||                                                                                                          ||
-\************************************************************************************************************/
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||      ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____       ||
+||      |___  \/   |  |___ |__/ |\ | |__| |       |  | |__| |__/ | |__| |__] |    |___ [__        ||
+||      |___ _/\_  |  |___ |  \ | \| |  | |___     \/  |  | |  \ | |  | |__] |___ |___ ___]       ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*================================================================================================*/
+/**
+ * @details Lookup table with energy gains for all supported wavelet kernels.
+ */
+/*================================================================================================*/
 double DWT_ENERGY_GAIN_LUT[3][2 * MAX_DECOMP_LEVELS + 2];
 
-/************************************************************************************************************\
-||                ___  ____ _ _  _ ____ ___ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                ||
-||                |__] |__/ | |  | |__|  |  |___    |___ |  | |\ | |     |  | |  | |\ | [__                 ||
-||                |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]                ||
-||                                                                                                          ||
-\************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uint8 get_max_taps(bwc_gl_ctrl *const control)                                            !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function returns the rounded up maximum half length of the specified wavelet filter.   !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                dwt_filter                  bwc_dwt_filter        - Specifies the wavelet kernels used for  !
-!                                                                    spatial decomposition.                  !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uint8                     - Specifies the rounded up maximum half-length of a wavelet fil-  !
-!                                            ter.                                                            !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||           ___  ____ _ _  _ ____ ___ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____           ||
+||           |__] |__/ | |  | |__|  |  |___    |___ |  | |\ | |     |  | |  | |\ | [__            ||
+||           |    |  \ |  \/  |  |  |  |___    |    |__| | \| |___  |  | |__| | \| ___]           ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*================================================================================================*/
+/**
+ * @details Returns the rounded up maximum half length of the specified wavelet filter.
+ *
+ * @param[in]  bwc_dwt_filter  Wavelet kernel.
+ *
+ * @return  Rounded up maximum half-length of a wavelet filter.
+ */
+/*================================================================================================*/
 static uint8
 get_filter_taps(bwc_dwt_filter dwt_filter)
 {
-   /*--------------------------------------------------------*\
-   ! Emit the rounded up maximum half-length of the specified !
-   ! wavelet filter.                                          !
-   \*--------------------------------------------------------*/
    switch(dwt_filter)
    {
       case bwc_dwt_9_7:
@@ -137,51 +117,17 @@ get_filter_taps(bwc_dwt_filter dwt_filter)
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void fill_forward_buffer(bwc_sample *const data, bwc_sample *const working_buffer,        !
-!   ------------                                                                         uint64 res0,        !
-!                                                                                        uint64 res1,        !
-!                                                                                   uint64 increment)        !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to fill the working buffer with the appropriate flow field data for   !
-!                the forward one dimensional wavelet transform.                                              !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                data                        bwc_sample*           - Pointer to the flow field data of the   !
-!                                                                    current tile parameter.                 !
-!                                                                                                            !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!                increment                   unsigned int(64 bit)  - Data increment for strided memory ac-   !
-!                                                                    cess.                                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                24.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Populates the working buffer with flow field data for the forward 1D wavelet transform.
+ *
+ * @param[in]  data            Pointer to the flow field data of the current tile parameter.
+ * @param[out] working_buffer  Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]  res0            Start index of the signal.
+ * @param[in]  res1            End point of the signal to be processed.
+ * @param[in]  increment       Stride for memory access.
+ */
+/*================================================================================================*/
 static void
 fill_forward_buffer(bwc_sample *const data, bwc_sample *const working_buffer, uint64 res0, uint64 res1, uint64 increment)
 {
@@ -196,11 +142,6 @@ fill_forward_buffer(bwc_sample *const data, bwc_sample *const working_buffer, ui
    assert(data);
    assert(working_buffer);
 
-   /*--------------------------------------------------------*\
-   ! Copy the strided memory for the current resolution and   !
-   ! dimension from the tile parameter buffer to the working  !
-   ! buffer for the one dimensional wavelet transform.        !
-   \*--------------------------------------------------------*/
    for(i = 0, j = 0; i < res1 - res0; ++i)
    {
       working_buffer[i] = data[j];
@@ -208,51 +149,17 @@ fill_forward_buffer(bwc_sample *const data, bwc_sample *const working_buffer, ui
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void fill_inverse_buffer(bwc_sample *const data, bwc_sample *const working_buffer,        !
-!   ------------                                                                         uint64 res0,        !
-!                                                                                        uint64 res1,        !
-!                                                                                   uint64 increment)        !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to fill the working buffer with the appropriate flow field data for   !
-!                the inverse one dimensional wavelet transform.                                              !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                data                        bwc_sample*           - Pointer to the flow field data of the   !
-!                                                                    current tile parameter.                 !
-!                                                                                                            !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!                increment                   unsigned int(64 bit)  - Data increment for strided memory ac-   !
-!                                                                    cess.                                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                24.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Populates the working buffer with flow field data for the inverse 1D wavelet transform.
+ *
+ * @param[in]  data            Pointer to the flow field data of the current tile parameter.
+ * @param[out] working_buffer  Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]  res0            Start index of the signal.
+ * @param[in]  res1            End index of the signal.
+ * @param[in]  increment       Stride for memory access.
+ */
+/*================================================================================================*/
 static void
 fill_inverse_buffer(bwc_sample *const data, bwc_sample *const working_buffer, uint64 res0, uint64 res1, uint64 increment)
 {
@@ -352,52 +259,18 @@ fill_inverse_buffer(bwc_sample *const data, bwc_sample *const working_buffer, ui
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void whole_point_symmetric_extend(bwc_sample *const working_buffer, uint64 res0,          !
-!   ------------                                                                       uint64 res1,          !
-!                                                                                      uint8 nTaps)          !
-!                                                                                                            !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to fill the boundary values of the working buffer with appropriate    !
-!                flow field data using a symmetric whole point extension:                                    !
-!                         ___ ___ ___  ___ ___ ___ ___ ___       ___ ___ ___ ___ ___  ___ ___ ___            !
-!                        |___|___|___||_A_|_B_|_C_|_D_|_E_| ... |_V_|_W_|_X_|_Y_|_Z_||___|___|___|           !
-!                                                            |                                               !
-!                                                            |                                               !
-!                                                           \|/                                              !
-!                         ___ ___ ___  ___ ___ ___ ___ ___   V   ___ ___ ___ ___ ___  ___ ___ ___            !
-!                        |_E_|_C_|_B_||_A_|_B_|_C_|_D_|_E_| ... |_V_|_W_|_X_|_Y_|_Z_||_Y_|_X_|_W_|           !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!                nTaps                       unsigned int(8 bit)   - Maximum half length of a wavelet filter.!
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+
+/*================================================================================================*/
+/**
+ * @details Boundary extension mirroring the signal around its endpoints to create a 
+ *          symmetric continuation.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ * @param[in]     res1           Maximum half length of the wavelet kernel.
+ */
+/*================================================================================================*/
 static void
 whole_point_symmetric_extend(bwc_sample *const working_buffer, uint64 res0, uint64 res1, uint8 nTaps)
 {
@@ -450,42 +323,15 @@ whole_point_symmetric_extend(bwc_sample *const working_buffer, uint64 res0, uint
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void forward_9x7_CDF_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,     !
-!   ------------                                                                            uint64 res1)     !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function applies the forward (9-7) Cohen-Daubechies-Feauveau wavelet transform on the  !
-!                data samples stored in the working buffer.                                                  !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Lifting-based 1D forward DWT using the CDF-(9/7) kernel.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ */
+/*================================================================================================*/
 static void
 forward_9x7_CDF_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, uint64 res1)
 {
@@ -539,42 +385,15 @@ forward_9x7_CDF_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void inverse_9x7_CDF_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,     !
-!   ------------                                                                            uint64 res1)     !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function applies the inverse (9-7) Cohen-Daubechies-Feauveau wavelet transform on the  !
-!                data samples stored in the working buffer.                                                  !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Lifting-based 1D inverse DWT using the CDF-(9/7) kernel.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ */
+/*================================================================================================*/
 static void
 inverse_9x7_CDF_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, uint64 res1)
 {
@@ -628,42 +447,15 @@ inverse_9x7_CDF_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void forward_5x3_LeGall_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,  !
-!   ------------                                                                               uint64 res1)  !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function applies the forward (5-3) LeGall wavelet transform on the data samples stored !
-!                in the working buffer.                                                                      !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Lifting-based 1D forward DWT using the LeGall-(5/3) kernel.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ */
+/*================================================================================================*/
 static void
 forward_5x3_LeGall_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, uint64 res1)
 {
@@ -696,42 +488,15 @@ forward_5x3_LeGall_wavelet_transform(bwc_sample *const working_buffer, uint64 re
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void inverse_5x3_LeGall_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,  !
-!   ------------                                                                               uint64 res1)  !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function applies the inverse (5-3) LeGall wavelet transform on the data samples stored !
-!                in the working buffer.                                                                      !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Lifting-based 1D inverse DWT using the LeGall-(5/3) kernel.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ */
+/*================================================================================================*/
 static void
 inverse_5x3_LeGall_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, uint64 res1)
 {
@@ -764,42 +529,15 @@ inverse_5x3_LeGall_wavelet_transform(bwc_sample *const working_buffer, uint64 re
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void forward_Haar_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,        !
-!   ------------                                                                         uint64 res1)        !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function applies the forward Haar wavelet transform on the data samples stored in the  !
-!                working buffer.                                                                             !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Lifting-based 1D forward DWT using the Haar kernel.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ */
+/*================================================================================================*/
 static void
 forward_Haar_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, uint64 res1)
 {
@@ -832,42 +570,15 @@ forward_Haar_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, ui
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void inverse_Haar_wavelet_transform(bwc_sample *const working_buffer, uint64 res0,        !
-!   ------------                                                                         uint64 res1)        !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function applies the inverse Haar wavelet transform on the data samples stored in the  !
-!                working buffer.                                                                             !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Lifting-based 1D inverse DWT using the Haar kernel.
+ *
+ * @param[in,out] working_buffer Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]     res0           Start index of the signal.
+ * @param[in]     res1           End index of the signal.
+ */
+/*================================================================================================*/
 static void
 inverse_Haar_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, uint64 res1)
 {
@@ -900,51 +611,18 @@ inverse_Haar_wavelet_transform(bwc_sample *const working_buffer, uint64 res0, ui
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void buffer_flush_forward(bwc_sample *const data, bwc_sample *const working_buffer,       !
-!   ------------                                                                          uint64 res0,       !
-!                                                                                         uint64 res1,       !
-!                                                                                    uint64 increment)       !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function creates the low- and highbands in the tile parameter after a one dimensional  !
-!                wavelet transform by copying the coefficients in the working buffer to their appropriate    !
-!                position in the tile parameter memory. In case of an odd length working buffer there are    !
-!                half_length + 1 lowband coefficients present in the buffer memory. Therefore, this func-    !
-!                tion loops through half_length - 1 wavelet coefficients and handles the last (two) coeffi-  !
-!                cient(s) separately.                                                                        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!                increment                   unsigned int(64 bit)  - Data increment for strided memory ac-   !
-!                                                                    cess.                                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Separates approximation and detail coefficients into corresponding sub-bands in the
+ *          tile parameter structure.
+ *
+ * @param[out] data            Pointer to the flow field data of the current tile parameter.
+ * @param[in]  working_buffer  Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]  res0            Start index of the signal.
+ * @param[in]  res1            End index of the signal.
+ * @param[in]  increment       Stride for memory access.
+ */
+/*================================================================================================*/
 static void
 buffer_flush_forward(bwc_sample *const data, bwc_sample *const working_buffer, uint64 res0, uint64 res1, uint64 increment)
 {
@@ -1020,47 +698,17 @@ buffer_flush_forward(bwc_sample *const data, bwc_sample *const working_buffer, u
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void buffer_flush_inverse(bwc_sample *const data, bwc_sample *const working_buffer,       !
-!   ------------                                                                          uint64 res0,       !
-!                                                                                         uint64 res1,       !
-!                                                                                    uint64 increment)       !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function copies the decompressed flow field data for the current resolution level from !
-!                the working buffer to the tile parameter memory.                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                working_buffer              bwc_sample*           - Working buffer used to store flow field !
-!                                                                    data for the one dimensional dwt.       !
-!                                                                                                            !
-!                res0                        unsigned int(64 bit)  - Starting point for the current resolu-  !
-!                                                                    tion and dimension.                     !
-!                                                                                                            !
-!                res1                        unsigned int(64 bit)  - End point for the current resolution    !
-!                                                                    and dimension.                          !
-!                                                                                                            !
-!                increment                   unsigned int(64 bit)  - Data increment for strided memory ac-   !
-!                                                                    cess.                                   !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                25.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Flushes reconstructed signal to the tile parameter memory.
+ *
+ * @param[out] data            Pointer to the flow field data of the current tile parameter.
+ * @param[in]  working_buffer  Buffer for the 1D discrete wavelet transform (DWT).
+ * @param[in]  res0            Start index of the signal.
+ * @param[in]  res1            End index of the signal.
+ * @param[in]  increment       Stride for memory access.
+ */
+/*================================================================================================*/
 static void
 buffer_flush_inverse(bwc_sample *const data, bwc_sample *const working_buffer, uint64 res0, uint64 res1, uint64 increment)
 {
@@ -1113,56 +761,23 @@ buffer_flush_inverse(bwc_sample *const data, bwc_sample *const working_buffer, u
       j += increment;
    }
 }
-/************************************************************************************************************\
-||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
-||                  |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__                   ||
-||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
-||                                                                                                          ||
-\************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: int initialize_gain_lut()                                                                 !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function calculates the energy gain factor Gb for the one dimensional, dyadic tree     !
-!                structured CDF-(9/7), LeGall-(5/3) and Haar wavelet transform with 5 levels. The energy     !
-!                gain factors are calculated according to equation (4.39) from JPEG2000 by David S. Taubman  !
-!                and Michael W. Marcellin (p. 193):                                                          !
-!                                                                                                            !
-!                                            s_L1[n] = g0[n],   s_H1[n] = h0[n],                             !
-!                         s_Ld[n] = ∑(s_Ld-1[k]*g0[n-2k], k),   s_Hd[n] = ∑(s_Hd-1[k]*g0[n-2k], k).          !
-!                                                                                                            !
-!                The energy gain factors are stored in their corresponding lookup tables and used to calcu-  !
-!                late the energy gain for the multi dimensional wavelet transforms according to equation     !
-!                (4.40) from JPEG2000 by David S. Taubman and Michael W. Marcellin (p.193):                  !
-!                                                                                                            !
-!                               s_LLD[n1,n2] = s_LD[n1] * s_LD[n2]   =>   G_LLD = G_LD * G_LD                !
-!                               s_HLD[n1,n2] = s_LD[n1] * s_HD[n2]   =>   G_HLD = G_LD * G_HD                !
-!                               s_LHD[n1,n2] = s_HD[n1] * s_LD[n2]   =>   G_LHD = G_HD * G_LD                !
-!                               s_HHD[n1,n2] = s_HD[n1] * s_HD[n2]   =>   G_HHD = G_HD * G_HD                !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Error flag used to determine wether the LUT initialization      !
-!                                            was successful.                                                 !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                21.03.2017  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
+||             |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__              ||
+||             |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]             ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*================================================================================================*/
+/**
+ * @details Populates lookup tables with energy gain factors for 1D CDF-(9/7), LeGall-(5/3), and 
+ *          Haar wavelet transforms. Factors calculated per JPEG2000 Eq. (4.39) (Taubman & 
+ *          Marcellin, p. 193).
+ *
+ * @retval  1  Error
+ * @retval  0  OK
+ */
+/*================================================================================================*/
 uchar
 initialize_gain_lut()
 {
@@ -1420,44 +1035,19 @@ initialize_gain_lut()
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: bwc_float get_dwt_energy_gain(bwc_codec *const codec, uchar highband_flag, uint16 level)  !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function evaluates the energy gain factor according to the the specified decom-        !
-!                position level. For decomposition levels larger than MAX_DECOMP_LEVELS the filter gain      !
-!                for the extra levels is approximated by multiplying the energy gain factor by 2.            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                codec                       bwc_codec*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                highband_flag               uchar                 - Defines the subband for which Gb is     !
-!                                                                    calculated.                             !
-!                                                                                                            !
-!                level                       uint16                - Defines the decomposition level for     !
-!                                                                    which Gb is calculated                  !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                double                    - Energy gain factor for two dimensional tree-structured subband  !
-!                                            transforms.                                                     !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                13.04.2017  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Evaluates the energy gain factor for the specified decomposition level. Levels 
+ *          exceeding MAX_DECOMP_LEVELS approximate filter gain by doubling the energy gain 
+ *          factor.
+ *
+ * @param[in]  codec  Structure defining the compression/decompression stage.
+ * @param[in]  codec  Flag signaling high-frequency sub-band.
+ * @param[in]  codec  Wavelet decomposition level.
+ *
+ * @return Energy gain factor for 4D tree-structured subband transforms.
+ */
+/*================================================================================================*/
 bwc_float
 get_dwt_energy_gain(bwc_codec *const codec, uchar highband_flag, uint16 level)
 {
@@ -1575,44 +1165,17 @@ get_dwt_energy_gain(bwc_codec *const codec, uchar highband_flag, uint16 level)
    return (bwc_float)Gb;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar forward_discrete_wavelet_transform(bwc_codec *const codec,                          !
-!   --------------                                          bwc_parameter *const parameter)                  !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function performs the forward discrete wavelet transform on the current tile param-    !
-!                eter. After loading the flow field samples for a row, column or spatial/temporal slice      !
-!                into a working buffer, a boundary extension operation is performed to ensure an approp.     !
-!                sample base. The working buffer is then transform using the wavelet kernel selected for     !
-!                the spatial or temporal dimension, sorted into high- and low-frequency samples and flushed  !
-!                back into the tile parameter memory block. This operation is performed for every row,       !
-!                column and spatial/temporal slice for nDecomp number of decomposition levels.               !
-!                                                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                codec                       bwc_codec*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                13.04.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Performs forward discrete wavelet transform on the current tile parameter.
+ *
+ * @param[in]  codec       Structure defining the compression/decompression stage.
+ * @param[in]  parameter   Structure defining the current parameter.
+ *
+ * @retval  1  Error
+ * @retval  0  OK
+ */
+/*================================================================================================*/
 uchar
 forward_wavelet_transform(bwc_codec *const codec, bwc_parameter *const parameter)
 {
@@ -2110,44 +1673,17 @@ forward_wavelet_transform(bwc_codec *const codec, bwc_parameter *const parameter
    return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uchar inverse_discrete_wavelet_transform(bwc_codec *const codec,                          !
-!   --------------                                          bwc_parameter *const parameter)                  !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function performs the inverse discrete wavelet transform on the current tile param-    !
-!                eter. After loading the interweaved wavelet coefficients for a row, column or spatial/      !
-!                temporal slice into a working buffer, a boundary extension operation is performed to        !
-!                ensure an appropriate sample base. The working buffer is then transform using the wave-     !
-!                let kernel selected for the spatial or temporal dimension and flushed back into the tile    !
-!                parameter memory block. This operation is performed for every row, column and spatial/      !
-!                temporal slice for nDecomp number of decomposition levels.                                  !
-!                                                                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                codec                       bwc_codec*            - Structure defining the compression/     !
-!                                                                    decompression stage.                    !
-!                                                                                                            !
-!                parameter                   bwc_parameter*        - Structure defining a bwc parameter.     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar                     - Returns an unsigned char for error handling.                    !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                13.04.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Performs inverse discrete wavelet transform on the current tile parameter.
+ *
+ * @param[in]  codec       Structure defining the compression/decompression stage.
+ * @param[in]  parameter   Structure defining the current parameter.
+ *
+ * @retval  1  Error
+ * @retval  0  OK
+ */
+/*================================================================================================*/
 uchar
 inverse_wavelet_transform(bwc_codec *const codec, bwc_parameter *const parameter)
 {
