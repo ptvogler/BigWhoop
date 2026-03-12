@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,15 +12,16 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This file describes a set of functions that can be used to create, manipulate           ||
-||        and terminate a bitstream. These functions facilitate the creation or reading           ||
-||        of a compressed bwc codestream and can emit/extract information on a per bit,           ||
-||        symbol (64-bit) or string basis.                                                        ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file   bitstream.h
+ *
+ *        This file describes a set of functions that can be used to create, manipulate
+ *        and terminate a bitstream. These functions facilitate the creation or reading
+ *        of a compressed bwc codestream and can emit/extract information on a per bit,
+ *        symbol (64-bit) or string basis.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -43,53 +44,50 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                               _ _  _ ____ _    _  _ ___  ____                                ||
   ||                               | |\ | |    |    |  | |  \ |___                                ||
   ||                               | | \| |___ |___ |__| |__/ |___                                ||
   ||                                                                                              ||
-  \************************************************************************************************/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
   #include "types.h"
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
   ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
   ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to read/assemble a packed codestream during coding. The         !
-  !         byte buffer is flushed to the packed stream as soon as the a single byte has           !
-  !         been assembled.                                                                        !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  /*==============================================================================================*/
+  /**
+   * @details This structure is used to read/assemble a packed codestream during coding. The
+  *           byte buffer is flushed to the packed stream as soon as the a single byte has
+  *           been assembled.
+   */
+  /*===========================|=====================|============================================*/
   typedef struct
   {
-    uchar                       error;                    // Error flag used during streaming.
+    uchar                       error;                //!< Error flag used during streaming.
 
-    uint64                      L;                        // Number of bytes written to/from stream.
-    uint64                      Lmax;                     // Size of packed stream.
-    uint64                      size_incr;                // Size incrmnt used for stream assembly.
+    uint64                      L;                    //!< Number of bytes written to/from stream.
+    uint64                      Lmax;                 //!< Size of packed stream.
+    uint64                      size_incr;            //!< Size incrmnt used for stream assembly.
 
-    uint8                       T;                        // Byte buffer.
-    int8                        t;                        // Byte buffer counter.
+    uint8                       T;                    //!< Byte buffer.
+    int8                        t;                    //!< Byte buffer counter.
 
-    uchar                      *memory;                   // Memory handle for packed stream chunck.
+    uchar                      *memory;               //!< Memory handle for packed stream chunck.
   } bitstream;
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||
   ||            |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__             ||
   ||            |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]            ||
   ||                                                                                              ||
-  \************************************************************************************************/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
   uint64       bytes_used                 (bitstream             const  *const  stream);
   //==========|==========================|======================|======|======|=====================
   bitstream*   init_bitstream             (uchar                        *const  memory,
