@@ -258,8 +258,8 @@ main(int  __attribute__((unused))   argc,
   hsize_t                 i;
   hsize_t                 nDims   = 3;
   hsize_t                 nPoints = 0;
-  hsize_t                 dims[] = {256, 256, 256};
-  hsize_t                 chunk_dims[] = {256, 256, 256};
+  hsize_t                 dims[] = {128, 128, 128};
+  hsize_t                 chunk_dims[] = {128, 128, 128};
 
   hid_t                   file_id = -1;
   hid_t                   dataspace_id = -1;
