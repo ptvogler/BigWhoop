@@ -51,18 +51,18 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <assert.h>                                       //!< Diagnostic assertions
+#include <stdio.h>                                        //!< Standard I/O
+#include <stdlib.h>                                       //!< Standard C library
+#include <string.h>                                       //!< String manipulation
 #if defined(_OPENMP)
-  #include <omp.h>
+  #include <omp.h>                                        //!< OpenMP parralelization
 #endif
 
-#include "constants.h"
-#include "dwt.h"
-#include "macros.h"
-#include "types.h"
+#include "constants.h"                                    //!< BWC constants
+#include "dwt.h"                                          //!< BWC wavelet functions
+#include "macros.h"                                       //!< BWC macros
+#include "types.h"                                        //!< BWC types
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||      ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____       ||

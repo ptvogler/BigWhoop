@@ -48,15 +48,13 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
-#include <hdf5.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <math.h>
+#include <hdf5.h>                                         //!< HDF5 header
+#include <stdlib.h>                                       //!< Standard C library
+#include <stdint.h>                                       //!< Fixed-width integers
+#include <stdio.h>                                        //!< Standard I/O
+#include <math.h>                                         //!< Math operations
 
-#include "bwc.h"
-#include "H5Zbwc.h"
-
+#include "H5Zbwc.h"                                       //!< BWC HDF5 plugin
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                 _  _ ____ ____ ____ ____ ____                                  ||

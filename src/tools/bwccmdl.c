@@ -45,18 +45,18 @@
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
-#include <argp.h>
-#include <assert.h>
-#include <inttypes.h>
-#include <math.h>
-#include <omp.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <argp.h>                                         //!< Command-line argument parser
+#include <assert.h>                                       //!< Diagnostic assertions
+#include <inttypes.h>                                     //!< Fixed-width integer
+#include <math.h>                                         //!< Math operations
+#include <omp.h>                                          //!< OpenMP parralelization
+#include <stdbool.h>                                      //!< Standard bool operations
+#include <stdlib.h>                                       //!< Standard C library
+#include <stdio.h>                                        //!< Standard I/O
+#include <string.h>                                       //!< String manipulation
 
-#include "eas3.h"
-#include "bwc.h"
+#include "eas3.h"                                         //!< EAS3 header
+#include "bwc.h"                                          //!< BWC header
 
 /* Definitions used to compile on Windows.                */
 #ifdef _MSC_VER
