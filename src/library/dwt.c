@@ -51,6 +51,7 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+// clang-format off
 #include <assert.h>                                       //!< Diagnostic assertions
 #include <stdio.h>                                        //!< Standard I/O
 #include <stdlib.h>                                       //!< Standard C library
@@ -63,6 +64,7 @@
 #include "dwt.h"                                          //!< BWC wavelet functions
 #include "macros.h"                                       //!< BWC macros
 #include "types.h"                                        //!< BWC types
+// clang-format on
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||      ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____       ||

@@ -51,12 +51,14 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+// clang-format off
 #include <assert.h>                                       //!< Diagnostic assertions
 #include <stdio.h>                                        //!< Standard I/O
 #include <stdlib.h>                                       //!< Standard C library
 #include <string.h>                                       //!< String manipulation
 
 #include "libbwc.h"                                       //!< BWC private header
+// clang-format on
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
