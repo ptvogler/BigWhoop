@@ -50,6 +50,7 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+// clang-format off
 #include <hdf5.h>                                         //!< HDF5 header
 #include <stdlib.h>                                       //!< Standard C library
 
@@ -163,7 +164,7 @@ const H5Z_class2_t H5Z_BWC[1] =
   (H5Z_set_local_func_t)H5Z_bwc_set_local,                //!< The "set local" callback
   (H5Z_func_t)H5Z_bwc_filter,                             //!< The actual filter function
 }};
-
+// clang-format on
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
@@ -174,12 +175,12 @@ const H5Z_class2_t H5Z_BWC[1] =
 /*================================================================================================*/
 /**
  * @details This function returns an HDF5 type identifying the implementation as a filter.
- * 
+ *
  * @return  HDF5 Type
  */
 /*================================================================================================*/
 H5PL_type_t
-H5PLget_plugin_type(void)
+H5PLget_plugin_type (void)
 {
   return H5PL_TYPE_FILTER;
 }
@@ -187,12 +188,12 @@ H5PLget_plugin_type(void)
 /*================================================================================================*/
 /**
  * @details This function returns the H5Z structure defining the BigWhoop HDF5 filter.
- * 
+ *
  * @return  H5Z struct
  */
 /*================================================================================================*/
-const void*
-H5PLget_plugin_info(void)
+void const *
+H5PLget_plugin_info (void)
 {
   return H5Z_BWC;
 }
@@ -209,29 +210,29 @@ H5PLget_plugin_info(void)
  * @retval -1  Failure
  * @retval  0  False
  * @retval  1  True
- * 
+ *
  * @return  Three valued boolean type
  */
 /*================================================================================================*/
 static htri_t
-H5Z_bwc_can_apply(hid_t  __attribute__((unused)) dcpl_id, 
-                  hid_t                          type_id, 
-                  hid_t  __attribute__((unused)) space_id)
+H5Z_bwc_can_apply (hid_t __attribute__ ((unused)) dcpl_id,
+                   hid_t                          type_id,
+                   hid_t __attribute__ ((unused)) space_id)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  htri_t                  ret_value = 1;
+  htri_t ret_value = 1;
 
-  hid_t                   nTypeID;
-  hsize_t                 dims[H5S_MAX_RANK] = {0};
+  hid_t   nTypeID;
+  hsize_t dims[H5S_MAX_RANK] = {0};
 
-  size_t                  dtSize = {0};
+  size_t dtSize = {0};
 
-  int                     nDims     = 0;
-  unsigned int            valNoDims = 0;
+  int          nDims     = 0;
+  unsigned int valNoDims = 0;
 
-  unsigned int            i;
+  unsigned int i;
 
   /*-----------------------*\
   ! DEFINE CHAR VARIABLES:  !
@@ -241,66 +242,63 @@ H5Z_bwc_can_apply(hid_t  __attribute__((unused)) dcpl_id,
   /*-----------------------*\
   ! DEFINE STRUCTS:         !
   \*-----------------------*/
-  H5T_class_t             dType;
-  H5T_order_t             dtOrder;
-  H5T_order_t             ntOrder;
+  H5T_class_t dType;
+  H5T_order_t dtOrder;
+  H5T_order_t ntOrder;
 
   /* Determines class and size of the data type and checks  *
    * whether they are valid for the BigWhoop library.       */
-  if ((dType = H5Tget_class(type_id)) == H5T_NO_CLASS)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1,
-      "bad datatype class");
+  if ((dType = H5Tget_class (type_id)) == H5T_NO_CLASS)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "bad datatype class");
 
   if (dType != H5T_FLOAT)
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "BigWhoop only supports the H5T_FLOAT datatype class");
+    BWC_GOTO_ERROR (H5E_ARGS,
+                    H5E_BADVALUE,
+                    0,
+                    "BigWhoop only supports the H5T_FLOAT datatype class");
 
-  if ((dtSize = H5Tget_size(type_id)) == 0)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "bad datatype size");
+  if ((dtSize = H5Tget_size (type_id)) == 0)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "bad datatype size");
 
   if (dtSize != 4 && dtSize != 8)
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "BigWhoop only supports 4- or 8-byte floating point values");
-
+    BWC_GOTO_ERROR (H5E_ARGS,
+                    H5E_BADVALUE,
+                    0,
+                    "BigWhoop only supports 4- or 8-byte floating point values");
 
   /* Determin the number of non-unity dimensions and check  *
    * whether this is valid for the BigWhoop library.        */
-  if ((nDims = H5Sget_simple_extent_dims(space_id, dims, NULL)) < 0)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "bad datatype dimension");
+  if ((nDims = H5Sget_simple_extent_dims (space_id, dims, NULL)) < 0)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "bad datatype dimension");
 
-  for (i = 0, valNoDims = 0; i < (unsigned int) nDims; ++i)
+  for (i = 0, valNoDims = 0; i < (unsigned int)nDims; ++i)
     {
       if (dims[i] > 1)
         valNoDims++;
     }
 
   if ((valNoDims <= 1) || (valNoDims > 4))
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "BigWhoop only supports 2 to 4 non-unity dimensions");
-
+    BWC_GOTO_ERROR (H5E_ARGS,
+                    H5E_BADVALUE,
+                    0,
+                    "BigWhoop only supports 2 to 4 non-unity dimensions");
 
   /* Make sure that the endianess is consistent between the *
    * datatype and native type.                              */
-  if((nTypeID = H5Tget_native_type(type_id, H5T_DIR_ASCEND)) == H5I_INVALID_HID)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "bad native datatype");
+  if ((nTypeID = H5Tget_native_type (type_id, H5T_DIR_ASCEND)) == H5I_INVALID_HID)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "bad native datatype");
 
-  if ((dtOrder = H5Tget_order(type_id)) == H5T_ORDER_ERROR)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "can't retrieve datatype endianness order");
+  if ((dtOrder = H5Tget_order (type_id)) == H5T_ORDER_ERROR)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "can't retrieve datatype endianness order");
 
-  if ((ntOrder = H5Tget_order(nTypeID)) == H5T_ORDER_ERROR)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "can't retrieve native type endianness order");
+  if ((ntOrder = H5Tget_order (nTypeID)) == H5T_ORDER_ERROR)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "can't retrieve native type endianness order");
 
   if (dtOrder != ntOrder)
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "BigWhoop does not allow for endian targetting");
+    BWC_GOTO_ERROR (H5E_ARGS, H5E_BADVALUE, 0, "BigWhoop does not allow for endian targetting");
 
 done:
-    return ret_value;
+  return ret_value;
 }
 
 /*================================================================================================*/
@@ -313,36 +311,34 @@ done:
  *
  * @retval -1  Failure
  * @retval  1  Success
- * 
+ *
  * @return  Error Flag
  */
 /*================================================================================================*/
 static herr_t
-H5Z_bwc_set_local(hid_t dcpl_id,
-                  hid_t type_id,
-                  hid_t space_id)
+H5Z_bwc_set_local (hid_t dcpl_id, hid_t type_id, hid_t space_id)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  herr_t                  ret_value = 1;
+  herr_t ret_value = 1;
 
-  hsize_t                 dims[H5S_MAX_RANK]      = {0};
-  hsize_t                 dimsUSort[H5S_MAX_RANK] = {0};
-  hsize_t                 vdSize[H5S_MAX_RANK]    = {0};
+  hsize_t dims[H5S_MAX_RANK]      = {0};
+  hsize_t dimsUSort[H5S_MAX_RANK] = {0};
+  hsize_t vdSize[H5S_MAX_RANK]    = {0};
 
-  size_t                  cd_nelmts = 26;
+  size_t cd_nelmts = 26;
 
-  size_t                  dtSize = 0;
+  size_t dtSize = 0;
 
-  unsigned int            cd_values[H5Z_BWC_TOTAL_NPARMS] = {0};
+  unsigned int cd_values[H5Z_BWC_TOTAL_NPARMS] = {0};
 
-  int                     nDims     = 0;
-  unsigned int            valNoDims = 0;
+  int          nDims     = 0;
+  unsigned int valNoDims = 0;
 
-  unsigned                flags;
+  unsigned flags;
 
-  unsigned int            i;
+  unsigned int i;
 
   /*-----------------------*\
   ! DEFINE CHAR VARIABLES:  !
@@ -351,33 +347,32 @@ H5Z_bwc_set_local(hid_t dcpl_id,
 
   /* Fetch the filter-specific client data and check that   *
    * the cd_values array has the required number of values. */
-  if (H5Pget_filter_by_id(dcpl_id, H5Z_FILTER_BWC, &flags, &cd_nelmts, cd_values, 0, NULL, NULL) < 0)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_CANTGET, -1, 
-      "can't get bwc parameters");
+  if (H5Pget_filter_by_id (dcpl_id, H5Z_FILTER_BWC, &flags, &cd_nelmts, cd_values, 0, NULL, NULL) <
+      0)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_CANTGET, -1, "can't get bwc parameters");
 
   if (cd_nelmts < 26)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADVALUE, -1, 
-      "invalid value for cd_nelmts");
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADVALUE, -1, "invalid value for cd_nelmts");
 
   /* Determines size of the data type, checks validity and  *
    * stores it in the cd_values array       .               */
-  if ((dtSize = H5Tget_size(type_id)) == 0)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "bad datatype size");
+  if ((dtSize = H5Tget_size (type_id)) == 0)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "bad datatype size");
 
   if (dtSize != 4 && dtSize != 8)
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "BigWhoop only supports 4- or 8-byte floating point values");
+    BWC_GOTO_ERROR (H5E_ARGS,
+                    H5E_BADVALUE,
+                    0,
+                    "BigWhoop only supports 4- or 8-byte floating point values");
 
-  cd_values[H5Z_BWC_DT] = (unsigned int) dtSize;
+  cd_values[H5Z_BWC_DT] = (unsigned int)dtSize;
 
   /* Determin the number of non-unity dimensions, check     *
    * validity and store the information in cd_values array. */
-  if ((nDims = H5Sget_simple_extent_dims(space_id, dims, NULL)) < 0)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_BADTYPE, -1, 
-      "bad datatype dimension");
+  if ((nDims = H5Sget_simple_extent_dims (space_id, dims, NULL)) < 0)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_BADTYPE, -1, "bad datatype dimension");
 
-  for (i = 0, valNoDims = 0; i < (unsigned int) nDims; ++i)
+  for (i = 0, valNoDims = 0; i < (unsigned int)nDims; ++i)
     {
       if (dims[i] > 1)
         dimsUSort[valNoDims++] = dims[i];
@@ -392,8 +387,10 @@ H5Z_bwc_set_local(hid_t dcpl_id,
     }
 
   if ((valNoDims <= 1) || (valNoDims > 4))
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "BigWhoop only supports 2 to 4 non-unity dimensions");
+    BWC_GOTO_ERROR (H5E_ARGS,
+                    H5E_BADVALUE,
+                    0,
+                    "BigWhoop only supports 2 to 4 non-unity dimensions");
 
   cd_values[H5Z_BWC_NX + 0] = (unsigned int)(vdSize[0] & 0xFFFFFFFF);
   cd_values[H5Z_BWC_NX + 1] = (unsigned int)((vdSize[0] >> 32) & 0xFFFFFFFF);
@@ -407,15 +404,14 @@ H5Z_bwc_set_local(hid_t dcpl_id,
   cd_values[H5Z_BWC_NT + 0] = (unsigned int)(vdSize[3] & 0xFFFFFFFF);
   cd_values[H5Z_BWC_NT + 1] = (unsigned int)((vdSize[3] >> 32) & 0xFFFFFFFF);
 
-  cd_values[H5Z_BWC_NP]     = 1;
+  cd_values[H5Z_BWC_NP] = 1;
 
   /* Modify the filter's parameters for this dataset */
-  if (H5Pmodify_filter(dcpl_id, H5Z_FILTER_BWC, flags, H5Z_BWC_TOTAL_NPARMS, cd_values) < 0)
-    BWC_GOTO_ERROR(H5E_PLINE, H5E_CANTSET, -1, 
-      "can't set local bwc parameters");
+  if (H5Pmodify_filter (dcpl_id, H5Z_FILTER_BWC, flags, H5Z_BWC_TOTAL_NPARMS, cd_values) < 0)
+    BWC_GOTO_ERROR (H5E_PLINE, H5E_CANTSET, -1, "can't set local bwc parameters");
 
 done:
-    return ret_value;
+  return ret_value;
 }
 
 /*================================================================================================*/
@@ -436,110 +432,102 @@ done:
  */
 /*================================================================================================*/
 static size_t
-H5Z_bwc_filter(unsigned int          flags, 
-               size_t                cd_nelmts,
-               unsigned int  const   cd_values[], 
-               size_t                nbytes,
-               size_t               *buf_size,
-               void                **buf)
+H5Z_bwc_filter (unsigned int       flags,
+                size_t             cd_nelmts,
+                unsigned int const cd_values[],
+                size_t             nbytes,
+                size_t            *buf_size,
+                void             **buf)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  hsize_t                 nX, nY, nZ;
-  hsize_t                 nTS;
+  hsize_t nX, nY, nZ;
+  hsize_t nTS;
 
-  hsize_t                 dSize;
+  hsize_t dSize;
 
-  size_t                  dtSize;
-  size_t                  ret_value = 1;
+  size_t dtSize;
+  size_t ret_value = 1;
 
-  hsize_t                 tmpX, tmpY, tmpZ;
-  hsize_t                 tmpTS;
+  hsize_t tmpX, tmpY, tmpZ;
+  hsize_t tmpTS;
 
-  unsigned int            nPar;
-  unsigned int            uLayer = 0;
-  unsigned int            optFlags;
+  unsigned int nPar;
+  unsigned int uLayer = 0;
+  unsigned int optFlags;
 
   /*-----------------------*\
   ! DEFINE CHAR VARIABLES:  !
   \*-----------------------*/
-  char                    rate[20] = {0};
+  char rate[20] = {0};
 
-  static char const      *_funcname_ = "H5Z__filter_bwc";
+  static char const *_funcname_ = "H5Z__filter_bwc";
 
-  unsigned char          *input  = (unsigned char *)(*buf);
-  unsigned char          *output = NULL;
-  unsigned char          *tmpbuf = NULL;
-
+  unsigned char *input  = (unsigned char *)(*buf);
+  unsigned char *output = NULL;
+  unsigned char *tmpbuf = NULL;
 
   /*-----------------------*\
   ! DEFINE DER. VARIABLES:  !
   \*-----------------------*/
-  bwc_header             *header;
-  bwc_stream             *stream = NULL;
-  bwc_codec              *coder  = NULL;
+  bwc_header *header;
+  bwc_stream *stream = NULL;
+  bwc_codec  *coder  = NULL;
 
   /* Check the number of filter arguments.                  */
   if (cd_nelmts != 26)
-    BWC_GOTO_ERROR(H5E_ARGS, H5E_BADVALUE, 0, 
-      "invalid number of filter parameters");
+    BWC_GOTO_ERROR (H5E_ARGS, H5E_BADVALUE, 0, "invalid number of filter parameters");
 
   /* Filter invoked to decompress codestream.               */
-  if (flags & H5Z_FLAG_REVERSE) 
+  if (flags & H5Z_FLAG_REVERSE)
     {
       /* Retrieve header information and allocate output buffer. */
-      header = bwc_open_header(input);
+      header = bwc_open_header (input);
       if (header == NULL)
-        BWC_GOTO_ERROR(H5E_PLINE, H5E_CANTFILTER, 0, 
-          "failed to parse main header");
+        BWC_GOTO_ERROR (H5E_PLINE, H5E_CANTFILTER, 0, "failed to parse main header");
 
-      dSize = header->info.nX * header->info.nY * header->info.nZ *
-              header->info.nTS * header->info.nPar;
-      if(header->info.data_prec == bwc_precision_double)
-        dSize *= sizeof(double);
-      else if(header->info.data_prec == bwc_precision_single)
-        dSize *= sizeof(float);
+      dSize = header->info.nX * header->info.nY * header->info.nZ * header->info.nTS *
+              header->info.nPar;
+      if (header->info.data_prec == bwc_precision_double)
+        dSize *= sizeof (double);
+      else if (header->info.data_prec == bwc_precision_single)
+        dSize *= sizeof (float);
 
-      bwc_close_header(header);
+      bwc_close_header (header);
 
-      output = calloc(dSize, sizeof(char));
-      if(output == NULL)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-          "memory allocation failed for bwc filter");
+      output = calloc (dSize, sizeof (char));
+      if (output == NULL)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
       /* If set, retreive the use layer option from cd_values.   */
       if ((cd_values[H5Z_BWC_FG] & (0x01 << 7)) != 0)
         uLayer = (unsigned int)cd_values[H5Z_BWC_UL];
 
       /* Initialize and run the decompression.                   */
-      coder  = bwc_alloc_decoder();
-      if(coder == NULL)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-          "memory allocation failed for bwc filter");
+      coder = bwc_alloc_decoder();
+      if (coder == NULL)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
-      stream = bwc_init_stream(input, output, decomp);
-      if(stream == NULL)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-          "memory allocation failed for bwc filter");
+      stream = bwc_init_stream (input, output, decomp);
+      if (stream == NULL)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
-      if (bwc_create_decompression(coder, stream, uLayer) == EXIT_FAILURE)
-        BWC_GOTO_ERROR(H5E_PLINE, H5E_CANTFILTER, 0, 
-          "failed to initialize the decompression");
-      if (bwc_decompress(coder, stream) == EXIT_FAILURE)
-        BWC_GOTO_ERROR(H5E_PLINE, H5E_CANTFILTER, 0, 
-          "failed to decompress");
+      if (bwc_create_decompression (coder, stream, uLayer) == EXIT_FAILURE)
+        BWC_GOTO_ERROR (H5E_PLINE, H5E_CANTFILTER, 0, "failed to initialize the decompression");
+      if (bwc_decompress (coder, stream) == EXIT_FAILURE)
+        BWC_GOTO_ERROR (H5E_PLINE, H5E_CANTFILTER, 0, "failed to decompress");
 
       /* Free the input buffer and set the return values.        */
-      free(*buf);
+      free (*buf);
 
       *buf      = output;
       output    = NULL;
-      *buf_size = (size_t) dSize;
-      ret_value = (size_t) dSize;
+      *buf_size = (size_t)dSize;
+      ret_value = (size_t)dSize;
     }
-  /* Filter invoked to compress data set.                   */  
-  else 
+  /* Filter invoked to compress data set.                   */
+  else
     {
       /* Evaluate the input and output buffer size and initial- *
        * ize the BigWhoop data and coder structs.               */
@@ -547,51 +535,50 @@ H5Z_bwc_filter(unsigned int          flags,
       nY  = ((hsize_t)cd_values[H5Z_BWC_NY + 1] << 32) | cd_values[H5Z_BWC_NY];
       nZ  = ((hsize_t)cd_values[H5Z_BWC_NZ + 1] << 32) | cd_values[H5Z_BWC_NZ];
       nTS = ((hsize_t)cd_values[H5Z_BWC_NT + 1] << 32) | cd_values[H5Z_BWC_NT];
-      
+
       nPar   = (unsigned int)cd_values[H5Z_BWC_NP];
       dtSize = (size_t)cd_values[H5Z_BWC_DT];
 
       dSize = nX * nY * nZ * nTS * nPar * dtSize;
 
       if (nbytes != dSize)
-        BWC_GOTO_ERROR(H5E_PLINE, H5E_BADVALUE, -1, 
-          "size of inbut buffer differs from specified domain size");
+        BWC_GOTO_ERROR (H5E_PLINE,
+                        H5E_BADVALUE,
+                        -1,
+                        "size of inbut buffer differs from specified domain size");
 
-      output = calloc(dSize, sizeof(char));
-      if(output == NULL)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-          "memory allocation failed for bwc filter");
+      output = calloc (dSize, sizeof (char));
+      if (output == NULL)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
-      stream = bwc_init_stream(input, output, comp);
-      if(stream == NULL)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-          "memory allocation failed for bwc filter");
+      stream = bwc_init_stream (input, output, comp);
+      if (stream == NULL)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
-      coder  = bwc_alloc_coder(nX, nY, nZ, nTS, nPar, dtSize);
-      if(coder == NULL)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-          "memory allocation failed for bwc filter");
+      coder = bwc_alloc_coder (nX, nY, nZ, nTS, nPar, dtSize);
+      if (coder == NULL)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
       /* Get the option flags from the cd_values array and set  *
        * all user defined options in the coder structure.       */
       optFlags = (unsigned int)cd_values[H5Z_BWC_FG];
 
       if ((optFlags & (0x01 << 0)) != 0)
-        bwc_set_error_resilience(coder);
+        bwc_set_error_resilience (coder);
 
       if ((optFlags & (0x01 << 1)) != 0)
-        sprintf(rate, "%05.3f", *(float *)&cd_values[H5Z_BWC_BR]);
+        sprintf (rate, "%05.3f", *(float *)&cd_values[H5Z_BWC_BR]);
       else
-        sprintf(rate, "%05.3f", (float)(8.0f * dtSize));
+        sprintf (rate, "%05.3f", (float)(8.0f * dtSize));
 
       if ((optFlags & (0x01 << 2)) != 0)
         {
           tmpX  = (hsize_t)((cd_values[H5Z_BWC_CB] >> 24) & 0xFF);
           tmpY  = (hsize_t)((cd_values[H5Z_BWC_CB] >> 16) & 0xFF);
-          tmpZ  = (hsize_t)((cd_values[H5Z_BWC_CB] >>  8) & 0xFF);
+          tmpZ  = (hsize_t)((cd_values[H5Z_BWC_CB] >> 8) & 0xFF);
           tmpTS = (hsize_t)(cd_values[H5Z_BWC_CB] & 0xFF);
 
-          bwc_set_codeblocks(coder, tmpX, tmpY, tmpZ, tmpTS);
+          bwc_set_codeblocks (coder, tmpX, tmpY, tmpZ, tmpTS);
           tmpX = tmpY = tmpZ = tmpTS = 0;
         }
 
@@ -599,10 +586,10 @@ H5Z_bwc_filter(unsigned int          flags,
         {
           tmpX  = (hsize_t)((cd_values[H5Z_BWC_PC] >> 24) & 0xFF);
           tmpY  = (hsize_t)((cd_values[H5Z_BWC_PC] >> 16) & 0xFF);
-          tmpZ  = (hsize_t)((cd_values[H5Z_BWC_PC] >>  8) & 0xFF);
+          tmpZ  = (hsize_t)((cd_values[H5Z_BWC_PC] >> 8) & 0xFF);
           tmpTS = (hsize_t)(cd_values[H5Z_BWC_PC] & 0xFF);
 
-          bwc_set_precincts(coder, tmpX, tmpY, tmpZ, tmpTS);
+          bwc_set_precincts (coder, tmpX, tmpY, tmpZ, tmpTS);
           tmpX = tmpY = tmpZ = tmpTS = 0;
         }
 
@@ -613,7 +600,7 @@ H5Z_bwc_filter(unsigned int          flags,
           tmpZ  = ((hsize_t)cd_values[H5Z_BWC_TZ + 1] << 32) | cd_values[H5Z_BWC_TZ];
           tmpTS = ((hsize_t)cd_values[H5Z_BWC_TT + 1] << 32) | cd_values[H5Z_BWC_TT];
 
-          bwc_set_tiles(coder, tmpX, tmpY, tmpZ, tmpTS, bwc_tile_sizeof);
+          bwc_set_tiles (coder, tmpX, tmpY, tmpZ, tmpTS, bwc_tile_sizeof);
           tmpX = tmpY = tmpZ = tmpTS = 0;
         }
 
@@ -621,59 +608,55 @@ H5Z_bwc_filter(unsigned int          flags,
         {
           tmpX  = (hsize_t)((cd_values[H5Z_BWC_DL] >> 24) & 0xFF);
           tmpY  = (hsize_t)((cd_values[H5Z_BWC_DL] >> 16) & 0xFF);
-          tmpZ  = (hsize_t)((cd_values[H5Z_BWC_DL] >>  8) & 0xFF);
+          tmpZ  = (hsize_t)((cd_values[H5Z_BWC_DL] >> 8) & 0xFF);
           tmpTS = (hsize_t)(cd_values[H5Z_BWC_DL] & 0xFF);
 
-          bwc_set_decomp(coder, tmpX, tmpY, tmpZ, tmpTS);
+          bwc_set_decomp (coder, tmpX, tmpY, tmpZ, tmpTS);
           tmpX = tmpY = tmpZ = tmpTS = 0;
         }
 
       if ((optFlags & (0x01 << 6)) != 0)
-        bwc_set_qm(coder, (unsigned int)cd_values[H5Z_BWC_QM]);
+        bwc_set_qm (coder, (unsigned int)cd_values[H5Z_BWC_QM]);
 
       /* Initialize and run the compression.                     */
-      if (bwc_create_compression(coder, stream, rate) == EXIT_FAILURE)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-            "memory allocation failed for bwc filter");
+      if (bwc_create_compression (coder, stream, rate) == EXIT_FAILURE)
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "memory allocation failed for bwc filter");
 
-      dSize = bwc_compress(coder, stream);
+      dSize = bwc_compress (coder, stream);
       if (dSize == 0)
-        BWC_GOTO_ERROR(H5E_PLINE, H5E_CANTFILTER, 0, 
-          "failed to compress");
+        BWC_GOTO_ERROR (H5E_PLINE, H5E_CANTFILTER, 0, "failed to compress");
 
       if (dSize > nbytes)
-        BWC_GOTO_ERROR(H5E_RESOURCE, H5E_OVERFLOW, 0,
-          "buffer overrun");
+        BWC_GOTO_ERROR (H5E_RESOURCE, H5E_OVERFLOW, 0, "buffer overrun");
 
       if (dSize < nbytes)
         {
-          tmpbuf = realloc(output, dSize);
+          tmpbuf = realloc (output, dSize);
           if (tmpbuf == NULL)
-            BWC_GOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, 0, 
-              "failed to realloc output buffer ");
+            BWC_GOTO_ERROR (H5E_RESOURCE, H5E_NOSPACE, 0, "failed to realloc output buffer ");
           else
             output = tmpbuf;
         }
 
       /* Free the input buffer and set the return values.        */
-      free(*buf);
+      free (*buf);
 
       *buf      = output;
       output    = NULL;
       tmpbuf    = NULL;
-      *buf_size = (size_t) dSize;
-      ret_value = (size_t) dSize;
+      *buf_size = (size_t)dSize;
+      ret_value = (size_t)dSize;
     }
 
 done:
 
   if (coder)
-    bwc_free_codec(coder);
+    bwc_free_codec (coder);
 
   if (stream)
-    free(stream);
+    free (stream);
 
   if (output)
-      free(output);
+    free (output);
   return ret_value;
 }

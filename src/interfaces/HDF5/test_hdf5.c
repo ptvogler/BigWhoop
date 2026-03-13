@@ -48,6 +48,7 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+// clang-format off
 #include <hdf5.h>                                         //!< HDF5 header
 #include <stdlib.h>                                       //!< Standard C library
 #include <stdint.h>                                       //!< Fixed-width integers
@@ -66,9 +67,10 @@
 /**
  * @details Macros to determine the minimum or maximum of two values.
  */
-/*===========================================================================|====================*/
-#define MAX(x, y)             (((x) < (y))?(y):(x))     // Returns maximum between two values
-#define MIN(x, y)             (((x) > (y))?(y):(x))     // Returns minimum between two values
+/*=======================================================|========================================*/
+#define MAX(x, y)             (((x) < (y))?(y):(x))       // Returns maximum between two values
+#define MIN(x, y)             (((x) > (y))?(y):(x))       // Returns minimum between two values
+// clang-format on
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||           ___  ____ _ _  _ ____ ___ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____           ||
@@ -88,34 +90,34 @@
  *
  * @retval EXIT_FAILURE Failure
  * @retval EXIT_SUCCESS Success
- * 
+ *
  * @return  Error flag
  */
 /*================================================================================================*/
 static uint8_t
-init_3d_field(hsize_t *dims,
-              double **rho,
-              double **rhou,
-              double **rhov,
-              double **rhow,
-              double **rhoE)
+init_3d_field (hsize_t *dims,
+               double **rho,
+               double **rhou,
+               double **rhov,
+               double **rhow,
+               double **rhoE)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  hsize_t                 domain_size;
+  hsize_t domain_size;
 
-  hsize_t                 n;
-  hsize_t                 i, j, k;
+  hsize_t n;
+  hsize_t i, j, k;
 
   /*-----------------------*\
   ! DEFINE FLOAT VARIABLES: !
   \*-----------------------*/
-  double                  u, v;
-  double                  dX, dY, dZ;
+  double u, v;
+  double dX, dY, dZ;
 
-  const double            PI = 3.14159265358979323846f;
-  const double            GAMMA = 1.4f;
+  double const PI    = 3.14159265358979323846f;
+  double const GAMMA = 1.4f;
 
   /* Initialize the grid variables                          */
   dX = (2.0f * PI) / dims[0];
@@ -125,30 +127,30 @@ init_3d_field(hsize_t *dims,
   domain_size = dims[0] * dims[1] * dims[2];
 
   /* Allocate the variable arrays                           */
-  *rho  = (double *)calloc(domain_size, sizeof(double));
-  *rhou = (double *)calloc(domain_size, sizeof(double));
-  *rhov = (double *)calloc(domain_size, sizeof(double));
-  *rhow = (double *)calloc(domain_size, sizeof(double));
-  *rhoE = (double *)calloc(domain_size, sizeof(double));
+  *rho  = (double *)calloc (domain_size, sizeof (double));
+  *rhou = (double *)calloc (domain_size, sizeof (double));
+  *rhov = (double *)calloc (domain_size, sizeof (double));
+  *rhow = (double *)calloc (domain_size, sizeof (double));
+  *rhoE = (double *)calloc (domain_size, sizeof (double));
 
-  if (*rho == NULL || *rhou == NULL || *rhov == NULL 
-                   || *rhow == NULL || *rhoE == NULL)
-    { 
-      if(*rho != NULL)
-        free(*rho);
-      if(*rhou != NULL)
-        free(*rhou);
-      if(*rhov != NULL)
-        free(*rhov);
-      if(*rhow != NULL)
-        free(*rhow);
-      if(*rhoE != NULL)
-        free(*rhoE);
+  if (*rho == NULL || *rhou == NULL || *rhov == NULL || *rhow == NULL || *rhoE == NULL)
+    {
+      if (*rho != NULL)
+        free (*rho);
+      if (*rhou != NULL)
+        free (*rhou);
+      if (*rhov != NULL)
+        free (*rhov);
+      if (*rhow != NULL)
+        free (*rhow);
+      if (*rhoE != NULL)
+        free (*rhoE);
 
-      fprintf(stderr, "o##########################################################o\n"\
-                      "|                   ERROR: Out of memory                   |\n"\
-                      "o##########################################################o\n");
-      return EXIT_FAILURE; 
+      fprintf (stderr,
+               "o##########################################################o\n"
+               "|                   ERROR: Out of memory                   |\n"
+               "o##########################################################o\n");
+      return EXIT_FAILURE;
     }
 
   /* Populate the fields with their appropriate values.     */
@@ -158,20 +160,20 @@ init_3d_field(hsize_t *dims,
         {
           for (k = 0; k < dims[2]; k++)
             {
-              n = i + (dims[1] * (j + (dims[2] *k)));
+              n = i + (dims[1] * (j + (dims[2] * k)));
 
-              u =  sin(i * dX) * cos(j * dY) * cos(k * dZ);
-              v = -cos(i * dX) * sin(j * dY) * cos(k * dZ);
+              u = sin (i * dX) * cos (j * dY) * cos (k * dZ);
+              v = -cos (i * dX) * sin (j * dY) * cos (k * dZ);
 
               (*rho)[n]  = 1.0f;
               (*rhou)[n] = u;
               (*rhov)[n] = v;
               (*rhow)[n] = 0.0f;
-              (*rhoE)[n] = 1.0f / ((GAMMA - 1.0f)) + (0.5f * (u*u + v*v));
+              (*rhoE)[n] = 1.0f / ((GAMMA - 1.0f)) + (0.5f * (u * u + v * v));
             }
         }
     }
-  
+
   return EXIT_SUCCESS;
 }
 
@@ -183,44 +185,42 @@ init_3d_field(hsize_t *dims,
  * @param[in]  cd_values    Filter-specific client data.
  * @param[in]  nDims        Number of dimensions.
  * @param[in]  chunk_dims   Dimensions defining chuncking.
- * 
+ *
  * @return Data set creation properties
  */
 /*================================================================================================*/
-static hid_t 
-init_bwc_filter(unsigned int *cd_values,
-                size_t        cd_nelmts,
-                unsigned int  nDims,
-                hsize_t      *chunk_dims)
+static hid_t
+init_bwc_filter (unsigned int *cd_values, size_t cd_nelmts, unsigned int nDims, hsize_t *chunk_dims)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  hid_t                   dcpl_id;
+  hid_t dcpl_id;
 
   /* Create the data set creation property list and define  */
   /* the appropriate chuncking.                             */
-  if (0 > (dcpl_id = H5Pcreate(H5P_DATASET_CREATE)))
+  if (0 > (dcpl_id = H5Pcreate (H5P_DATASET_CREATE)))
     {
-      fprintf(stderr, "Failed to create data set.\n");
+      fprintf (stderr, "Failed to create data set.\n");
       return 1;
     }
 
-  if (0 > H5Pset_chunk(dcpl_id, nDims, chunk_dims))
+  if (0 > H5Pset_chunk (dcpl_id, nDims, chunk_dims))
     {
-      fprintf(stderr, "Failed to invoke H5Pcreate.\n");
+      fprintf (stderr, "Failed to invoke H5Pcreate.\n");
       return 1;
     }
 
   /* Add filter to the pipeline via generic interface.      */
-  if (0 > H5Pset_filter(dcpl_id, 33000, H5Z_FLAG_MANDATORY, cd_nelmts, cd_values))
+  if (0 > H5Pset_filter (dcpl_id, 33000, H5Z_FLAG_MANDATORY, cd_nelmts, cd_values))
     {
-      fprintf(stderr, "Failed to set BigWhoop as filter.\n");
+      fprintf (stderr, "Failed to set BigWhoop as filter.\n");
       return 1;
     }
 
   return dcpl_id;
 }
+
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
 ||             |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__              ||
@@ -235,105 +235,109 @@ init_bwc_filter(unsigned int *cd_values,
  *
  * @param[in] argc  Number of strings pointed to by argv
  * @param[in] argv  Array of arguments
- * 
+ *
  * @retval EXIT_FAILURE Failure
  * @retval EXIT_SUCCESS Success
- * 
+ *
  * @return  Error flag
  */
 /*================================================================================================*/
-int 
-main(int  __attribute__((unused))   argc, 
-     char __attribute__((unused)) **argv)
+int
+main (int __attribute__ ((unused)) argc, char __attribute__ ((unused)) * *argv)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  int                     p;
-  size_t                  ret_value = EXIT_SUCCESS;
+  int    p;
+  size_t ret_value = EXIT_SUCCESS;
 
-  size_t                  cd_nelmts = 26;
-  unsigned int            cd_values[26] = {0};
+  size_t       cd_nelmts     = 26;
+  unsigned int cd_values[26] = {0};
 
-  hsize_t                 i;
-  hsize_t                 nDims   = 3;
-  hsize_t                 nPoints = 0;
-  hsize_t                 dims[] = {128, 128, 128};
-  hsize_t                 chunk_dims[] = {128, 128, 128};
+  hsize_t i;
+  hsize_t nDims        = 3;
+  hsize_t nPoints      = 0;
+  hsize_t dims[]       = {128, 128, 128};
+  hsize_t chunk_dims[] = {128, 128, 128};
 
-  hid_t                   file_id = -1;
-  hid_t                   dataspace_id = -1;
-  hid_t                   dataset_id = -1;
-  hid_t                   dcpl_id = -1;
-
-  /*-----------------------*\
-  ! DEFINE FLOAT VARIABLES: !
-  \*-----------------------*/
-  char                   var_name[5][5] = {{"rho"}, {"rhou"}, {"rhov"}, {"rhow"}, {"rhoE"}};
+  hid_t file_id      = -1;
+  hid_t dataspace_id = -1;
+  hid_t dataset_id   = -1;
+  hid_t dcpl_id      = -1;
 
   /*-----------------------*\
   ! DEFINE FLOAT VARIABLES: !
   \*-----------------------*/
-  float                   bitrate = 0.01f;
-  double                 *var[5]  = {NULL};
-  double                 *varC[5] = {NULL};
+  char var_name[5][5] = {{"rho"}, {"rhou"}, {"rhov"}, {"rhow"}, {"rhoE"}};
 
-  double                  MSE, PSNR;
-  double                  peakVal;
-  double                  sum;
-  double                  minVal, maxVal;
+  /*-----------------------*\
+  ! DEFINE FLOAT VARIABLES: !
+  \*-----------------------*/
+  float   bitrate = 0.01f;
+  double *var[5]  = {NULL};
+  double *varC[5] = {NULL};
+
+  double MSE, PSNR;
+  double peakVal;
+  double sum;
+  double minVal, maxVal;
 
   /* Initialize the HDF5 output file.                       */
-  if((file_id = H5Fcreate("tmp.hf5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+  if ((file_id = H5Fcreate ("tmp.hf5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT)) < 0)
     {
       ret_value = EXIT_FAILURE;
       goto done;
     }
 
-  if((dataspace_id = H5Screate_simple(3, dims, 0)) < 0)
+  if ((dataspace_id = H5Screate_simple (3, dims, 0)) < 0)
     {
       ret_value = EXIT_FAILURE;
       goto done;
     }
 
   /* Generate the test data set and set up the HDF5 filter. */
-  if(init_3d_field(dims, &var[0], &var[1], &var[2], &var[3], &var[4]) == EXIT_FAILURE)
+  if (init_3d_field (dims, &var[0], &var[1], &var[2], &var[3], &var[4]) == EXIT_FAILURE)
     {
       ret_value = EXIT_FAILURE;
       goto done;
     }
 
-  H5Pset_bwc_error_resilience(cd_nelmts, cd_values);
-  H5Pset_bwc_bitrate(bitrate, cd_nelmts, cd_values);
-  //H5Pset_bwc_codeblocks(4, cd_nelmts, cd_values);
-  //H5Pset_bwc_codeblocks_d(2, 3, 4, 0, cd_nelmts, cd_values);
-  //H5Pset_bwc_precinct(14, cd_nelmts, cd_values);
-  //H5Pset_bwc_precinct_d(11, 12, 13, 0, cd_nelmts, cd_values);
-  //H5Pset_bwc_tile(128, cd_nelmts, cd_values);
-  //H5Pset_bwc_tile_d(32, 64, 128, 1, cd_nelmts, cd_values);
-  //H5Pset_bwc_decomp(1, cd_nelmts, cd_values);
-  //H5Pset_bwc_decomp_d(1, 2, 3, 0, cd_nelmts, cd_values);
-  H5Pset_bwc_qm(32, cd_nelmts, cd_values);
+  H5Pset_bwc_error_resilience (cd_nelmts, cd_values);
+  H5Pset_bwc_bitrate (bitrate, cd_nelmts, cd_values);
+  // H5Pset_bwc_codeblocks(4, cd_nelmts, cd_values);
+  // H5Pset_bwc_codeblocks_d(2, 3, 4, 0, cd_nelmts, cd_values);
+  // H5Pset_bwc_precinct(14, cd_nelmts, cd_values);
+  // H5Pset_bwc_precinct_d(11, 12, 13, 0, cd_nelmts, cd_values);
+  // H5Pset_bwc_tile(128, cd_nelmts, cd_values);
+  // H5Pset_bwc_tile_d(32, 64, 128, 1, cd_nelmts, cd_values);
+  // H5Pset_bwc_decomp(1, cd_nelmts, cd_values);
+  // H5Pset_bwc_decomp_d(1, 2, 3, 0, cd_nelmts, cd_values);
+  H5Pset_bwc_qm (32, cd_nelmts, cd_values);
 
-  dcpl_id = init_bwc_filter(cd_values, cd_nelmts, nDims, chunk_dims);
+  dcpl_id = init_bwc_filter (cd_values, cd_nelmts, nDims, chunk_dims);
 
   /* Create the test dataset and write it to file.          */
-  for(i = 0; i < 5; ++i)
+  for (i = 0; i < 5; ++i)
     {
-      if (0 > (dataset_id = H5Dcreate(file_id, var_name[i], H5T_NATIVE_DOUBLE, 
-                                      dataspace_id, H5P_DEFAULT, dcpl_id, H5P_DEFAULT)))
+      if (0 > (dataset_id = H5Dcreate (file_id,
+                                       var_name[i],
+                                       H5T_NATIVE_DOUBLE,
+                                       dataspace_id,
+                                       H5P_DEFAULT,
+                                       dcpl_id,
+                                       H5P_DEFAULT)))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if (0 > H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, var[i]))
+      if (0 > H5Dwrite (dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, var[i]))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if (0 > H5Dclose(dataset_id))
+      if (0 > H5Dclose (dataset_id))
         {
           ret_value = EXIT_FAILURE;
           goto done;
@@ -341,65 +345,61 @@ main(int  __attribute__((unused))   argc,
       dataset_id = -1;
     }
 
-  if ((H5Pclose(dcpl_id) < 0)     ||
-      (H5Sclose(dataspace_id) < 0)||
-      (H5Fclose(file_id) < 0))
+  if ((H5Pclose (dcpl_id) < 0) || (H5Sclose (dataspace_id) < 0) || (H5Fclose (file_id) < 0))
     {
       ret_value = EXIT_FAILURE;
       goto done;
     }
 
-  dcpl_id       =
-  dataspace_id  =
-  file_id       = -1;
+  dcpl_id = dataspace_id = file_id = -1;
 
   /* Read the HDF5 file.                                    */
-  if((file_id = H5Fopen("tmp.hf5", H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
+  if ((file_id = H5Fopen ("tmp.hf5", H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
     {
       ret_value = EXIT_FAILURE;
       goto done;
     }
 
-  for(i = 0; i < 5; ++i)
+  for (i = 0; i < 5; ++i)
     {
-      if (0 > (dataset_id = H5Dopen2(file_id, var_name[i], H5P_DEFAULT)))
+      if (0 > (dataset_id = H5Dopen2 (file_id, var_name[i], H5P_DEFAULT)))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if(0 > (dataspace_id = H5Dget_space(dataset_id)))
+      if (0 > (dataspace_id = H5Dget_space (dataset_id)))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if(0 == (nPoints = H5Sget_simple_extent_npoints(dataspace_id)))
+      if (0 == (nPoints = H5Sget_simple_extent_npoints (dataspace_id)))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if (0 > H5Sclose(dataspace_id))
+      if (0 > H5Sclose (dataspace_id))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
       dataspace_id = -1;
 
-      if(NULL == (varC[i] = (double*)calloc(nPoints, sizeof(double))))
+      if (NULL == (varC[i] = (double *)calloc (nPoints, sizeof (double))))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if (0 > H5Dread(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, varC[i]))
+      if (0 > H5Dread (dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, varC[i]))
         {
           ret_value = EXIT_FAILURE;
           goto done;
         }
 
-      if (0 > H5Dclose(dataset_id))
+      if (0 > H5Dclose (dataset_id))
         {
           ret_value = EXIT_FAILURE;
           goto done;
@@ -407,67 +407,67 @@ main(int  __attribute__((unused))   argc,
       dataset_id = -1;
     }
 
-  if ((H5Fclose(file_id) < 0))
+  if ((H5Fclose (file_id) < 0))
     {
       ret_value = EXIT_FAILURE;
       goto done;
     }
-  file_id       = -1;
+  file_id = -1;
 
   /* Output the peak signal-to-noise ratio.                 */
   peakVal = -1.7976931348623157e+308;
-  PSNR    =
-  MSE     = 0;
+  PSNR = MSE = 0;
 
-  for(p = 0; p < 5; ++p)
+  for (p = 0; p < 5; ++p)
     {
       minVal = 1.7976931348623157e+308;
       maxVal = -1.7976931348623157e+308;
 
-      for(i = 0; i < nPoints; ++i)
+      for (i = 0; i < nPoints; ++i)
         {
-          minVal  = MIN(minVal, (double)varC[p][i]);
-          maxVal  = MAX(maxVal, (double)varC[p][i]);
+          minVal = MIN (minVal, (double)varC[p][i]);
+          maxVal = MAX (maxVal, (double)varC[p][i]);
 
-          sum     = ((double)varC[p][i] - (double)var[p][i]);
+          sum = ((double)varC[p][i] - (double)var[p][i]);
 
-          MSE    += sum * sum;
+          MSE += sum * sum;
         }
 
-      peakVal = MAX(peakVal, maxVal - minVal);
+      peakVal = MAX (peakVal, maxVal - minVal);
     }
 
-  MSE /= (double)nPoints * 5;
-  PSNR = 20 * log10(peakVal/(2 * sqrt(MSE)));
+  MSE  /= (double)nPoints * 5;
+  PSNR  = 20 * log10 (peakVal / (2 * sqrt (MSE)));
 
-  if ((PSNR-75.16f) > 0.01) ret_value = EXIT_FAILURE;
+  if ((PSNR - 75.16f) > 0.01)
+    ret_value = EXIT_FAILURE;
 
-  done:
+done:
 
-    remove("tmp.hf5");
+  remove ("tmp.hf5");
 
-    for (i = 0; i < 5; ++i)
-      {
-        if (var[i])
-          free(var[i]);
+  for (i = 0; i < 5; ++i)
+    {
+      if (var[i])
+        free (var[i]);
 
-        if (varC[i])
-          free(varC[i]);    
-      }
+      if (varC[i])
+        free (varC[i]);
+    }
 
-    if (dataset_id > 0)
-      H5Dclose(dataset_id);
+  if (dataset_id > 0)
+    H5Dclose (dataset_id);
 
-    if (dcpl_id > 0)
-      H5Pclose(dcpl_id);
+  if (dcpl_id > 0)
+    H5Pclose (dcpl_id);
 
-    if (dataspace_id > 0)
-      H5Sclose(dataspace_id);
+  if (dataspace_id > 0)
+    H5Sclose (dataspace_id);
 
-    if (file_id > 0)
-      H5Fclose(file_id);
+  if (file_id > 0)
+    H5Fclose (file_id);
 
-    H5close();
+  H5close();
 
-    return ret_value;
+  return ret_value;
 }
