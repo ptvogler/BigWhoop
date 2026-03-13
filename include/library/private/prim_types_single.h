@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,13 +12,14 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This header defines a set of basic arithmetic types with specified widths to be         ||
-||        used in the big whoop compression algorithm.                                            ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file   prim_types_single.h
+ *
+ *        This header defines a set of basic arithmetic types with specified widths to be
+ *        used in the big whoop compression algorithm.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -41,23 +42,23 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #ifndef BWC_PRIM_TYPES_SINGLE_H
 #define BWC_PRIM_TYPES_SINGLE_H
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                               _ _  _ ____ _    _  _ ___  ____                                ||
   ||                               | |\ | |    |    |  | |  \ |___                                ||
   ||                               | | \| |___ |___ |__| |__/ |___                                ||
   ||                                                                                              ||
-  \************************************************************************************************/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
   #include <stdint.h>
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                ___  ____ _ _  _ _ ___ _ _  _ ____    ___ _   _ ___  ____ ____                ||
   ||                |__] |__/ | |\/| |  |  | |  | |___     |   \_/  |__] |___ [__                 ||
   ||                |    |  \ | |  | |  |  |  \/  |___     |    |   |    |___ ___]                ||
   ||                                                                                              ||
-  \************************************************************************************************/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
   typedef unsigned char         uchar;
   typedef unsigned short        ushort;
   typedef unsigned int          uint;
@@ -74,60 +75,45 @@
   typedef float                 bwc_float;
   typedef uint32                bwc_raw;
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                                _  _ ____ ____ ____ ____ ____                                 ||
   ||                                |\/| |__| |    |__/ |  | [__                                  ||
   ||                                |  | |  | |___ |  \ |__| ___]                                 ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These macros describe the minimum and maximum values for a single precision IEEE       !
-  !         754 floating point variable.                                                           !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  #define FLT_MAX               1.70141183e+38            // Maximum finite value of a float
-  #define FLT_MIN               1.17549435e-38            // Minimum finite value of a float
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  /*==============================================================================================*/
+  /**
+   * @details Minimum and maximum values for a single precision IEEE 754 floating point variable.
+   */
+  /*=================================================|============================================*/
+  #define FLT_MAX           1.70141183e+38            //!< Maximum finite value of a float
+  #define FLT_MIN           1.17549435e-38            //!< Minimum finite value of a float
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These macros describe the precision (in bits and bytes) of the derrived floating       !
-  !         point type as well as the number of bits used to represent its mantissa and            !
-  !         exponent fields.                                                                       !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  #define PREC_BIT              31                        // Float type precision in bits
-  #define PREC_MANTISSA         23                        // Mantissa field precision in bits
-  #define PREC_EXPONENT         8                         // Exponent field precision in bits
-  #define PREC_BYTE             4                         // Float type precision in bytes
+  /*==============================================================================================*/
+  /**
+   * @details Precision (in bits and bytes) of the derrived floating point type as well as the 
+   *          number of bits used to represent its mantissa and exponent fields.
+   */
+  /*=================================================|============================================*/
+  #define PREC_BIT          31                        //!< Float type precision in bits
+  #define PREC_MANTISSA     23                        //!< Mantissa field precision in bits
+  #define PREC_EXPONENT     8                         //!< Exponent field precision in bits
+  #define PREC_BYTE         4                         //!< Float type precision in bytes
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These macros describe the bit masks used to access the sign, mantissa and              !
-  !         exponent of the derrived floating point type.                                          !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  #define SIGN                  0x80000000                // Sign bit mask
-  #define MANTISSA              0x007FFFFF                // Mantissa bit mask
-  #define EXPONENT              0x7F800000                // Exponent bit mask
+  /*==============================================================================================*/
+  /**
+   * @details Bit masks used to access the sign, mantissa and exponent of the derrived floating
+   *          point type.
+   */
+  /*=================================================|============================================*/
+  #define SIGN              0x80000000                //!< Sign bit mask
+  #define MANTISSA          0x007FFFFF                //!< Mantissa bit mask
+  #define EXPONENT          0x7F800000                //!< Exponent bit mask
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This macro describe the maximum number of possible encoding passes during the          !
-  !         entropy encoding stage.                                                                !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  #define MAXIMUM_NO_PASSES    (32 * 3) - 2
+  /*==============================================================================================*/
+  /**
+   * @details Maximum number of possible encoding passes during the entropy encoding stage. 
+   */
+  /*=================================================|============================================*/
+  #define MAXIMUM_NO_PASSES (32 * 3) - 2              //!< Maxmimum fractional bit-planes
 #endif
