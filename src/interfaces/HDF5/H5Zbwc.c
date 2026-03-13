@@ -50,10 +50,10 @@
 ||                                | | \| |___ |___ |__| |__/ |___                                 ||
 ||                                                                                                ||
 \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
-#include <hdf5.h>                                       //!< HDF5 public header
-#include <stdlib.h>                                     //!< Standard C library
+#include <hdf5.h>                                         //!< HDF5 public header
+#include <stdlib.h>                                       //!< Standard C library
 
-#include "bwc.h"                                        //!< BigWhoop public header
+#include "bwc.h"                                          //!< BigWhoop public header
 
 
 /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
@@ -66,53 +66,53 @@
 /**
  * @details Simple Macros defining core attributes of the HDF5 filter.
  */
-/*===================================================|============================================*/
-#define  H5Z_FILTER_BWC         33000                 //!< Filter id number
+/*=============================|=========================|========================================*/
+#define  H5Z_FILTER_BWC         33000                     //!< Filter id number
 
-#define  H5Z_BWC_VERSION_MAJOR  0                     //!< H5Z_BWC Major Version
-#define  H5Z_BWC_VERSION_MINOR  1                     //!< H5Z_BWC Minor Version
-#define  H5Z_BWC_VERSION_PATCH  0                     //!< H5Z_BWC Patch Version
+#define  H5Z_BWC_VERSION_MAJOR  0                         //!< H5Z_BWC Major Version
+#define  H5Z_BWC_VERSION_MINOR  1                         //!< H5Z_BWC Minor Version
+#define  H5Z_BWC_VERSION_PATCH  0                         //!< H5Z_BWC Patch Version
 
-#define  H5Z_BWC_USER_NPARMS    15                    //!< Number of user adjustable parames.
-#define  H5Z_BWC_TOTAL_NPARMS   26                    //!< Total number of parameters.
+#define  H5Z_BWC_USER_NPARMS    15                        //!< Number of user adjustable parames.
+#define  H5Z_BWC_TOTAL_NPARMS   26                        //!< Total number of parameters.
 
-#define  H5Z_BWC_FG             0                     //!< Pos. of control flag in cd_values
+#define  H5Z_BWC_FG             0                         //!< Pos. of control flag in cd_values
 
-#define  H5Z_BWC_NX             1                     //!< Pos. of sizeX in cd_values
-#define  H5Z_BWC_NY             3                     //!< Pos. of sizeY in cd_values
-#define  H5Z_BWC_NZ             5                     //!< Pos. of sizeZ in cd_values
-#define  H5Z_BWC_NT             7                     //!< Pos. of sizeTS in cd_values
-#define  H5Z_BWC_NP             9                     //!< Pos. of n.o. params in cd_values
-#define  H5Z_BWC_DT             10                    //!< Pos. of data type in cd_values
+#define  H5Z_BWC_NX             1                         //!< Pos. of sizeX in cd_values
+#define  H5Z_BWC_NY             3                         //!< Pos. of sizeY in cd_values
+#define  H5Z_BWC_NZ             5                         //!< Pos. of sizeZ in cd_values
+#define  H5Z_BWC_NT             7                         //!< Pos. of sizeTS in cd_values
+#define  H5Z_BWC_NP             9                         //!< Pos. of n.o. params in cd_values
+#define  H5Z_BWC_DT             10                        //!< Pos. of data type in cd_values
 
-#define  H5Z_BWC_ER             11                    //!< Pos. of err_res. flag in cd_values
-#define  H5Z_BWC_BR             12                    //!< Pos. of bitrate in cd_values
+#define  H5Z_BWC_ER             11                        //!< Pos. of err_res. flag in cd_values
+#define  H5Z_BWC_BR             12                        //!< Pos. of bitrate in cd_values
 
-#define  H5Z_BWC_CB             13                    //!< Pos. of codeblock size in cd_values
-#define  H5Z_BWC_PC             14                    //!< Pos. of precinct in cd_values
+#define  H5Z_BWC_CB             13                        //!< Pos. of codeblock size in cd_values
+#define  H5Z_BWC_PC             14                        //!< Pos. of precinct in cd_values
 
-#define  H5Z_BWC_TX             15                    //!< Pos. of tileSizeX in cd_values
-#define  H5Z_BWC_TY             17                    //!< Pos. of tileSizeY in cd_values
-#define  H5Z_BWC_TZ             19                    //!< Pos. of tileSizeZ in cd_values
-#define  H5Z_BWC_TT             21                    //!< Pos. of tileSizeTS in cd_values
+#define  H5Z_BWC_TX             15                        //!< Pos. of tileSizeX in cd_values
+#define  H5Z_BWC_TY             17                        //!< Pos. of tileSizeY in cd_values
+#define  H5Z_BWC_TZ             19                        //!< Pos. of tileSizeZ in cd_values
+#define  H5Z_BWC_TT             21                        //!< Pos. of tileSizeTS in cd_values
 
-#define  H5Z_BWC_DL             23                    //!< Pos. of n.o. decomp. lvl in cd_values
-#define  H5Z_BWC_QM             24                    //!< Pos. of QM value in cd_values
+#define  H5Z_BWC_DL             23                        //!< Pos. of n.o. decomp. lvl in cd_values
+#define  H5Z_BWC_QM             24                        //!< Pos. of QM value in cd_values
 
-#define  H5Z_BWC_UL             25                    //!< Pos. of use layer in cd_values
+#define  H5Z_BWC_UL             25                        //!< Pos. of use layer in cd_values
 
 
 /*================================================================================================*/
 /**
  * @details Simple wrapper for the H5Epush_goto function used to push the appropriate ret_val.
  */
-/*===================================================|============================================*/
-#define BWC_GOTO_ERROR(MJ, MN, RV, MG)                \
-do {                                                  \
-      ret_value = RV;                                 \
-      H5Epush_goto(_funcname_, H5E_ERR_CLS, MJ,       \
-                                            MN,       \
-                                            MG, done);\
+/*=======================================================|========================================*/
+#define BWC_GOTO_ERROR(MJ, MN, RV, MG)                    \
+do {                                                      \
+      ret_value = RV;                                     \
+      H5Epush_goto(_funcname_, H5E_ERR_CLS, MJ,           \
+                                            MN,           \
+                                            MG, done);    \
 } while(0)
 
 
@@ -151,17 +151,17 @@ size_t       H5Z_bwc_filter             (unsigned int                         fl
 /**
  * @details This message derives from H5Z.
  */
-/*===================================================|============================================*/
+/*=======================================================|========================================*/
 const H5Z_class2_t H5Z_BWC[1] = 
 {{
-  H5Z_CLASS_T_VERS,                                   //!< H5Z_class_t version
-  (H5Z_filter_t)H5Z_FILTER_BWC,                       //!< Filter id number
-  1,                                                  //!< Encoder present flag (set to true)
-  1,                                                  //!< Decoder present flag (set to true)
-  "HDF5 bwc filter",                                  //!< Filter name for debugging
-  (H5Z_can_apply_func_t)H5Z_bwc_can_apply,            //!< The "can apply" callback
-  (H5Z_set_local_func_t)H5Z_bwc_set_local,            //!< The "set local" callback
-  (H5Z_func_t)H5Z_bwc_filter,                         //!< The actual filter function
+  H5Z_CLASS_T_VERS,                                       //!< H5Z_class_t version
+  (H5Z_filter_t)H5Z_FILTER_BWC,                           //!< Filter id number
+  1,                                                      //!< Encoder present flag (set to true)
+  1,                                                      //!< Decoder present flag (set to true)
+  "HDF5 bwc filter",                                      //!< Filter name for debugging
+  (H5Z_can_apply_func_t)H5Z_bwc_can_apply,                //!< The "can apply" callback
+  (H5Z_set_local_func_t)H5Z_bwc_set_local,                //!< The "set local" callback
+  (H5Z_func_t)H5Z_bwc_filter,                             //!< The actual filter function
 }};
 
 
