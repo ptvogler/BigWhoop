@@ -52,7 +52,7 @@
   /*=====================================================|========================================*/
   #define BWC_VERSION_MAJOR     0                         //!< Major Version
   #define BWC_VERSION_MINOR     2                         //!< Minor Version
-  #define BWC_VERSION_PATCH     0                         //!< Patch Version
+  #define BWC_VERSION_PATCH     3                         //!< Patch Version
 
   /*==============================================================================================*/
   /**
