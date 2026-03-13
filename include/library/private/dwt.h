@@ -65,55 +65,55 @@
   /**
    * @details Maximum number of wavelet layers for which the energy gain is calculated.
    */
-  /*=================================================|============================================*/
-  #define MAX_DECOMP_LEVELS     4                     //!< Maximum DWT energy gain eval. layers
+  /*=====================================================|========================================*/
+  #define MAX_DECOMP_LEVELS     4                         //!< Max. DWT energy gain eval. layers
 
   /*==============================================================================================*/
   /**
    * @details Coefficients for the synthesis filter bank and lifting scheme of the (9-7) 
    *          Cohen-Daubechies-Feauveau kernel.
    */
-  /*=================================================|============================================*/
-  #define DWT_9X7_H0            1.115087052457000f    //!< CDF-(9/7) low pass snythesis coeff. 0
-  #define DWT_9X7_H1            0.591271763114250f    //!< CDF-(9/7) low pass snythesis coeff. 1
-  #define DWT_9X7_H2           -0.057543526228500f    //!< CDF-(9/7) low pass snythesis coeff. 2
-  #define DWT_9X7_H3           -0.091271763114250f    //!< CDF-(9/7) low pass snythesis coeff. 3
+  /*=====================================================|========================================*/
+  #define DWT_9X7_H0            1.115087052457000f        //!< CDF-(9/7) LP snythesis coeff. 0
+  #define DWT_9X7_H1            0.591271763114250f        //!< CDF-(9/7) LP snythesis coeff. 1
+  #define DWT_9X7_H2           -0.057543526228500f        //!< CDF-(9/7) LP snythesis coeff. 2
+  #define DWT_9X7_H3           -0.091271763114250f        //!< CDF-(9/7) LP snythesis coeff. 3
 
-  #define DWT_9X7_G0            1.205898036472721f    //!< CDF-(9/7) high pass snythesis coeff. 0
-  #define DWT_9X7_G1           -0.533728236885750f    //!< CDF-(9/7) high pass snythesis coeff. 1
-  #define DWT_9X7_G2           -0.156446533057980f    //!< CDF-(9/7) high pass snythesis coeff. 2
-  #define DWT_9X7_G3            0.033728236885750f    //!< CDF-(9/7) high pass snythesis coeff. 3
-  #define DWT_9X7_G4            0.053497514821620f    //!< CDF-(9/7) high pass snythesis coeff. 3
+  #define DWT_9X7_G0            1.205898036472721f        //!< CDF-(9/7) HP snythesis coeff. 0
+  #define DWT_9X7_G1           -0.533728236885750f        //!< CDF-(9/7) HP snythesis coeff. 1
+  #define DWT_9X7_G2           -0.156446533057980f        //!< CDF-(9/7) HP snythesis coeff. 2
+  #define DWT_9X7_G3            0.033728236885750f        //!< CDF-(9/7) HP snythesis coeff. 3
+  #define DWT_9X7_G4            0.053497514821620f        //!< CDF-(9/7) HP snythesis coeff. 3
 
-  #define ALPHA                -1.586134342059924f    //!< CDF-(9/7) lifting coefficient α
-  #define BETA                 -0.052980118572961f    //!< CDF-(9/7) lifting coefficient β
-  #define GAMMA                 0.882911075530934f    //!< CDF-(9/7) lifting coefficient γ
-  #define DELTA                 0.360523644801462f    //!< CDF-(9/7) lifting coefficient δ/κ
-  #define KAPPA_H               1.230174104914001f    //!< CDF-(9/7) lifting coefficient κ
-  #define KAPPA_L               0.812893066115961f    //!< CDF-(9/7) lifting coefficient 1/κ
+  #define ALPHA                -1.586134342059924f        //!< CDF-(9/7) lifting coefficient α
+  #define BETA                 -0.052980118572961f        //!< CDF-(9/7) lifting coefficient β
+  #define GAMMA                 0.882911075530934f        //!< CDF-(9/7) lifting coefficient γ
+  #define DELTA                 0.360523644801462f        //!< CDF-(9/7) lifting coefficient δ/κ
+  #define KAPPA_H               1.230174104914001f        //!< CDF-(9/7) lifting coefficient κ
+  #define KAPPA_L               0.812893066115961f        //!< CDF-(9/7) lifting coefficient 1/κ
 
   /*==============================================================================================*/
   /**
    * @details Coefficients for the synthesis filter bank of the (5-3) LeGall kernel.
    */
-  /*=================================================|============================================*/
-  #define DWT_5X3_H0            1.0f                  //!< LG-(5/3) low pass snythesis coeff. 0
-  #define DWT_5X3_H1            0.5f                  //!< LG-(5/3) low pass snythesis coeff. 1
+  /*=====================================================|========================================*/
+  #define DWT_5X3_H0            1.0f                      //!< LG-(5/3) LP snythesis coeff. 0
+  #define DWT_5X3_H1            0.5f                      //!< LG-(5/3) LP snythesis coeff. 1
 
-  #define DWT_5X3_G0            0.75f                 //!< LG-(5/3) high pass snythesis coeff. 0
-  #define DWT_5X3_G1           -0.25f                 //!< LG-(5/3) high pass snythesis coeff. 1
-  #define DWT_5X3_G2           -0.125f                //!< LG-(5/3) high pass snythesis coeff. 2
+  #define DWT_5X3_G0            0.75f                     //!< LG-(5/3) HP snythesis coeff. 0
+  #define DWT_5X3_G1           -0.25f                     //!< LG-(5/3) HP snythesis coeff. 1
+  #define DWT_5X3_G2           -0.125f                    //!< LG-(5/3) HP snythesis coeff. 2
 
   /*==============================================================================================*/
   /**
    * @details Coefficients for the synthesis filter bank of the Haar kernel.
    */
-  /*=================================================|============================================*/
-  #define DWT_HAAR_H0           1                     //!< Haar low pass snythesis coeff. 0
-  #define DWT_HAAR_H1           1                     //!< Haar low pass snythesis coeff. 1
+  /*=====================================================|========================================*/
+  #define DWT_HAAR_H0           1                         //!< Haar LP snythesis coeff. 0
+  #define DWT_HAAR_H1           1                         //!< Haar LP snythesis coeff. 1
 
-  #define DWT_HAAR_G0           0.5                   //!< Haar high pass snythesis coeff. 0
-  #define DWT_HAAR_G1          -0.5                   //!< Haar high pass snythesis coeff. 1
+  #define DWT_HAAR_G0           0.5                       //!< Haar HP snythesis coeff. 0
+  #define DWT_HAAR_G1          -0.5                       //!< Haar HP snythesis coeff. 1
 
   /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||     ____ _  _ ___ ____ ____ _  _ ____ _       _  _ ____ ____ _ ____ ___  _    ____ ____      ||

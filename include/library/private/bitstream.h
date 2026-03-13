@@ -67,19 +67,19 @@
   *           byte buffer is flushed to the packed stream as soon as the a single byte has
   *           been assembled.
    */
-  /*===========================|=====================|============================================*/
+  /*===========================|=========================|========================================*/
   typedef struct
   {
-    uchar                       error;                //!< Error flag used during streaming.
+    uchar                       error;                    //!< Error flag used during streaming.
 
-    uint64                      L;                    //!< Number of bytes written to/from stream.
-    uint64                      Lmax;                 //!< Size of packed stream.
-    uint64                      size_incr;            //!< Size incrmnt used for stream assembly.
+    uint64                      L;                        //!< Bytes written to/from stream.
+    uint64                      Lmax;                     //!< Size of packed stream.
+    uint64                      size_incr;                //!< Size incr used for stream assembly.
 
-    uint8                       T;                    //!< Byte buffer.
-    int8                        t;                    //!< Byte buffer counter.
+    uint8                       T;                        //!< Byte buffer.
+    int8                        t;                        //!< Byte buffer counter.
 
-    uchar                      *memory;               //!< Memory handle for packed stream chunck.
+    uchar                      *memory;                   //!< Memory handle for packed stream.
   } bitstream;
 
   /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\

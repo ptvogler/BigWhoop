@@ -85,35 +85,35 @@
   /**
    * @details Minimum and maximum values for a single precision IEEE 754 floating point variable.
    */
-  /*=================================================|============================================*/
-  #define FLT_MAX           1.70141183e+38            //!< Maximum finite value of a float
-  #define FLT_MIN           1.17549435e-38            //!< Minimum finite value of a float
+  /*=====================================================|========================================*/
+  #define FLT_MAX               1.70141183e+38            //!< Maximum finite value of a float
+  #define FLT_MIN               1.17549435e-38            //!< Minimum finite value of a float
 
   /*==============================================================================================*/
   /**
    * @details Precision (in bits and bytes) of the derrived floating point type as well as the 
    *          number of bits used to represent its mantissa and exponent fields.
    */
-  /*=================================================|============================================*/
-  #define PREC_BIT          31                        //!< Float type precision in bits
-  #define PREC_MANTISSA     23                        //!< Mantissa field precision in bits
-  #define PREC_EXPONENT     8                         //!< Exponent field precision in bits
-  #define PREC_BYTE         4                         //!< Float type precision in bytes
+  /*=====================================================|========================================*/
+  #define PREC_BIT              31                        //!< Float type precision in bits
+  #define PREC_MANTISSA         23                        //!< Mantissa field precision in bits
+  #define PREC_EXPONENT         8                         //!< Exponent field precision in bits
+  #define PREC_BYTE             4                         //!< Float type precision in bytes
 
   /*==============================================================================================*/
   /**
    * @details Bit masks used to access the sign, mantissa and exponent of the derrived floating
    *          point type.
    */
-  /*=================================================|============================================*/
-  #define SIGN              0x80000000                //!< Sign bit mask
-  #define MANTISSA          0x007FFFFF                //!< Mantissa bit mask
-  #define EXPONENT          0x7F800000                //!< Exponent bit mask
+  /*=====================================================|========================================*/
+  #define SIGN                  0x80000000                //!< Sign bit mask
+  #define MANTISSA              0x007FFFFF                //!< Mantissa bit mask
+  #define EXPONENT              0x7F800000                //!< Exponent bit mask
 
   /*==============================================================================================*/
   /**
    * @details Maximum number of possible encoding passes during the entropy encoding stage. 
    */
-  /*=================================================|============================================*/
-  #define MAXIMUM_NO_PASSES (32 * 3) - 2              //!< Maxmimum fractional bit-planes
+  /*=====================================================|========================================*/
+  #define MAXIMUM_NO_PASSES     (32 * 3) - 2              //!< Maxmimum fractional bit-planes
 #endif
