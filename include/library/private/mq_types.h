@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,13 +12,14 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This header defines a the bit coder and its context states used during the              ||
-||        entropy encoding stage of the BigWhoop compression library.                             ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file mq_types.h
+ *
+ *        This header defines a set of derrived types that describe the MQ coder and it's
+ *        coder and context state utilized by the fractional bit plane coding stage.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -41,81 +42,70 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #ifndef MQ_TYPES_H
 #define MQ_TYPES_H
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                               _ _  _ ____ _    _  _ ___  ____                                ||
   ||                               | |\ | |    |    |  | |  \ |___                                ||
   ||                               | | \| |___ |___ |__| |__/ |___                                ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  #include <stdint.h>
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  #include <stdint.h>                                     //!< Fixed-width integers
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
   ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
   ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to directly access the parameter codeblocks during              !
-  !         entropy (de-)encoding to facilitate shared memory parallelization.                     !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  /*==============================================================================================*/
+  /**
+   * @details Context state used for probability estimation by the MQ arithmetic encoder
+   *          when encodeing a Most Probablye (MPS) or Least Probable Symbol (LPS).
+   */
+  /*=====================================================|========================================*/
   typedef struct context
   {
-    uint16_t                    p;                        // LPS probability estimate
-    uint8_t                     sk;                       // Most probable symbol
+    uint16_t                    p;                        //!< LPS probability estimation
+    uint8_t                     sk;                       //!< Most probable symbol (MPS)
 
-    const struct context *const MPS;                      // New context for Most Probable Symbol
-    const struct context *const LPS;                      // New context for Least Probable Symbol
+    const struct context *const MPS;                      //!< New context for encoded (MPS)
+    const struct context *const LPS;                      //!< New context for encoded (LPS)
   } bwc_context_state;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         DESCRIPTION NEEDED                                                                     !
-  !        |                                                                                |      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Coder state used for codeword generation and bitstream assembly.
+   */
+  /*=====================================================|========================================*/
   typedef struct state
   {
-    int64_t                     L;                        // Number of bytes generated so far
-    uint32_t                    C;                        // Register def. lower bound of coding int
-    uint16_t                    A;                        // Register def. upper bound of coding int
-    int8_t                      t;                        // Counter evaluating when moving C into b
+    int64_t                     L;                        //!< Number of generated code bytes
+    uint32_t                    C;                        //!< Lower bound register
+    uint16_t                    A;                        //!< Half open interval length
+    int8_t                      t;                        //!< Down counter: partial codeword to buf
 
-    unsigned char              *b;                        // Byte buffer
-    unsigned char               T;                        // Temporary byte buffer
+    unsigned char              *b;                        //!< Byte buffer
+    unsigned char               T;                        //!< Temporary byte buffer
 
-    struct state               *next;                     // State of the next coding phase
-    struct state               *prev;                     // State of the previous coding phase
+    struct state               *next;                     //!< Next coding phase state
+    struct state               *prev;                     //!< Previous coding phase state
   } bwc_coder_state;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         DESCRIPTION NEEDED                                                                     !
-  !        |                                                                                |      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details MQ coder instance.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    int64_t                     Lmax;                     // Number of code bytes (used by decoder)
-    uint8_t                     nContext;                 // No. tracked context states
+    int64_t                     Lmax;                     //!< Number of code bytes
+    uint8_t                     nContext;                 //!< Number of context states
 
-    unsigned char              *b;                        // Temporary byte buffer
+    unsigned char              *b;                        //!< Temporary byte buffer
 
-    bwc_coder_state            *state;                    // State for the current coding pass
-    bwc_context_state const   **context;                  // States for the current coding pass
+    bwc_coder_state            *state;                    //!< Coder state variables
+    bwc_context_state const   **context;                  //!< Probabilty Mapper
   } bwc_bit_coder;
 #endif

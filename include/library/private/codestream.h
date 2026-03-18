@@ -17,7 +17,7 @@
  *        @file codestream.h
  *
  *        This file describes a set of function that can be used to create and manipulate
- *        a BigWhoop Codestream. They facilitate the assembly and parsing of the main
+ *        a BigWhoop codestream. They facilitate the assembly and parsing of the main
  *        header and tile bitsreams as well as read and write functions used to access
  *        conforming bwc datasets.
  *                                                                                                */

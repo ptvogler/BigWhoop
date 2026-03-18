@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,15 +12,16 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This file describes a set of functions that can be used to de-/encode bwc               ||
-||        codeblocks described by the bwc_codec structure according to the embedded block         ||
-||        coding paradigm described by the JPEG 2000 standard. For more information please        ||
-||        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.                                ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file tier1.h
+ *
+ *        This file describes a set of macros, derrived types and functions that define the
+ *        fractional bit plane de-/encoding operations that are part of the embedded block
+ *        coding paradigm described by the JPEG 2000 standard. For more information please
+ *        refere to JPEG2000 by D. S. Taubman and M. W. Marcellin.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -43,119 +44,99 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #ifndef TIER1_H
 #define TIER1_H
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                               _ _  _ ____ _    _  _ ___  ____                                ||
   ||                               | |\ | |    |    |  | |  \ |___                                ||
   ||                               | | \| |___ |___ |__| |__/ |___                                ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  #include "types.h"
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  #include "bitstream.h"                                  //!< BWC bitstream operations
+  #include "types.h"                                      //!< BWC types
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                                _  _ ____ ____ ____ ____ ____                                 ||
   ||                                |\/| |__| |    |__/ |  | [__                                  ||
   ||                                |  | |  | |___ |  \ |__| ___]                                 ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         The macros listed indicate how many bits, from the current coding position,            !
-  !         are used for error evaluation in the coding passes.                                    !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
-  #define DISTORTION_SIG        5                         // Clean up/significance propagation pass.
-  #define DISTORTION_MAG        6                         // Magnitude refinement pass.
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  /*==============================================================================================*/
+  /**
+   * @details Defines the bit count from the current coding position used for error evaluation in 
+   *          the specific coding pass.
+   */
+  /*=====================================================|========================================*/
+  #define DISTORTION_SIG        5                         //!< Clean up/significance propagation
+  #define DISTORTION_MAG        6                         //!< Magnitude refinement
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
   ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
   ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds the sign (xi), bitfield (bit) and state (delta, sigma and         !
-  !         pi) information for four vertically adjacent samples for easy access during the        !
-  !         entropy encoding stage. Here, the delayed significance is set once the first bit       !
-  !         is encoded during the magnitude refinement pass, while the significance state          !
-  !         sigma is set once the first non-zero bit is encoded for a specific sample.             !
-  !         The stripe_* pointers are used to store the address of the left(l), upper(u),          !
-  !         right(r) and lower(d) neighbour of a specific stripe for easy access. To               !
-  !         facilitate distortion estimation the magnitude of the wavelet coefficients is          !
-  !         stored in an appropriate sample array.                                                 !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  /*==============================================================================================*/
+  /**
+   * @details Two adjacent coding stripes (four vertically adjacent samples each), characterized 
+   *          by sign (xi), bitfield (bit), coding state (delta/sigma/pi), and neighbourhood.
+   */
+  /*=====================================================|========================================*/
   typedef struct stripe
   {
-    uint64                     *sample;                   // Wavelet coef. for two adjacent stripes.
+    uint64                     *sample;                   //!< Wavelet coefficients
 
-    uint8                       delta;                    // Delayed sig. for two adjacent stripes.
-    uint8                       sigma;                    // Significance for two adjacent stripes. 
-    uint8                       pi;                       // Cdng pass membership for adj. stripes.
+    uint8                       delta;                    //!< Delayed significance
+    uint8                       sigma;                    //!< Significance 
+    uint8                       pi;                       //!< Membership to coding pass
 
-    uint8                       codingpass;               // Last decoded coding pass.
+    uint8                       codingpass;               //!< Last decoded coding pass
 
-    uint8                       bitplane;                 // Last decoded bitplane.
-    uint8                      *bit;                      // Bitplanes for vertically adj. stripes.
-    uint8                       xi;                       // Wvlt coef. sign bit for adj. stripes.
+    uint8                       bitplane;                 //!< Last decoded bitplane
+    uint8                      *bit;                      //!< Wavelet coefficient bitplanes
+    uint8                       xi;                       //!< Wavelet coefficient sign 
 
-    struct stripe              *stripe_u;                 // Upper stripe.
-    struct stripe              *stripe_r;                 // Right stripe.
-    struct stripe              *stripe_d;                 // Lower stripe.
-    struct stripe              *stripe_l;                 // Left stripe.
+    struct stripe              *stripe_u;                 //!< Upper neighbour
+    struct stripe              *stripe_r;                 //!< Right neighbour
+    struct stripe              *stripe_d;                 //!< Lower neighbour
+    struct stripe              *stripe_l;                 //!< Left neighbour
   } bwc_coder_stripe;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure accumulates all necessary structures used to (de-)compress a            !
-  !         codeblock of wavelet coefficients. The spatial and temporal dimension of the           !
-  !         codeblock is defined by its width, height and number of slices (depth * dt). The       !
-  !         codeblock itself is subdivided into so-called stripes that represent 4 vertical-       !
-  !         ly adjacent coefficients. The parameter no_full_stripes stores overnumber of           !
-  !         full stripes present in one slice.                                                     !
-  !         The look-up table sig2context is used to determine the coding context of a cur-        !
-  !         ren bit according to its significance context within the codeblock bitplane.           !
-  !         The look-up table is specific to a certain highband and is set accordingly.            !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+
+  /*==============================================================================================*/
+  /**
+   * @details Structure defining the (de)coding process for a wavelet codeblock. The codeblock 
+   *          consists of (depth * dt) slices, each with dimensions width × height. Each slice
+   *          is subdivided into stripes containing 4 vertically adjacent coefficients.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uchar                       highband_flag;            // Flag indicating current wavelet subbnd.
-    uint8                       K;                        // Idx of the first significant bitplane.
-    uchar                       erres;                    // Flag signaling error resilience.
+    uchar                       highband_flag;            //!< Current wavelet subband
+    uint8                       K;                        //!< Idx of the first significant bitplane
+    uchar                       erres;                    //!< Error resilience flag
 
-    uint64                      no_full_stripe;           // Number of full, vert. adjacent stripes.
-    uint64                      width, height;            // Codeblock width and height.
-    uint64                      no_slice;                 // N.o. slices in the spec. codeblock.
+    uint64                      no_full_stripe;           //!< Number of full stripes per slice
+    uint64                      width, height;            //!< Codeblock dimensions (width × height)
+    uint64                      no_slice;                 //!< Number of slices in the codeblock
 
-    uint8                const *sig2context;              // Signifance-to-context loop-up table.
-    bwc_bit_coder              *bitcoder;                 // BWC bitcoder.
+    uint8                const *sig2context;              //!< Signifance-to-context loopup table
+    bwc_bit_coder              *bitcoder;                 //!< Pointer to the BWC bit coder
 
-    bwc_coder_stripe           *data;                     // BWC coder stripe.
+    bwc_coder_stripe           *data;                     //!< Pointer to the striped data array
 
-    uint64                      buff_size;                // Size of packed stream.
-    uint64                      buff_incr;                // Increment for packed stream assembly.
-    uchar                      *compressed;               // Compressed data chunck.
+    uint64                      buff_size;                //!< Size of packed stream buffer
+    uint64                      buff_incr;                //!< Increment for stream assembly
+    uchar                      *compressed;               //!< Pointer to compressed data chunck
   } bwc_coder;
 
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||
   ||            |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__             ||
   ||            |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]            ||
   ||                                                                                              ||
-  \************************************************************************************************/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
   uchar        t1_encode                  (bwc_codec                    *const  codec,
                                            bwc_tile                     *const  tile,
                                            bwc_parameter                *const  parameter);
