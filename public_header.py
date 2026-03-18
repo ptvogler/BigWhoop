@@ -61,9 +61,11 @@ import sys
 #-------------------------#
 tab           = "  "
 text_width    = 100
-deliminator   = tab + "/*" + (text_width - 4 - len(tab)) * "=" + "*/\n"
-ubox          = tab + "/"  + (text_width - 2 - len(tab)) * "*" + "\\\n"
-lbox          = tab + "\\" + (text_width - 2 - len(tab)) * "*" + "/\n"
+del_width     = (text_width - 4 - len(tab))
+box_width     = int(del_width/2)
+deliminator   = tab + "/*"  + del_width * "=" + "*/\n"
+ubox          = tab + "/*"  + box_width * "<" + box_width * ">" + "*\\\n"
+lbox          = tab + "\\*" + box_width * "<" + box_width * ">" + "*/\n"
 sbox          = "||"
 
 #----------------------------------------------------------#
@@ -106,7 +108,7 @@ print(include_files)
 # Create the I/O stream and write the bwc file header.     #
 #----------------------------------------------------------#
 public_header = open(destination.joinpath('bwc.h'), 'w+')
-public_header.write("/*================================================================================================*\\\n"
+public_header.write("/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\\\n"
                     "||                                                                                                ||\n"
                     "||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||\n"
                     "||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||\n"
@@ -143,7 +145,7 @@ public_header.write("/*=========================================================
                     "||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||\n"
                     "||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||\n"
                     "||                                                                                                ||\n"
-                    "\*================================================================================================*/\n"
+                    "\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/\n"
                     "#ifndef BWC_H\n"
                     "#define BWC_H\n")
 
