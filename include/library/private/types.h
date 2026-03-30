@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,13 +12,14 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This header defines a set of derrived types that are used to describe and               ||
-||        instruct the bwc (de-)compression library.                                              ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file types.h
+ *
+ *        This header defines a set of derrived types that are used to describe and
+ *        instruct the bwc (de-)compression library.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -41,226 +42,201 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #ifndef BWC_TYPES_H
 #define BWC_TYPES_H
-
-  #include <stdio.h>
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||                               _ _  _ ____ _    _  _ ___  ____                                ||
   ||                               | |\ | |    |    |  | |  \ |___                                ||
   ||                               | | \| |___ |___ |__| |__/ |___                                ||
   ||                                                                                              ||
-  \************************************************************************************************/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  #include <stdio.h>                                      //!< Standard I/O
+
+  #include "constants.h"                                  //!< BWC constants
+  #include "mq_types.h"                                   //!< BWC MQ coder types
+
   #ifdef BWC_SINGLE_PRECISION
-    #include "prim_types_single.h"
+    #include "prim_types_single.h"                        //!< BWC single precision prim types
   #else
-    #include "prim_types_double.h"
+    #include "prim_types_double.h"                        //!< BWC double precision prim types
   #endif
 
-  #include "constants.h"
-  #include "mq_types.h"
-
-  /************************************************************************************************\
+  /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||               ___  ____ ____ ____ _ _  _ ____ ___     ___ _   _ ___  ____ ____               ||
   ||               |  \ |___ |__/ |__/ | |  | |___ |  \     |   \_/  |__] |___ [__                ||
   ||               |__/ |___ |  \ |  \ |  \/  |___ |__/     |    |   |    |___ ___]               ||
   ||                                                                                              ||
-  \************************************************************************************************/
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This union describes a simple data type used to store a single sample of a             !
-  !         numerical dataset. The union allows access to the raw bit representation of the        !
-  !         data sample.                                                                           !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  \*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+  /*==============================================================================================*/
+  /**
+   * @details Encapsulates a numerical floating-point value of type @c bwc_float and provides 
+   *          direct access to its underlying bit representation for low level operations.
+   */
+  /*=====================================================|========================================*/
   typedef union
   {
-    bwc_raw                     raw;                      // Raw data sample access.
-    bwc_float                   f;                        // IEEE 754 representation of sample.
+    bwc_raw                     raw;                      //!< Raw data sample access
+    bwc_float                   f;                        //!< IEEE 754 float
   } bwc_sample;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to store the metadata and boy of a packed stream. Tile and      !
-  !         and paramter index can be supplied to uniquely identify the stream.                    !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Stores the metadata and body of a packed stream. Tile and and paramter index can be 
+   *          supplied to uniquely identify the stream.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      size;                     // Size of packed stream.
-    uint64                      position;                 // Reading/Writing pos. in the stream.
+    uint64                      size;                     //!< Size in bytes
+    uint64                      position;                 //!< Current read/write offset
 
-    uchar                      *access;                   // Pointer used to parse packed stream.
-    uchar                      *memory;                   // Memory handle for the packed stream.
+    uchar                      *access;                   //!< Pointer used to parsing
+    uchar                      *memory;                   //!< Memory handle
   } bwc_span;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure defines a single tagtree node which stores the node value (tag),        !
-  !         node threshold as well as the address of the parent node.                              !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Represents a single node in a tagtree data structure, storing the node's tag value, 
+   *          threshold, and parent reference. Used in progressive encoding schemes where nodes
+   *          are traversed hierarchically.
+   */
+  /*=====================================================|========================================*/
   typedef struct node
   {
-    uint64                      index;                    // Index of current node.
+    uint64                      index;                    //!< Node index/tagtree position
 
-    uint16                      value;                    // Tagtree node value.
-    uint16                      threshold;                // Tagtree node threshold.
+    uint16                      value;                    //!< Node value (tag)
+    uint16                      threshold;                //!< Threshold for tag comparison
 
-    struct node*                parent;                   // Parent of current node.
+    struct node*                parent;                   //!< Pointer to parent (NULL for root)
   } bwc_tagtree_node;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure defines a tagtree instance with spatial and temporal leaves that        !
-  !         can be used to encode codeblock tags - e.g. number of significant bitplanes - to       !
-  !         efficiently store them in the compressed codestream.                                   !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details This structure manages a tagtree with spatial (X, Y) and temporal (Z, T) dimensions. 
+   *          It encodes codeblock tags—such as the number of significant bitplanes—efficiently 
+   *          for storage in the compressed codestream.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      leavesX, leavesY;         // Number of spatial tagtree leafs.
-    uint64                      leavesZ, leavesTS;        // Number of temporal tagtree leafs.
+    uint64                      leavesX, leavesY;         //!< Number of spatial tagtree leaves
+    uint64                      leavesZ, leavesTS;        //!< Number of temporal tagtree leaves
 
-    bwc_tagtree_node           *nodes;                    // Pointer to the tagtree nodes.
+    bwc_tagtree_node           *nodes;                    //!< Pointer to tagtree nodes array
   } bwc_tagtree;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the global information of an uncompressed data set            !
-  !         including its spatial and temporal dimensions, number of parameters, file              !
-  !         extension and parameter information as well as the codec precision.                    !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details This structure holds essential configuration and dimension information for an 
+   *          uncompressed dataset, including spatial (X, Y, Z) and temporal (TS) extents, the
+   *          number of parameters, and precision settings for both the raw data and the codec.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      nX, nY, nZ;               // Spatial size of uncompressed data-set.
-    uint64                      nTS;                      // Temp. size of uncompressed data-set.
+    uint64                      nX, nY, nZ;               //!< Spatial size
+    uint64                      nTS;                      //!< Temporal size (steps/slices)
 
-    uint8                       nPar;                     // Number of parameters.
+    uint8                       nPar;                     //!< Number of parameters
 
-    bwc_precision               data_prec;                // Data type of uncompressed field data.
-    bwc_precision               codec_prec;               // Encoder/decoder bit precision.
+    bwc_precision               data_prec;                //!< Precision of uncompressed data
+    bwc_precision               codec_prec;               //!< Precision of encoder/decoder
   } bwc_gl_inf;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure stores the numerical dataset/compressed bitstream passed to or          !
-  !         returned from the (de)compressor.                                                      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details This structure acts as the primary interface for passing data to and from the
+   *          compressor/decompressor. It holds pointers to auxiliary and comment blocks,
+   *          as well as user-managed buffers for input and output streams.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
     struct codestream
     {
-      bwc_span               *aux;                      // Auxiliary info. codestream block.
-      bwc_span               *com;                      // Comment codestream block.
-    }codestream;
+      bwc_span                 *aux;                    //!< Auxiliary information block.
+      bwc_span                 *com;                    //!< Comment block.
+    }codestream;                                        //!< Nested structure for codestream blocks
 
-    void                     *inp;                      // User managed buffer for input
-    void                     *out;                      // User managed buffer for output
+    void                       *inp;                    //!< User managed buffer for input (source)
+    void                       *out;                    //!< User managed buffer for output (dest)
 
-    bwc_mode                  mode;                     // Flag to signal (de-)compression
+    bwc_mode                    mode;                   //!< Mode: compression or decompression
   } bwc_stream;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure defines and stores all necessary data for a compressed codeblock.       !
-  !         The coding pass lengths and distortion rate arrays define the convex hull used         !
-  !         for during rate controlling.                                                           !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Stores all necessary data for a compressed codeblock, including the compressed 
+   *          bitstream and the rate-distortion (RD) slope information required for post-
+   *          compression rate control. The coding pass lengths (@c L) and distortion 
+   *          increments (@c S) define the convex hull of the RD curve, enabling optimal
+   *          bit allocation across the codestream.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      L[MAXIMUM_NO_PASSES];     // Coding pass lengths of an ecnoded blck.
-    uint16                      S[MAXIMUM_NO_PASSES + 1]; // Distortion rate of an encoded block.
+    uint64                      L[MAXIMUM_NO_PASSES];     //!< Coding pass lengths in bits
+    uint16                      S[MAXIMUM_NO_PASSES + 1]; //!< Distortion reduction per pass
 
-    uint8                       Kmsbs;                    // N.o. insignificant leading bitplanes.
-    uint8                       K;                        // First significant bitplane.
+    uint8                       Kmsbs;                    //!< N.o. insignificant leading bitplanes
+    uint8                       K;                        //!< Index of first significant bitplane
 
-    uint8                       Z;                        // Number of coding passes generated.
+    uint8                       Z;                        //!< Number of coding passes generated
 
-    uchar                      *data;                     // Memory handle to compressed bitstream.
+    uchar                      *data;                     //!< Pointer to compressed bitstream
   } bwc_encoded_cblk;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the control parameters for the current precinct used to       !
-  !         instruct the bwc codec to (de)compress a floating point array. The unique state        !
-  !         variables are used during length encoding both for quality layer estimation as         !
-  !         well as packet assembly. The cp_contr access pointer allows access to the memory       !
-  !         chunck employed to store the coding passes contributing to a specific quality          !
-  !         layer. The parameter K represents the most significant bitplane present in the         !
-  !         current codeblock.                                                                     !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Holds all necessary state and configuration parameters to instruct the @c bwc codec
+   *          on how to (de)compress a floating-point array for a specific precinct. It maintains
+   *          unique state variables used during length encoding for both quality layer estimation
+   *          and packet assembly.
+   *
+   *          The @c cp_contr pointer provides access to the memory chunk storing coding pass
+   *          contributions for the current quality layer. The parameter @c K tracks the most
+   *          significant bitplane (MSB) present in the associated codeblock.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint16                      beta;                     // Codeblock unique state variable.
-    uint16                      beta_est;                 // State variable used for ql estimation.
+    uint16                      beta;                     //!< State var for rate-distortion opt.
+    uint16                      beta_est;                 //!< State var for quality layer est.
 
-    uint16                      K;                        // Codeblock spec. significant bitplane.
+    uint16                      K;                        //!< MSB index in codeblock
 
-    int16                      *memory;                   // Coding pass contribution to q. layer.
-    int16                      *cp_contr;                 // Coding pass contribution access ptr.
+    int16                      *memory;                   //!< Base ptr for coding pass data
+    int16                      *cp_contr;                 //!< Access ptr for pass contribution
   } bwc_cblk_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to store the start and end points as well as the index          !
-  !         for a specific codeblock.                                                              !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details This structure holds spatial (X, Y, Z) and temporal (TS) extents for a codeblock,
+   *          as well as its index within the parent precinct.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint32                      idx;                      // Codeblock index w.r.t. precinct.
+    uint32                      idx;                      //!< Codeblock index within precinct
 
-    uint64                      X0, Y0, Z0, TS0;          // Codeblock starting point.
-    uint64                      X1, Y1, Z1, TS1;          // Codeblock end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Start coordinate
+    uint64                      X1, Y1, Z1, TS1;          //!< End coordinate
   } bwc_cblk_inf;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters used to define and control a         !
-  !         bwc codeblock.                                                                         !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details This structure aggregates the dimensional information, control parameters,
+   *          and encoded data for all codeblocks in a precinct and serves as their
+   *          primary processing unit.
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_cblk_inf                info;                     // Codeblock info structure.
-    bwc_cblk_ctrl               control;                  // Codeblock control structure.
-    bwc_encoded_cblk            *encoded_block;           // Encoded block structure.
+    bwc_cblk_inf                info;                     //!< Dimensional info for the codeblock
+    bwc_cblk_ctrl               control;                  //!< Control params for (de)compression
+    bwc_encoded_cblk           *encoded_block;            //!< Pointer to encoded data structure
   } bwc_codeblock;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -275,15 +251,20 @@
   !         the underlying data that is to be compressed.                                          !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      number_of_codeblocks;     // Number of codeblocks w.r.t res. level.
+    uint64                      number_of_codeblocks;     //!< Number of codeblocks w.r.t res. level.
 
-    uint16                      numCbX, numCbY;           // Number of spaatial codeblocks.
-    uint16                      numCbZ, numCbTS;          // Number of temporal codeblocks.
+    uint16                      numCbX, numCbY;           //!< Number of spaatial codeblocks.
+    uint16                      numCbZ, numCbTS;          //!< Number of temporal codeblocks.
 
-    bwc_tagtree                *tag_inclusion;            // Quality layer contribution tagtree.
-    bwc_tagtree                *tag_msbs;                 // Most significant bit-planes tagtree.
+    bwc_tagtree                *tag_inclusion;            //!< Quality layer contribution tagtree.
+    bwc_tagtree                *tag_msbs;                 //!< Most significant bit-planes tagtree.
   } bwc_prec_ctrl;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -295,10 +276,15 @@
   !         precinct.                                                                              !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint32                      X0, Y0, Z0, TS0;          // Precinct starting point.
-    uint32                      X1, Y1, Z1, TS1;          // Precinct end point.
+    uint32                      X0, Y0, Z0, TS0;          //!< Precinct starting point.
+    uint32                      X1, Y1, Z1, TS1;          //!< Precinct end point.
   } bwc_prec_inf;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -310,11 +296,16 @@
   !         bwc precinct.                                                                          !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_prec_inf                info;                     // Precinct info structure.
-    bwc_prec_ctrl               control;                  // Precinct control structure.
-    bwc_codeblock              *codeblock;                // Precinct specific codeblocks.
+    bwc_prec_inf                info;                     //!< Precinct info structure.
+    bwc_prec_ctrl               control;                  //!< Precinct control structure.
+    bwc_codeblock              *codeblock;                //!< Precinct specific codeblocks.
   } bwc_precinct;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -330,17 +321,22 @@
   !         applied to the wavelet coefficients.                                                   !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uchar                       highband_flag;            // Current wavelet highband type
+    uchar                       highband_flag;            //!< Current wavelet highband type
 
-    uint16                      Kmax;                     // Dynamic ranger after transformation.
+    uint16                      Kmax;                     //!< Dynamic ranger after transformation.
 
-    uint16                      qt_mantissa;              // Quantization step size mantissa.
-    uint8                       qt_exponent;              // Quantization step size exponent.
+    uint16                      qt_mantissa;              //!< Quantization step size mantissa.
+    uint8                       qt_exponent;              //!< Quantization step size exponent.
 
-    bwc_float                   qt_effective_step_size;   // Effective quantization step size.
-    bwc_float                   qt_step_size;             // Quantization step size.
+    bwc_float                   qt_effective_step_size;   //!< Effective quantization step size.
+    bwc_float                   qt_step_size;             //!< Quantization step size.
   } bwc_subb_ctrl;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -353,12 +349,17 @@
   !         data samples during transformation.                                                    !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      X0, Y0, Z0, TS0;          // Subband starting point.
-    uint64                      X1, Y1, Z1, TS1;          // Subband end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Subband starting point.
+    uint64                      X1, Y1, Z1, TS1;          //!< Subband end point.
 
-    bwc_float                   dwt_gain;                 // Subband energy gain factor.
+    bwc_float                   dwt_gain;                 //!< Subband energy gain factor.
   } bwc_subb_inf;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -370,12 +371,17 @@
   !         bwc subband.                                                                           !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_subb_inf                info;                     // Subband info structure.
-    bwc_subb_ctrl               control;                  // Subband control structure.
+    bwc_subb_inf                info;                     //!< Subband info structure.
+    bwc_subb_ctrl               control;                  //!< Subband control structure.
 
-    bwc_precinct               *precinct;                 // Subband specific precincts.
+    bwc_precinct               *precinct;                 //!< Subband specific precincts.
   } bwc_subband;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -386,17 +392,22 @@
   !         This structure holds all the parameters used to assemble a codestream packet.          !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_span                  header;                   // Packed stream header.
-    bwc_span                  body;                     // Packed stream body.
-    uint8                       e;                        // Indicator for packet cb. contributions.
+    bwc_span                    header;                   //!< Packed stream header.
+    bwc_span                    body;                     //!< Packed stream body.
+    uint8                       e;                        //!< Indicator for packet cb. contributions.
 
-    uint32                      size;                     // Codestream packet size.
+    uint32                      size;                     //!< Codestream packet size.
 
-    uint32                      p;                        // Position of curr. packet in codestream.
-    uint8                       c, l, r;                  // Parameter, Quality Layer and Resolution
-                                                          // codestream position markers.
+    uint32                      p;                        //!< Position of curr. packet in codestream.
+    uint8                       c, l, r;                  //!< Parameter, Quality Layer and Resolution
+                                                          //!< codestream position markers.
   } bwc_packet;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -408,16 +419,21 @@
   !         used to instruct the bwc codec to (de)compress a floating point array.                 !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint16                      numPX, numPY;             // Spatial number of precincts.
-    uint16                      numPZ, numPTS;            // Temporal number of precincts.
+    uint16                      numPX, numPY;             //!< Spatial number of precincts.
+    uint16                      numPZ, numPTS;            //!< Temporal number of precincts.
 
-    uint8                       rcbX,  rcbY;              // Real spatial codeblock size.
-    uint8                       rcbZ,  rcbTS;             // Real temporal codeblock size.
+    uint8                       rcbX,  rcbY;              //!< Real spatial codeblock size.
+    uint8                       rcbZ,  rcbTS;             //!< Real temporal codeblock size.
 
-    uint64                      number_of_precincts;      // N.o. precincts in resolution level.
-    uint8                       number_of_subbands;       // N.o. subbands in resolution level.
+    uint64                      number_of_precincts;      //!< N.o. precincts in resolution level.
+    uint8                       number_of_subbands;       //!< N.o. subbands in resolution level.
   } bwc_res_ctrl;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -429,10 +445,15 @@
   !         resolution level.                                                                      !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      X0, Y0, Z0, TS0;          // Resolution level starting point.
-    uint64                      X1, Y1, Z1, TS1;          // Resolution level end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Resolution level starting point.
+    uint64                      X1, Y1, Z1, TS1;          //!< Resolution level end point.
   } bwc_res_inf;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -444,13 +465,18 @@
   !         bwc resolution level.                                                                  !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_res_inf                 info;                     // Resolution level info structure.
-    bwc_res_ctrl                control;                  // Resolution level control structure.
+    bwc_res_inf                 info;                     //!< Resolution level info structure.
+    bwc_res_ctrl                control;                  //!< Resolution level control structure.
 
-    bwc_subband                *subband;                  // Structure defining a bwc subband.
-    bwc_packet                 *packet;                   // Structure defining a bwc packet.
+    bwc_subband                *subband;                  //!< Structure defining a bwc subband.
+    bwc_packet                 *packet;                   //!< Structure defining a bwc packet.
   } bwc_resolution;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -462,11 +488,16 @@
   !         entropy (de-)encoding to facilitate shared memory parallelization.                     !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_codeblock              *codeblock;                // Access to all tile param. codeblocks.
-    bwc_precinct               *precinct;                 // Access to all tile param. precincts.
-    bwc_subband                *subband;                  // Access to all tile param. subbands.
+    bwc_codeblock              *codeblock;                //!< Access to all tile param. codeblocks.
+    bwc_precinct               *precinct;                 //!< Access to all tile param. precincts.
+    bwc_subband                *subband;                  //!< Access to all tile param. subbands.
   } bwc_cblk_access;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -478,10 +509,15 @@
   !         to instruct the bwc codec to (de)compress a floating point array.                      !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      number_of_codeblocks;     // Number of codeblocks in the tile param.
-    bwc_float                   alpha, beta;              // Parameters used for normalization.
+    uint64                      number_of_codeblocks;     //!< Number of codeblocks in the tile param.
+    bwc_float                   alpha, beta;              //!< Parameters used for normalization.
   } bwc_param_ctrl;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -494,13 +530,18 @@
   !         values for the current parameter tile are stored.                                      !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      X0, Y0, Z0, TS0;          // Tile parameter starting point.
-    uint64                      X1, Y1, Z1, TS1;          // Tile parameter end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Tile parameter starting point.
+    uint64                      X1, Y1, Z1, TS1;          //!< Tile parameter end point.
 
-    bwc_float                   parameter_min;            // Min. value of tile parameter.
-    bwc_float                   parameter_max;            // Max. value of tile parameter.
+    bwc_float                   parameter_min;            //!< Min. value of tile parameter.
+    bwc_float                   parameter_max;            //!< Max. value of tile parameter.
   } bwc_param_inf;
 
 
@@ -513,17 +554,22 @@
   !         (de)compression of a bwc tile parameter.                                               !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      size;                     // Size of the bwc_float data structure.
-    bwc_sample                  *data;                    // Tile parameter values.
+    uint64                      size;                     //!< Size of the bwc_float data structure.
+    bwc_sample                  *data;                    //!< Tile parameter values.
 
-    bwc_param_inf               info;                     // Parameter info structure.
-    bwc_param_ctrl              control;                  // Parameter control structure.
+    bwc_param_inf               info;                     //!< Parameter info structure.
+    bwc_param_ctrl              control;                  //!< Parameter control structure.
 
-    bwc_resolution             *resolution;               // Tile parameter specific resol. levels.
+    bwc_resolution             *resolution;               //!< Tile parameter specific resol. levels.
 
-    bwc_cblk_access            *access;                   // Access to all tile param. codeblocks.
+    bwc_cblk_access            *access;                   //!< Access to all tile param. codeblocks.
   } bwc_parameter;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -538,19 +584,24 @@
   !         the distortion-bitrate convex hull used for rate control.                              !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      body_size;                // Size of the tile parameter body.
-    uint64                      Ltp;                      // Tile part size.
-    uint32                      header_size;              // Approx. size of the tile param. header.
+    uint64                      body_size;                //!< Size of the tile parameter body.
+    uint64                      Ltp;                      //!< Tile part size.
+    uint32                      header_size;              //!< Approx. size of the tile param. header.
 
-    uint64                      nPackets;                 // Number of packets assembled for tile.
-    uint32                      max_Prec;                 // Max. N.o. precincts in all tile params.
+    uint64                      nPackets;                 //!< Number of packets assembled for tile.
+    uint32                      max_Prec;                 //!< Max. N.o. precincts in all tile params.
 
-    uint16                      dflt_param_c;             // Default idx when writing COD in header.
-    uint16                      dflt_param_q;             // Default idx when writing QCD in header.
+    uint16                      dflt_param_c;             //!< Default idx when writing COD in header.
+    uint16                      dflt_param_q;             //!< Default idx when writing QCD in header.
 
-    uint16                      slope_min, slope_max;     // Min/Max for the convex hull slp.
+    uint16                      slope_min, slope_max;     //!< Min/Max for the convex hull slp.
   } bwc_tile_ctrl;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -562,13 +613,18 @@
   !         its overall size and index.                                                            !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      size;                     // Tile size.
-    uint32                      tile_index;               // Unique tile index.
+    uint64                      size;                     //!< Tile size.
+    uint32                      tile_index;               //!< Unique tile index.
 
-    uint64                      X0, Y0, Z0, TS0;          // Tile starting point.
-    uint64                      X1, Y1, Z1, TS1;          // Tile end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Tile starting point.
+    uint64                      X1, Y1, Z1, TS1;          //!< Tile end point.
 
   } bwc_tile_inf;
 
@@ -584,13 +640,18 @@
   !         is employed during codestream assembly.                                                !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_tile_inf                info;                     // Tile info structure.
-    bwc_tile_ctrl               control;                  // Tile control structure.
+    bwc_tile_inf                info;                     //!< Tile info structure.
+    bwc_tile_ctrl               control;                  //!< Tile control structure.
 
-    bwc_parameter              *parameter;                // Tile specific parameter structure.
-    bwc_packet                **packet_sequence;          // Tile specific packet sequence.
+    bwc_parameter              *parameter;                //!< Tile specific parameter structure.
+    bwc_packet                **packet_sequence;          //!< Tile specific packet sequence.
   } bwc_tile;
 
   /*----------------------------------------------------------------------------------------------*\
@@ -619,44 +680,49 @@
   !         the packet sequence as they will appear in the compressed codestream.                  !
   !                                                                                                !
   \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details 
+   */
+  /*=====================================================|========================================*/
   typedef struct
   {
-    uint16                      CSsgc;                    // Flag signaling user control variable.
-    uchar                       error_resilience;         // Flag signalling error resilience.
+    uint16                      CSsgc;                    //!< Flag signaling user control variable.
+    uchar                       error_resilience;         //!< Flag signalling error resilience.
 
-    uint64                      tileSizeX,  tileSizeY;    // Spatial tile size.
-    uint64                      tileSizeZ,  tileSizeTS;   // Temporal tile size.
+    uint64                      tileSizeX,  tileSizeY;    //!< Spatial tile size.
+    uint64                      tileSizeZ,  tileSizeTS;   //!< Temporal tile size.
 
-    uint64                      nTiles;                   // Global number of tiles.
+    uint64                      nTiles;                   //!< Global number of tiles.
 
-    uint8                       precSizeX,  precSizeY;    // Spatial precinct size.
-    uint8                       precSizeZ,  precSizeTS;   // Temporal precinct size.
+    uint8                       precSizeX,  precSizeY;    //!< Spatial precinct size.
+    uint8                       precSizeZ,  precSizeTS;   //!< Temporal precinct size.
 
-    uint8                       cbX,        cbY;          // Spatial codeblock size.
-    uint8                       cbZ,        cbTS;         // Temporal codeblock size.
+    uint8                       cbX,        cbY;          //!< Spatial codeblock size.
+    uint8                       cbZ,        cbTS;         //!< Temporal codeblock size.
 
-    bwc_dwt_filter              KernelX,    KernelY;      // Spatial wavelet kernels.
-    bwc_dwt_filter              KernelZ,    KernelTS;     // Temporal wavelet kernels.
+    bwc_dwt_filter              KernelX,    KernelY;      //!< Spatial wavelet kernels.
+    bwc_dwt_filter              KernelZ,    KernelTS;     //!< Temporal wavelet kernels.
 
-    uint8                       decompX,    decompY;      // Number of wavelet decompositions ...
-    uint8                       decompZ,    decompTS;     // ... for each of the four dimensions.
-    uint8                       nDecomp;                  // Maximum No. wavelet decompositions.
+    uint8                       decompX,    decompY;      //!< Number of wavelet decompositions ...
+    uint8                       decompZ,    decompTS;     //!< ... for each of the four dimensions.
+    uint8                       nDecomp;                  //!< Maximum No. wavelet decompositions.
 
-    uint32                      qt_exponent, qt_mantissa; // Global qunatization exponent/mantissa.
-    uint8                       Qm;                       // Q number format range (m).
+    uint32                      qt_exponent, qt_mantissa; //!< Global qunatization exponent/mantissa.
+    uint8                       Qm;                       //!< Q number format range (m).
 
-    float                      *bitrate;                  // Quality layers defined by bitrate.
+    float                      *bitrate;                  //!< Quality layers defined by bitrate.
 
-    uint8                       nLayers;                  // Number of quality layers.
-    uint8                       useLayer;                 // Quality layer used for decompression.
+    uint8                       nLayers;                  //!< Number of quality layers.
+    uint8                       useLayer;                 //!< Quality layer used for decompression.
 
-    uint8                       guard_bits;               // Number of guard bits during quant.
+    uint8                       guard_bits;               //!< Number of guard bits during quant.
 
-    uint64                      headerSize;               // Size estimation of the global header.
-    uint64                      codestreamSize;           // Size of entire code-stream.
+    uint64                      headerSize;               //!< Size estimation of the global header.
+    uint64                      codestreamSize;           //!< Size of entire code-stream.
 
-    bwc_quant_st                quantization_style;       // Quantization style.
-    bwc_prog_ord                progression;              // Packet progression order.
+    bwc_quant_st                quantization_style;       //!< Quantization style.
+    bwc_prog_ord                progression;              //!< Packet progression order.
   } bwc_gl_ctrl;
 
 /*================================================================================================*/
@@ -666,10 +732,10 @@
 /*================================================================================================*/
   typedef struct
   {
-    bwc_gl_inf                  info;                     // Global info structure
-    bwc_gl_ctrl                 control;                  // Global control structure
-    bwc_span                    aux;                      // Auxiliary info. codestream block.
-    bwc_span                    com;                      // Comment codestream block.
+    bwc_gl_inf                  info;                     //!< Global info structure
+    bwc_gl_ctrl                 control;                  //!< Global control structure
+    bwc_span                    aux;                      //!< Auxiliary info. codestream block.
+    bwc_span                    com;                      //!< Comment codestream block.
   } bwc_header;
 
 /*================================================================================================*/
@@ -680,11 +746,11 @@
 /*================================================================================================*/
   typedef struct
   {
-    bwc_gl_inf                  info;                     // Global info structure
-    bwc_gl_ctrl                 control;                  // Global control structure
+    bwc_gl_inf                  info;                     //!< Global info structure
+    bwc_gl_ctrl                 control;                  //!< Global control structure
 
-    bwc_tile                   *tile;                     // Structure defining bwc tile.
+    bwc_tile                   *tile;                     //!< Structure defining bwc tile.
 
-    bwc_mode                    mode;                     // Flag to signal (de-)compression
+    bwc_mode                    mode;                     //!< Flag to signal (de-)compression
   } bwc_codec;
 #endif
