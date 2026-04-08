@@ -191,7 +191,7 @@
   /*==============================================================================================*/
   /**
    * @details Holds all necessary state and configuration parameters to instruct the @c bwc codec
-   *          on how to (de)compress a floating-point array for a specific precinct. It maintains
+   *          on how to (de)compress a floating-point array for a generic codeblock. It maintains
    *          unique state variables used during length encoding for both quality layer estimation
    *          and packet assembly.
    *
@@ -239,518 +239,363 @@
     bwc_encoded_cblk           *encoded_block;            //!< Pointer to encoded data structure
   } bwc_codeblock;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the control parameters for the current precinct used to       !
-  !         instruct the bwc codec to (de)compress a floating point array. The number              !
-  !         codeblocks are stored for all spatial and temporal dimensions as well as for the       !
-  !         entire precinct. The two tagtrees are employed to record specific properties of        !
-  !         the underlying data that is to be compressed.                                          !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure holds state and configuration parameters to instruct the @c bwc codec
+   *          on how to (de)compress a floating-point array for a precinct.It maintains the total
+   *          number of codeblocks and counts per spatial/temporal direction.
+   * 
+   *          The @c tag_inclusion and @c tag_msbs pointers provide access to the quality layer
+   *          inclusion and MSB tag-tree structures respectively.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      number_of_codeblocks;     //!< Number of codeblocks w.r.t res. level.
+    uint64                      number_of_codeblocks;     //!< Number of total codeblocks
 
-    uint16                      numCbX, numCbY;           //!< Number of spaatial codeblocks.
-    uint16                      numCbZ, numCbTS;          //!< Number of temporal codeblocks.
+    uint16                      numCbX, numCbY;           //!< Number of spaatial codeblocks
+    uint16                      numCbZ, numCbTS;          //!< Number of temporal codeblocks
 
-    bwc_tagtree                *tag_inclusion;            //!< Quality layer contribution tagtree.
-    bwc_tagtree                *tag_msbs;                 //!< Most significant bit-planes tagtree.
+    bwc_tagtree                *tag_inclusion;            //!< Quality layer inclusion tagtree
+    bwc_tagtree                *tag_msbs;                 //!< MSB tag-tree structure
   } bwc_prec_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !         DESCRIPTION NEEDED                                                                     !
-  !         This structure is used to store the start and end points for the current               !
-  !         precinct.                                                                              !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure holds spatial (X, Y, Z) and temporal (TS) extents for a precinct.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint32                      X0, Y0, Z0, TS0;          //!< Precinct starting point.
-    uint32                      X1, Y1, Z1, TS1;          //!< Precinct end point.
+    uint32                      X0, Y0, Z0, TS0;          //!< Start coordinate
+    uint32                      X1, Y1, Z1, TS1;          //!< End coordinate
   } bwc_prec_inf;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters used to define and control a         !
-  !         bwc precinct.                                                                          !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure aggregates the dimensional information, control parameters, and
+   *          codeblock structures for all precincts in a resolution level and serves as their
+   *          primary processing unit.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_prec_inf                info;                     //!< Precinct info structure.
-    bwc_prec_ctrl               control;                  //!< Precinct control structure.
-    bwc_codeblock              *codeblock;                //!< Precinct specific codeblocks.
+    bwc_prec_inf                info;                     //!< Dimensional info for the precinct
+    bwc_prec_ctrl               control;                  //!< Control params for (de)compression
+    bwc_codeblock              *codeblock;                //!< Pointer to underlying codeblocks
   } bwc_precinct;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the control parameters for the current subband used to        !
-  !         instruct the bwc codec to (de)compress a floating point array. The highband flag       !
-  !         is used to identify the type of highband a specific wavelet band belongs to            !
-  !         (e.g. HHHH). The quantization step size mantissa and exponent for a subband is         !
-  !         stored alongside its actual value as well as the effective step size that is           !
-  !         applied to the wavelet coefficients.                                                   !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure holds state and configuration parameters to instruct the @c bwc codec
+   *          on how to (de)compress a floating-point array for a subband.It maintains the subband
+   *          type, dynamic range, and quantization parameters including mantissa, exponent,
+   *          and effective step sizes.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uchar                       highband_flag;            //!< Current wavelet highband type
+    uchar                       highband_flag;            //!< Subband type (high-/lowband)
 
-    uint16                      Kmax;                     //!< Dynamic ranger after transformation.
+    uint16                      Kmax;                     //!< Dynamic ranger after transformation
 
-    uint16                      qt_mantissa;              //!< Quantization step size mantissa.
-    uint8                       qt_exponent;              //!< Quantization step size exponent.
+    uint16                      qt_mantissa;              //!< Quantization step mantissa
+    uint8                       qt_exponent;              //!< Quantization step exponent
 
-    bwc_float                   qt_effective_step_size;   //!< Effective quantization step size.
-    bwc_float                   qt_step_size;             //!< Quantization step size.
+    bwc_float                   qt_effective_step_size;   //!< Effective quantization step size
+    bwc_float                   qt_step_size;             //!< Raw quantization step size
   } bwc_subb_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to store the start and end points as well as the energy         !
-  !         gain factor of the wavelet decomposition that has been applied to the subband          !
-  !         data samples during transformation.                                                    !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure holds spatial (X, Y, Z) and temporal (TS) extents for a subband,
+   *          along with the energy gain factor from the wavelet transformation.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      X0, Y0, Z0, TS0;          //!< Subband starting point.
-    uint64                      X1, Y1, Z1, TS1;          //!< Subband end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Start coordinate
+    uint64                      X1, Y1, Z1, TS1;          //!< End coordinate
 
-    bwc_float                   dwt_gain;                 //!< Subband energy gain factor.
+    bwc_float                   dwt_gain;                 //!< Subband energy gain factor
   } bwc_subb_inf;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters used to define and control a         !
-  !         bwc subband.                                                                           !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure aggregates the dimensional information, control parameters, and
+   *          precinct structures for all subbands in a resolution level and serves as their
+   *          primary processing unit.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_subb_inf                info;                     //!< Subband info structure.
-    bwc_subb_ctrl               control;                  //!< Subband control structure.
+    bwc_subb_inf                info;                     //!< Dimensional info for the subband
+    bwc_subb_ctrl               control;                  //!< Control params for (de)compression
 
-    bwc_precinct               *precinct;                 //!< Subband specific precincts.
+    bwc_precinct               *precinct;                 //!< Pointer to underlying precincts
   } bwc_subband;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the parameters used to assemble a codestream packet.          !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Aggregates size info, control params, and header/body bitstreams to assemble 
+   *          codestream packets.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_span                    header;                   //!< Packed stream header.
-    bwc_span                    body;                     //!< Packed stream body.
-    uint8                       e;                        //!< Indicator for packet cb. contributions.
+    bwc_span                    header;                   //!< Packed stream header
+    bwc_span                    body;                     //!< Packed stream body
+    uint8                       e;                        //!< Codeblock contribution flag
 
-    uint32                      size;                     //!< Codestream packet size.
+    uint32                      size;                     //!< Total packet size in bytes
 
-    uint32                      p;                        //!< Position of curr. packet in codestream.
-    uint8                       c, l, r;                  //!< Parameter, Quality Layer and Resolution
-                                                          //!< codestream position markers.
+    uint32                      p;                        //!< Packet index in codestream
+    uint8                       c, l, r;                  //!< Precinct, layer, resolution
+                                                          //!< position markers
   } bwc_packet;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the control parameters for the current resolution level       !
-  !         used to instruct the bwc codec to (de)compress a floating point array.                 !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Holds state and config parameters to instruct @c bwc codec on (de)compression of 
+   *          floating-point arrays per resolution level. Maintains number of subbands and 
+   *          precincts as well as the codeblock size information.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint16                      numPX, numPY;             //!< Spatial number of precincts.
-    uint16                      numPZ, numPTS;            //!< Temporal number of precincts.
+    uint16                      numPX, numPY, numPZ;      //!< Number of spatial precincts
+    uint16                      numPTS;                   //!< Number of temporal precincts
 
-    uint8                       rcbX,  rcbY;              //!< Real spatial codeblock size.
-    uint8                       rcbZ,  rcbTS;             //!< Real temporal codeblock size.
+    uint8                       rcbX,  rcbY, rcbZ;        //!< Actual spatial codeblock size
+    uint8                       rcbTS;                    //!< Actual temporal codeblock size
 
-    uint64                      number_of_precincts;      //!< N.o. precincts in resolution level.
-    uint8                       number_of_subbands;       //!< N.o. subbands in resolution level.
+    uint64                      number_of_precincts;      //!< Total precincts at this resolution
+    uint8                       number_of_subbands;       //!< Total subbands at this resolution
   } bwc_res_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to store the name, start and end points of the current          !
-  !         resolution level.                                                                      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details This structure holds spatial (X, Y, Z) and temporal (TS) extents for a resolution
+   *          level.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      X0, Y0, Z0, TS0;          //!< Resolution level starting point.
-    uint64                      X1, Y1, Z1, TS1;          //!< Resolution level end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Start coordinate
+    uint64                      X1, Y1, Z1, TS1;          //!< End coordinate
   } bwc_res_inf;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters used to define and control a         !
-  !         bwc resolution level.                                                                  !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Aggregates the dimensional information, control parameters, and associated subbands 
+   *          and packets for all resolution levels in a tile parameter and serves as their
+   *          primary processing unit.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_res_inf                 info;                     //!< Resolution level info structure.
-    bwc_res_ctrl                control;                  //!< Resolution level control structure.
+    bwc_res_inf                 info;                     //!< Dimensional info for resolution
+    bwc_res_ctrl                control;                  //!< Control params for (de)compression
 
-    bwc_subband                *subband;                  //!< Structure defining a bwc subband.
-    bwc_packet                 *packet;                   //!< Structure defining a bwc packet.
+    bwc_subband                *subband;                  //!< Pointer to subband array
+    bwc_packet                 *packet;                   //!< Pointer to packet array
   } bwc_resolution;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to directly access the parameter codeblocks during              !
-  !         entropy (de-)encoding to facilitate shared memory parallelization.                     !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Provides direct access to parameter codeblocks, as well as the associated subbands
+   *          and precincts, during entropy (de-)encoding to facilitate shared memory
+   *          parallelization.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_codeblock              *codeblock;                //!< Access to all tile param. codeblocks.
-    bwc_precinct               *precinct;                 //!< Access to all tile param. precincts.
-    bwc_subband                *subband;                  //!< Access to all tile param. subbands.
+    bwc_codeblock              *codeblock;                //!< Pointer to tile param codeblocks
+    bwc_precinct               *precinct;                 //!< Pointer to tile param precincts
+    bwc_subband                *subband;                  //!< Pointer to tile param subbands
   } bwc_cblk_access;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the control parameters for the current tile param. used       !
-  !         to instruct the bwc codec to (de)compress a floating point array.                      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Holds state and config parameters to instruct @c bwc codec on (de)compression of 
+   *          floating-point arrays per tile parameter. Maintains number of codeblocks and 
+   *          array normalization factors.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      number_of_codeblocks;     //!< Number of codeblocks in the tile param.
-    bwc_float                   alpha, beta;              //!< Parameters used for normalization.
+    uint64                      number_of_codeblocks;     //!< Number of tile param codeblocks
+    bwc_float                   alpha, beta;              //!< Parameters used for normalization
   } bwc_param_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to store the name, start and end points as well as the          !
-  !         overall size of a parameter tile. Furthermore, the minimum and maximum sample          !
-  !         values for the current parameter tile are stored.                                      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Holds spatial (X, Y, Z) and temporal (TS) extents for a tile parameter, as well as 
+   *          minimum and maximum value bounds.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      X0, Y0, Z0, TS0;          //!< Tile parameter starting point.
-    uint64                      X1, Y1, Z1, TS1;          //!< Tile parameter end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Start coordinate
+    uint64                      X1, Y1, Z1, TS1;          //!< End coordinate
 
-    bwc_float                   parameter_min;            //!< Min. value of tile parameter.
-    bwc_float                   parameter_max;            //!< Max. value of tile parameter.
+    bwc_float                   parameter_min;            //!< Minimum tile parameter value
+    bwc_float                   parameter_max;            //!< Maximum tile parameter value
   } bwc_param_inf;
 
-
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters used to define and control the       !
-  !         (de)compression of a bwc tile parameter.                                               !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Aggregates dimension info, control params, resolution levels, and codeblock access
+   *          for a tile parameter. Serves as the primary processing unit. Also maintains the
+   *          parameter array and size.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      size;                     //!< Size of the bwc_float data structure.
-    bwc_sample                  *data;                    //!< Tile parameter values.
+    uint64                      size;                     //!< Size of the data array
+    bwc_sample                  *data;                    //!< Tile parameter values array
 
-    bwc_param_inf               info;                     //!< Parameter info structure.
-    bwc_param_ctrl              control;                  //!< Parameter control structure.
+    bwc_param_inf               info;                     //!< Dimensional info for parameter
+    bwc_param_ctrl              control;                  //!< Control params for (de)compression
 
-    bwc_resolution             *resolution;               //!< Tile parameter specific resol. levels.
+    bwc_resolution             *resolution;               //!< Array of resolution levels
 
-    bwc_cblk_access            *access;                   //!< Access to all tile param. codeblocks.
+    bwc_cblk_access            *access;                   //!< Codeblock access pointers
   } bwc_parameter;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the control parameters for the current tile used to in-       !
-  !         struct the bwc codec to (de)compress a floating point array.                           !
-  !         The slope_min and slope_max values represent the minimum and maximum distortion        !
-  !         rates for the compressed data-samples of a specific tile. These values define          !
-  !         the distortion-bitrate convex hull used for rate control.                              !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Holds control parameters for the current tile to instruct the bwc codec on 
+   *          (de)compression of floating-point arrays. slope_min and slope_max define the
+   *          distortion-rate range for tile samples, establishing the convex hull for 
+   *          rate control.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      body_size;                //!< Size of the tile parameter body.
-    uint64                      Ltp;                      //!< Tile part size.
-    uint32                      header_size;              //!< Approx. size of the tile param. header.
+    uint64                      body_size;                //!< Size of tile parameter body
+    uint64                      Ltp;                      //!< Tile part size
+    uint32                      header_size;              //!< Approx. tile param header size
 
-    uint64                      nPackets;                 //!< Number of packets assembled for tile.
-    uint32                      max_Prec;                 //!< Max. N.o. precincts in all tile params.
+    uint64                      nPackets;                 //!< Packets assembled for tile
+    uint32                      max_Prec;                 //!< Max precincts across all tiles
 
-    uint16                      dflt_param_c;             //!< Default idx when writing COD in header.
-    uint16                      dflt_param_q;             //!< Default idx when writing QCD in header.
+    uint16                      dflt_param_c;             //!< Default COD index in header
+    uint16                      dflt_param_q;             //!< Default QCD index in header
 
-    uint16                      slope_min, slope_max;     //!< Min/Max for the convex hull slp.
+    uint16                      slope_min, slope_max;     //!< Convex hull slope bounds
   } bwc_tile_ctrl;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure is used to store the start and end points of the tile as well as        !
-  !         its overall size and index.                                                            !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Holds spatial (X, Y, Z) and temporal (TS) extents for a tile, as well as the tile
+   *          tile index and size.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint64                      size;                     //!< Tile size.
-    uint32                      tile_index;               //!< Unique tile index.
+    uint64                      size;                     //!< Total tile size in bytes
+    uint32                      tile_index;               //!< Unique tile index
 
-    uint64                      X0, Y0, Z0, TS0;          //!< Tile starting point.
-    uint64                      X1, Y1, Z1, TS1;          //!< Tile end point.
+    uint64                      X0, Y0, Z0, TS0;          //!< Start coordinate
+    uint64                      X1, Y1, Z1, TS1;          //!< End coordinate
 
   } bwc_tile_inf;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the necessary parameters used to define and control the       !
-  !         (de)compression of a bwc tile. The packet_sequence pointer array is used to            !
-  !         store the bitstream packet memory hanldes of the underlying tile in a prede-           !
-  !         fined sequence according to the bwc_progression_ord parameter. The pointer array       !
-  !         is employed during codestream assembly.                                                !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Aggregates dimension info, control params, tile parameters and packet sequence for
+   *          for a tile. Serves as the primary processing unit.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    bwc_tile_inf                info;                     //!< Tile info structure.
-    bwc_tile_ctrl               control;                  //!< Tile control structure.
+    bwc_tile_inf                info;                     //!< Dimensional info for parameter
+    bwc_tile_ctrl               control;                  //!< Control params for (de)compression
 
-    bwc_parameter              *parameter;                //!< Tile specific parameter structure.
-    bwc_packet                **packet_sequence;          //!< Tile specific packet sequence.
+    bwc_parameter              *parameter;                //!< Pointer to tile parameters
+    bwc_packet                **packet_sequence;          //!< Array of packet pointers
   } bwc_tile;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         This structure holds all the global control parameters, including the tile,            !
-  !         precinct and codeblock sizes as well as the global number of tiles, used to            !
-  !         instruct the bwc codec to (de)compress a floating point array.                         !
-  !         The number of decompositions (numDecompX etc.) define the number of times the          !
-  !         selected wavelet filter (kernelX etc.) is applied alongside each spatial and           !
-  !         temporal direction. The global number of decomposition levels is stored in the         !
-  !         appropriate variable.                                                                  !
-  !         The parameters qt_mantissa and qt_exponent define the mantissa and exponent of         !
-  !         the global quantization step size appropriate for the specified number of              !
-  !         wavelet decomposition levels. The quantization_style signals if the quantization       !
-  !         step size for the subsequent subbands should be derrived from the global               !
-  !         parameter, or not. The variable Qm represents the dynamic range of the                 !
-  !         float-to-fixed point transformation employed pre-compression.                          !
-  !         The bitrate array stores up to 10 bitrate values - average bits per datasample -       !
-  !         that define the codestream quality layers. The largest bitrates defines the            !
-  !         compression ratio, while the total number of defined bitrates represent the            !
-  !         number of (quality)layers. The parameter use_layer stores the index of the             !
-  !         quality layer that is used during decompression. The progression order defines         !
-  !         the packet sequence as they will appear in the compressed codestream.                  !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
   /*==============================================================================================*/
   /**
-   * @details 
+   * @details Holds global control parameters for the bwc codec, including tile, precinct, and
+   *          codeblock sizes, and the number of tiles. Defines wavelet decomposition levels,
+   *          filter kernels, and quantization parameters (mantissa/exponent, style, Qm). 
+   *          Manages quality layers via bitrate arrays and specifies the progression order
+   *          for the compressed codestream.
    */
   /*=====================================================|========================================*/
   typedef struct
   {
-    uint16                      CSsgc;                    //!< Flag signaling user control variable.
-    uchar                       error_resilience;         //!< Flag signalling error resilience.
+    uint16                      CSsgc;                    //!< User control flag
+    uchar                       error_resilience;         //!< Error resilience flag
 
-    uint64                      tileSizeX,  tileSizeY;    //!< Spatial tile size.
-    uint64                      tileSizeZ,  tileSizeTS;   //!< Temporal tile size.
+    uint64                      tileSizeX,  tileSizeY;    //!< 1st & 2nd tile dimensions
+    uint64                      tileSizeZ,  tileSizeTS;   //!< 3rd & 4th tile dimensions
 
-    uint64                      nTiles;                   //!< Global number of tiles.
+    uint64                      nTiles;                   //!< Total number of tiles
 
-    uint8                       precSizeX,  precSizeY;    //!< Spatial precinct size.
-    uint8                       precSizeZ,  precSizeTS;   //!< Temporal precinct size.
+    uint8                       precSizeX,  precSizeY;    //!< 1st & 2nd precinct dimensions
+    uint8                       precSizeZ,  precSizeTS;   //!< 3rd & 4th precinct dimensions
 
-    uint8                       cbX,        cbY;          //!< Spatial codeblock size.
-    uint8                       cbZ,        cbTS;         //!< Temporal codeblock size.
+    uint8                       cbX,        cbY;          //!< 1st & 2nd codeblock dimensions
+    uint8                       cbZ,        cbTS;         //!< 3rd & 4th codeblock dimensions
 
-    bwc_dwt_filter              KernelX,    KernelY;      //!< Spatial wavelet kernels.
-    bwc_dwt_filter              KernelZ,    KernelTS;     //!< Temporal wavelet kernels.
+    bwc_dwt_filter              KernelX,    KernelY;      //!< Wavelet kernels (1st & 2nd dim)
+    bwc_dwt_filter              KernelZ,    KernelTS;     //!< Wavelet kernels (3rd & 4th dim)
 
-    uint8                       decompX,    decompY;      //!< Number of wavelet decompositions ...
-    uint8                       decompZ,    decompTS;     //!< ... for each of the four dimensions.
-    uint8                       nDecomp;                  //!< Maximum No. wavelet decompositions.
+    uint8                       decompX,    decompY;      //!< Wavelet levels (1st & 2nd dim)
+    uint8                       decompZ,    decompTS;     //!< Wavelet levels (3rd & 4th dim)
+    uint8                       nDecomp;                  //!< Max decomposition levels
 
-    uint32                      qt_exponent, qt_mantissa; //!< Global qunatization exponent/mantissa.
-    uint8                       Qm;                       //!< Q number format range (m).
+    uint32                      qt_exponent, qt_mantissa; //!< Global quantization exp/mantissa
+    uint8                       Qm;                       //!< Float-to-fixed dynamic range
 
-    float                      *bitrate;                  //!< Quality layers defined by bitrate.
+    float                      *bitrate;                  //!< Bitrates for quality layers
 
-    uint8                       nLayers;                  //!< Number of quality layers.
-    uint8                       useLayer;                 //!< Quality layer used for decompression.
+    uint8                       nLayers;                  //!< Number of quality layers
+    uint8                       useLayer;                 //!< Decompression layer index
 
-    uint8                       guard_bits;               //!< Number of guard bits during quant.
+    uint8                       guard_bits;               //!< Guard bits for quantization
 
-    uint64                      headerSize;               //!< Size estimation of the global header.
-    uint64                      codestreamSize;           //!< Size of entire code-stream.
+    uint64                      headerSize;               //!< Estimated global header size
+    uint64                      codestreamSize;           //!< Total codestream size
 
-    bwc_quant_st                quantization_style;       //!< Quantization style.
-    bwc_prog_ord                progression;              //!< Packet progression order.
+    bwc_quant_st                quantization_style;       //!< Quantization strategy
+    bwc_prog_ord                progression;              //!< Packet progression order
   } bwc_gl_ctrl;
 
 /*================================================================================================*/
 /**
- * @details Structure that is used to probe header information from a compressed data set.
+ * @details Probes header information from a compressed data set. Contains global info, control
+ *          settings, and auxiliary/comment blocks.
  */
 /*================================================================================================*/
   typedef struct
   {
-    bwc_gl_inf                  info;                     //!< Global info structure
-    bwc_gl_ctrl                 control;                  //!< Global control structure
-    bwc_span                    aux;                      //!< Auxiliary info. codestream block.
-    bwc_span                    com;                      //!< Comment codestream block.
+    bwc_gl_inf                  info;                     //!< Global dimensional information
+    bwc_gl_ctrl                 control;                  //!< Control params for (de)compression
+    bwc_span                    aux;                      //!< Auxiliary codestream block
+    bwc_span                    com;                      //!< Comment codestream block
   } bwc_header;
 
 /*================================================================================================*/
 /**
- * @details Structure holding all the necessary parameters defining and controlling a bwc
- *          (de-)compression run.
+ * @details Aggregates dimension info, control params, tile, and mode for the BigWhoop codec.
+ *          Serves as the primary processing unit.
  */
 /*================================================================================================*/
   typedef struct
   {
-    bwc_gl_inf                  info;                     //!< Global info structure
-    bwc_gl_ctrl                 control;                  //!< Global control structure
+    bwc_gl_inf                  info;                     //!< Global dimensional information
+    bwc_gl_ctrl                 control;                  //!< Control params for (de)compression
 
-    bwc_tile                   *tile;                     //!< Structure defining bwc tile.
+    bwc_tile                   *tile;                     //!< Pointer to bwc tile structure
 
-    bwc_mode                    mode;                     //!< Flag to signal (de-)compression
+    bwc_mode                    mode;                     //!< (De-)compression operation flag
   } bwc_codec;
 #endif
