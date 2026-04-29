@@ -108,7 +108,6 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-
         -DBUILD_SHARED_LIBS=${{ matrix.shared }}
         -DBIGWHOOP_WITH_OPENMP=${{ matrix.omp }}
         -DBIGWHOOP_PRECISION:STRING=${{ matrix.precision }}
@@ -116,7 +115,6 @@ jobs:
         -DBUILD_H5Z_BWC=${{ matrix.hdf5 }}
         -DBIGWHOOP_WITH_EAS3=${{ matrix.eas3 }}
         -DBIGWHOOP_WITH_PROFILING=${{ matrix.profiling }}
-  
         -S ${{ github.workspace }}
 
     - name: Build
