@@ -47,9 +47,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "test/workflows" ]
+    branches: [ "tests/workflows" ]
   pull_request:
-    branches: [ "test/workflows" ]
+    branches: [ "tests/workflows" ]
 
 jobs:
   build:
