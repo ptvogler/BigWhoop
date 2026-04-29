@@ -159,8 +159,8 @@ const H5Z_class2_t H5Z_BWC[1] =
   (H5Z_filter_t)H5Z_FILTER_BWC,                           //!< Filter id number
   1,                                                      //!< Encoder present flag (set to true)
   1,                                                      //!< Decoder present flag (set to true)
-  "HDF5 bwc filter; see
-  https://github.com/ptvogler/BigWhoop",                  //!< Filter name for debugging
+  "HDF5 bwc filter; see "
+  "https://github.com/ptvogler/BigWhoop",                 //!< Filter name for debugging
   (H5Z_can_apply_func_t)H5Z_bwc_can_apply,                //!< The "can apply" callback
   (H5Z_set_local_func_t)H5Z_bwc_set_local,                //!< The "set local" callback
   (H5Z_func_t)H5Z_bwc_filter,                             //!< The actual filter function
