@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,21 +12,22 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This file defines a tagtree procedure used to encode/decode two types of                ||
-||        information found defining in a codeblock in specific quality layer:                    ||
-||                                                                                                ||
-||                - The inclusion tag records if a codeblock has any contribution                 ||
-||                  to a quality layer.                                                           ||
-||                - The number of leading bitplanes that are not significant/only                 ||
-||                  populated by zero bits.                                                       ||
-||                                                                                                ||
-||        For more information on the encoding/decoding process please refere to JPEG2000         ||
-||        by D. S. Taubman and M. W. Marcellin (p. 384).                                          ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file tagtree.h
+ *
+ *        This file defines a tagtree procedure used to encode/decode two types of
+ *        information found defining in a codeblock in specific quality layer:
+ *
+ *                - The inclusion tag records if a codeblock has any contribution
+ *                  to a quality layer.
+ *                - The number of leading bitplanes that are not significant/only
+ *                  populated by zero bits.
+ *
+ *        For more information on the encoding/decoding process please refere to JPEG2000
+ *        by D. S. Taubman and M. W. Marcellin (p. 384).
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -49,58 +50,39 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
-/************************************************************************************************************\
-||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
-||                                      | |\ | |    |    |  | |  \ |___                                     ||
-||                                      | | \| |___ |___ |__| |__/ |___                                     ||
-||                                                                                                          ||
-\************************************************************************************************************/
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||                                _ _  _ ____ _    _  _ ___  ____                                 ||
+||                                | |\ | |    |    |  | |  \ |___                                 ||
+||                                | | \| |___ |___ |__| |__/ |___                                 ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+// clang-format off
+#include <assert.h>                                     //!< Runtime assertions
+#include <stdio.h>                                      //!< Standard I/O
+#include <stdlib.h>                                     //!< Standard C library
 
-#include "bitstream.h"
-#include "macros.h"
-#include "types.h"
-#include "tagtree.h"
+#include "bitstream.h"                                  //!< BWC bitstream operations
+#include "macros.h"                                     //!< BWC macros
+#include "types.h"                                      //!< BWC types
+#include "tagtree.h"                                    //!< BWC tagtree encoding
+// clang-format on
 
-/************************************************************************************************************\
-||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
-||                  |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__                   ||
-||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
-||                                                                                                          ||
-\************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void kill_tagtree(bwc_tagtree* tagtree)                                                   !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function deallocates a tagtree instance used to encode codeblock contributions to a    !
-!                specific quality layer as well as the number of magnitude bit planes used to represent the  !
-!                samples of a specific codeblock.                                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                tagtree                     bwc_tagtree*          - Structure defining a tagtree instance.  !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
+||             |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__              ||
+||             |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]             ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*================================================================================================*/
+/**
+ * @details This function deallocates a tagtree structure and all its associated nodes. The pointer
+ *          values within the structure are NOT set to NULL after deallocation. The caller remains
+ *          responsible for ensuring the pointer is not dereferenced after this call.
+ *
+ * @param[in,out] tagtree  Pointer to the tagtree structure to be deallocated.
+ */
+/*================================================================================================*/
 void 
 kill_tagtree(bwc_tagtree* tagtree)
 {
@@ -114,34 +96,13 @@ kill_tagtree(bwc_tagtree* tagtree)
    return;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details DESCRIPTION NEEDED
+ *
+ * @param[out] name  DESCRIPTION NEEDED.
+ */
+/*================================================================================================*/
 void 
 reset_tagtree(bwc_tagtree* const tagtree)
 {
@@ -162,34 +123,16 @@ reset_tagtree(bwc_tagtree* const tagtree)
    }while(tagtree->nodes[i++].parent);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details DESCRIPTION NEEDED
+ *
+ * @param[in] name  DESCRIPTION NEEDED.
+ * @param[in] name  DESCRIPTION NEEDED.
+ *
+ * @return  Tagtree value associated with the node described by the leaf_index
+ */
+/*================================================================================================*/
 uint16 
 tagtree_get_value(const bwc_tagtree* const tagtree, const uint64 leaf_index)
 {
@@ -203,34 +146,15 @@ tagtree_get_value(const bwc_tagtree* const tagtree, const uint64 leaf_index)
    return tagtree->nodes[leaf_index].value;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details DESCRIPTION NEEDED
+ *
+ * @param[in] name  DESCRIPTION NEEDED.
+ * @param[in] name  DESCRIPTION NEEDED.
+ * @param[in] name  DESCRIPTION NEEDED.
+ */
+/*================================================================================================*/
 void 
 tagtree_set_value(bwc_tagtree* const tagtree, const uint64 leaf_index, const uint16 value)
 {
@@ -256,34 +180,18 @@ tagtree_set_value(bwc_tagtree* const tagtree, const uint64 leaf_index, const uin
    }while(node && (node->value > value));
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details DESCRIPTION NEEDED
+ *
+ * @param[in] name  DESCRIPTION NEEDED.
+ * @param[in] name  DESCRIPTION NEEDED.
+ * @param[in] name  DESCRIPTION NEEDED.
+ * @param[in] name  DESCRIPTION NEEDED.
+ *
+ * @return  DESCRIPTION NEEDED
+ */
+/*================================================================================================*/
 bwc_tagtree* 
 initialize_tagtree(const uint64 leafsX, const uint64 leafsY, const uint64 leafsZ, const uint64 leafsTS)
 {
@@ -390,34 +298,15 @@ initialize_tagtree(const uint64 leafsX, const uint64 leafsY, const uint64 leafsZ
 }
 
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details DESCRIPTION NEEDED
+ *
+ * @param[in]     name  DESCRIPTION NEEDED.
+ * @param[out]    name  DESCRIPTION NEEDED.
+ * @param[in,out] name  DESCRIPTION NEEDED.
+ */
+/*================================================================================================*/
 void 
 encode_tagtree(bwc_tagtree *const tagtree, bitstream *const stream, const uint32 threshold, const uint32 leaf_index, const uchar estimate)
 {
@@ -483,34 +372,17 @@ encode_tagtree(bwc_tagtree *const tagtree, bitstream *const stream, const uint32
    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                14.06.2018  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details DESCRIPTION NEEDED
+ *
+ * @param[in]     name  DESCRIPTION NEEDED.
+ * @param[out]    name  DESCRIPTION NEEDED.
+ * @param[in,out] name  DESCRIPTION NEEDED.
+ *
+ * @return  DESCRIPTION NEEDED
+ */
+/*================================================================================================*/
 uchar 
 decode_tagtree(bwc_tagtree *const tagtree, bitstream *const stream, const uint32 threshold, const uint32 leaf_index)
 {
