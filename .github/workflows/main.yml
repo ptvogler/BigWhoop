@@ -136,6 +136,22 @@ jobs:
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+    - name: Extract LibDir from CMake Cache
+      if: matrix.hdf5 == 'ON'
+      shell: bash
+      run: |
+        LIB_DIR=$(cmake -L -N "${{ steps.strings.outputs.build-output-dir }}" | grep "CMAKE_LIBRARY_OUTPUT_DIRECTORY" | awk -F'=' '{print $2}')
+        if [ -z "$LIB_DIR" ]; then
+           if [ -d "${{ steps.strings.outputs.build-output-dir }}/lib64" ]; then
+              LIB_DIR="${{ steps.strings.outputs.build-output-dir }}/lib64"
+           else
+              LIB_DIR="${{ steps.strings.outputs.build-output-dir }}/lib"
+           fi
+        fi
+        
+        echo "Using Library Dir: $LIB_DIR"
+        echo "HDF5_PLUGIN_PATH=$LIB_DIR" >> "$GITHUB_ENV"
+
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: ctest --build-config ${{ matrix.build_type }}
