@@ -103,6 +103,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-
 
+    - name: Cache APT Packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+
     - name: Set reusable strings
       id: strings
       shell: bash
