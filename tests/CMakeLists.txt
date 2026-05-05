@@ -52,3 +52,16 @@ endfunction()
 
 bigwhoop_unit_test(test_libbwc)
 bigwhoop_unit_test(test_bitstream)
+if(${BUILD_H5Z_BWC})
+  bigwhoop_unit_test(test_hdf5)
+  set_tests_properties(test_hdf5 PROPERTIES 
+    ENVIRONMENT "HDF5_PLUGIN_PATH=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+  target_link_libraries(test_hdf5 PRIVATE 
+      ${HDF5_LIBRARIES}
+      ${HDF5_CXX_LIBRARIES}
+  )
+  target_include_directories(test_hdf5 PRIVATE 
+      ${HDF5_INCLUDE_DIRS}
+  )
+  target_compile_definitions(test_hdf5 PRIVATE ${HDF5_DEFINITIONS})
+endif()

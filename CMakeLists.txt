@@ -191,6 +191,14 @@ include(cmake/ThirdParty.cmake)
 add_subdirectory(src/library)
 
 #----------------------------------------------------------#
+# Add the H5Z_BWC source code if requested.                #
+#----------------------------------------------------------#
+if(${BUILD_H5Z_BWC})
+  find_package(HDF5 REQUIRED COMPONENTS C  CXX)
+  add_subdirectory(src/interfaces/HDF5)
+endif()
+
+#----------------------------------------------------------#
 # Add the unit tests.                                      #
 #----------------------------------------------------------#
 enable_testing()
@@ -204,15 +212,6 @@ if(${BUILD_UTILITIES})
 else()
   set(ignoreMe "${BIGWHOOP_WITH_EAS3}${BIGWHOOP_WITH_NETCDF}")
 endif()
-
-#----------------------------------------------------------#
-# Add the H5Z_BWC source code if requested.                #
-#----------------------------------------------------------#
-if(${BUILD_H5Z_BWC})
-  find_package(HDF5 REQUIRED COMPONENTS C)
-  add_subdirectory(src/interfaces/HDF5)
-endif()
-
 
 #----------------------------------------------------------#
 # Config-file packaging                                    #
