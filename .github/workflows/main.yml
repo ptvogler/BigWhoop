@@ -59,23 +59,24 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        #os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         build_type: [Release]
         
         shared: [ON, OFF]
         omp: [ON]
         precision: ["Double"]
-        utilities: [OFF]
+        utilities: [ON]
         hdf5: [ON, OFF]
-        eas3: [OFF]
+        eas3: [ON]
         profiling: [OFF]
         
         c_compiler: [gcc, clang, cl]
 
         include:
-          - os: windows-latest
-            c_compiler: cl
-            cpp_compiler: cl
+          #- os: windows-latest
+          #  c_compiler: cl
+          #  cpp_compiler: cl
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
@@ -86,10 +87,10 @@ jobs:
         exclude:
           - hdf5: ON
             shared: ON
-          - os: windows-latest
-            c_compiler: gcc
-          - os: windows-latest
-            c_compiler: clang
+          #- os: windows-latest
+          #  c_compiler: gcc
+          #- os: windows-latest
+          #  c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
 
@@ -109,14 +110,20 @@ jobs:
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
           sudo apt-get update
           sudo apt-get install -y libhdf5-dev
-        elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.sh
-          ./vcpkg install hdf5
-          echo "VCPKG_ROOT=$(pwd)" >> $GITHUB_ENV
-          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
+        #elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+        #  git clone https://github.com/microsoft/vcpkg.git
+        #  cd vcpkg
+        #  ./bootstrap-vcpkg.sh
+        #  ./vcpkg install hdf5
+        #  echo "VCPKG_ROOT=$(pwd)" >> $GITHUB_ENV
+        #  echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
         fi
+
+    - name: Install OMP
+      if: matrix.os == 'ubuntu-latest' && matrix.c_compiler == 'clang'
+      shell: bash
+      run: |
+        sudo apt-get install -y libomp-dev
 
     - name: Configure CMake
       run: >
