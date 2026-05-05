@@ -64,7 +64,7 @@ jobs:
         build_type: [Release]
         shared: [ON, OFF]
         omp: [ON]
-        precision: ["Double"]
+        precision: ["Single", "Double"]
         utilities: [ON]
         hdf5: [ON, OFF]
         eas3: [ON]
@@ -102,14 +102,6 @@ jobs:
         # with the same compiler and OS but different flags (less ideal but faster than full rebuild)
         restore-keys: |
           ${{ runner.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-
-
-    - name: Cache APT Packages
-      uses: actions/cache@v4
-      with:
-        path: /var/cache/apt/archives
-        key: ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-apt-
 
     - name: Set reusable strings
       id: strings
