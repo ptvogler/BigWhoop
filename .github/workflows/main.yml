@@ -64,7 +64,7 @@ jobs:
         build_type: [Release]
         shared: [ON, OFF]
         omp: [ON]
-        precision: ["Single", "Double"]
+        precision: ["Double"]
         utilities: [ON]
         hdf5: [ON, OFF]
         eas3: [ON]
@@ -108,6 +108,25 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Cache dependencies
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.ccache
+          /var/cache/apt/archives
+        key: ${{ runner.os }}-deps-${{ hashFiles('.github/dependabot.yml', '**/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+
+    - name: Cache CMake Configuration
+      id: cache-cmake
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.strings.outputs.build-output-dir }}/CMakeCache.txt
+        key: ${{ runner.os }}-cmake-${{ matrix.c_compiler }}-${{ matrix.shared }}-${{ matrix.hdf5 }}-${{ hashFiles('CMakeLists.txt') }}
 
     - name: Install Dependencies
       if: matrix.hdf5 == 'ON' || matrix.c_compiler == 'clang'
