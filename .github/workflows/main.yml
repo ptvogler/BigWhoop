@@ -47,9 +47,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "tests/workflows" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "tests/workflows" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -59,43 +59,49 @@ jobs:
       fail-fast: false
 
       matrix:
-        #os: [ubuntu-latest, windows-latest]
         os: [ubuntu-latest]
+        c_compiler: [gcc, clang]
         build_type: [Release]
-        
         shared: [ON, OFF]
         omp: [ON]
         precision: ["Double"]
         utilities: [ON]
         hdf5: [ON, OFF]
         eas3: [ON]
-        profiling: [OFF]
-        
-        c_compiler: [gcc, clang, cl]
+        profiling: [ON]
 
         include:
-          #- os: windows-latest
-          #  c_compiler: cl
-          #  cpp_compiler: cl
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
-
+        
         exclude:
           - hdf5: ON
             shared: ON
-          #- os: windows-latest
-          #  c_compiler: gcc
-          #- os: windows-latest
-          #  c_compiler: clang
-          - os: ubuntu-latest
-            c_compiler: cl
+          - c_compiler: cl
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Cache CMake Build Artifacts
+      id: cache-build
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/build
+          ~/.ccache
+        # The key uniquely identifies the build configuration.
+        # It includes: OS, Compiler, Build Type, HDF5 status, Shared status, 
+        # AND the specific eas3/profiling flags.
+        key: ${{ runner.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.hdf5 }}-${{ matrix.shared }}-eas3-${{ matrix.eas3 }}-prof-${{ matrix.profiling }}-${{ hashFiles('**/CMakeLists.txt', 'CMake/*.cmake') }}
+        
+        # Fallback keys: If an exact match isn't found, try to restore a cache 
+        # with the same compiler and OS but different flags (less ideal but faster than full rebuild)
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-
 
     - name: Set reusable strings
       id: strings
@@ -103,27 +109,16 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install HDF5 dependencies
-      if: matrix.hdf5 == 'ON'
+    - name: Install Dependencies
+      if: matrix.hdf5 == 'ON' || matrix.c_compiler == 'clang'
       shell: bash
       run: |
-        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-          sudo apt-get update
-          sudo apt-get install -y libhdf5-dev
-        #elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-        #  git clone https://github.com/microsoft/vcpkg.git
-        #  cd vcpkg
-        #  ./bootstrap-vcpkg.sh
-        #  ./vcpkg install hdf5
-        #  echo "VCPKG_ROOT=$(pwd)" >> $GITHUB_ENV
-        #  echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/scripts/buildsystems/vcpkg.cmake" >> $GITHUB_ENV
-        fi
-
-    - name: Install OMP
-      if: matrix.os == 'ubuntu-latest' && matrix.c_compiler == 'clang'
-      shell: bash
-      run: |
-        sudo apt-get install -y libomp-dev
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libhdf5-dev \
+          libomp-dev
 
     - name: Configure CMake
       run: >
@@ -141,23 +136,7 @@ jobs:
         -S ${{ github.workspace }}
 
     - name: Build
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
-
-    - name: Extract LibDir from CMake Cache
-      if: matrix.hdf5 == 'ON'
-      shell: bash
-      run: |
-        LIB_DIR=$(cmake -L -N "${{ steps.strings.outputs.build-output-dir }}" | grep "CMAKE_LIBRARY_OUTPUT_DIRECTORY" | awk -F'=' '{print $2}')
-        if [ -z "$LIB_DIR" ]; then
-           if [ -d "${{ steps.strings.outputs.build-output-dir }}/lib64" ]; then
-              LIB_DIR="${{ steps.strings.outputs.build-output-dir }}/lib64"
-           else
-              LIB_DIR="${{ steps.strings.outputs.build-output-dir }}/lib"
-           fi
-        fi
-        
-        echo "Using Library Dir: $LIB_DIR"
-        echo "HDF5_PLUGIN_PATH=$LIB_DIR" >> "$GITHUB_ENV"
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --parallel $(nproc)
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
