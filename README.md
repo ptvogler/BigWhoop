@@ -1,6 +1,15 @@
 <p align="center">
   <a href="https://github.com/ptvogler/BigWhoop">
-    <img alt="BigWhoop" src="https://github.com/ptvogler/BigWhoop/blob/main/docs/img/Logo.svg"/>
+    <picture>
+      <source 
+        media="(prefers-color-scheme: dark)" 
+        srcset="https://raw.githubusercontent.com/ptvogler/BigWhoop/main/docs/img/Logo-dark.svg"
+      />
+      <img 
+        alt="BigWhoop" 
+        src="https://raw.githubusercontent.com/ptvogler/BigWhoop/main/docs/img/Logo-light.svg" 
+      />
+    </picture>
   </a>
 </p>
 <h1 align="center">Compression library for numerical datasets</h1>
