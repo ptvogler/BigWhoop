@@ -261,4 +261,4 @@ build_bwc:
 	"-DBIGWHOOP_WITH_EAS3=${BIGWHOOP_WITH_EAS3}" && $(MAKE) -j
 
 clean:
-	- /bin/rm -rf build/ include/library/public
+	- /bin/rm -rf build/

@@ -71,7 +71,7 @@ set_property(TARGET bwccmd  PROPERTY OUTPUT_NAME bwc)
 # Setup up the include directory for the bwc utilities.    #
 #----------------------------------------------------------#
 target_include_directories(bwccmd PRIVATE ${CMAKE_SOURCE_DIR}/include/tools)
-target_include_directories(bwccmd PRIVATE ${CMAKE_SOURCE_DIR}/include/library/public)
+target_include_directories(bwccmd PRIVATE ${PROJECT_BINARY_DIR}/include/library/public)
 target_include_directories(bwccmd PRIVATE ${CMAKE_SOURCE_DIR}/include/interfaces/reader)
 
 #----------------------------------------------------------#

@@ -47,6 +47,8 @@ include(CTest)
 function(bigwhoop_unit_test TESTCASE)
   add_executable(${TESTCASE} "${TESTCASE}.cpp")
   target_link_libraries(${TESTCASE} PRIVATE Catch2::Catch2WithMain bwclib)
+  target_include_directories(${TESTCASE} PRIVATE ${PROJECT_BINARY_DIR}/include/library/private
+                                                 ${PROJECT_SOURCE_DIR}/include/library/private)
   add_test(NAME ${TESTCASE} COMMAND ${TESTCASE})
 endfunction()
 
@@ -56,12 +58,8 @@ if(${BUILD_H5Z_BWC})
   bigwhoop_unit_test(test_hdf5)
   set_tests_properties(test_hdf5 PROPERTIES 
     ENVIRONMENT "HDF5_PLUGIN_PATH=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-  target_link_libraries(test_hdf5 PRIVATE 
-      ${HDF5_LIBRARIES}
-      ${HDF5_CXX_LIBRARIES}
-  )
-  target_include_directories(test_hdf5 PRIVATE 
-      ${HDF5_INCLUDE_DIRS}
-  )
+  target_link_libraries(test_hdf5 PRIVATE ${HDF5_LIBRARIES}
+                                          ${HDF5_CXX_LIBRARIES})
+  target_include_directories(test_hdf5 PRIVATE ${HDF5_INCLUDE_DIRS})
   target_compile_definitions(test_hdf5 PRIVATE ${HDF5_DEFINITIONS})
 endif()

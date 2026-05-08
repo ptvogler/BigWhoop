@@ -44,7 +44,7 @@
 #----------------------------------------------------------#
 # Check if the version requirement for cmake is met.       #
 #----------------------------------------------------------#
-cmake_minimum_required(VERSION 3.5.1...3.31.6)
+cmake_minimum_required(VERSION 3.5.1...4.3.0)
 
 #----------------------------------------------------------#
 # Set the project name and description.                    #
@@ -63,14 +63,14 @@ endif()
 # Save the bwc.c file in a temporary variable and match    #
 # the current version number with a regular expression.    #
 #----------------------------------------------------------#
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/library/private/macros.h _macros_h_contents)
-string(REGEX REPLACE ".*#define[ \t]+BWC_VERSION_MAJOR[ \t]+([0-9]+).*"
-     "\\1" BWC_VERSION_MAJOR ${_macros_h_contents})
-string(REGEX REPLACE ".*#define[ \t]+BWC_VERSION_MINOR[ \t]+([0-9]+).*"
-     "\\1" BWC_VERSION_MINOR ${_macros_h_contents})
-string(REGEX REPLACE ".*#define[ \t]+BWC_VERSION_PATCH[ \t]+([0-9]+).*"
-     "\\1" BWC_VERSION_PATCH ${_macros_h_contents})
+set(BWC_VERSION_MAJOR 0)
+set(BWC_VERSION_MINOR 2)
+set(BWC_VERSION_PATCH 3)
 set(BWC_VERSION "${BWC_VERSION_MAJOR}.${BWC_VERSION_MINOR}.${BWC_VERSION_PATCH}")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/library/private/macros.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/include/library/private/macros.h
+               @ONLY)
 
 #----------------------------------------------------------#
 # Setup a user-specified option used to control the sample #

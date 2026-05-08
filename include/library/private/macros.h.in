@@ -50,9 +50,9 @@
    * @details BWC library version information.
    */
   /*=====================================================|========================================*/
-  #define BWC_VERSION_MAJOR     0                         //!< Major Version
-  #define BWC_VERSION_MINOR     2                         //!< Minor Version
-  #define BWC_VERSION_PATCH     3                         //!< Patch Version
+  #define BWC_VERSION_MAJOR     @BWC_VERSION_MAJOR@                         //!< Major Version
+  #define BWC_VERSION_MINOR     @BWC_VERSION_MINOR@                         //!< Minor Version
+  #define BWC_VERSION_PATCH     @BWC_VERSION_PATCH@                         //!< Patch Version
 
   /*==============================================================================================*/
   /**

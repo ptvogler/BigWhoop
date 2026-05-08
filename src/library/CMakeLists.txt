@@ -42,29 +42,8 @@
 #|                                                                                                |#
 #*================================================================================================*#
 #----------------------------------------------------------#
-# Assemble the public header for the BigWhoop library      #
+# Configure the public header for the BigWhoop library     #
 #----------------------------------------------------------#
-set(PYTHON_ARGUMENT "")
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  if(OPENMP_FOUND)
-    set(PYTHON_ARGUMENT ${PYTHON_ARGUMENT} -OMP)
-  endif()
-endif()
-
-if("${BIGWHOOP_PRECISION}" STREQUAL "Single")
-  set(PYTHON_ARGUMENT ${PYTHON_ARGUMENT} -Single)
-endif()
-
-execute_process(COMMAND python3 public_header.py ${PYTHON_ARGUMENT}
-                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-                RESULT_VARIABLE result
-                ERROR_VARIABLE error_output)
-
-if(result)
-  message(WARNING "Public header generation failed: ${error_output}")
-endif()
-
 add_library(bwclib bitstream.c
                    libbwc.c
                    codestream.c
@@ -80,9 +59,21 @@ add_library(bwclib bitstream.c
 #----------------------------------------------------------#
 if("${BIGWHOOP_PRECISION}" STREQUAL "Single")
    target_compile_definitions(bwclib PRIVATE -DBWC_SINGLE_PRECISION)
+   string(CONCAT BWC_PRECISION_TYPE_BLOCK "typedef float                 bwc_float;\n  "
+                                          "typedef uint32                bwc_raw;")
+   string(CONCAT BWC_PRECISION_MACRO_BLOCK "#define PREC_BIT              31\n  "
+                                           "#define MAXIMUM_NO_PASSES     (32 * 3) - 2")
 else()
    target_compile_definitions(bwclib PRIVATE -DBWC_DOUBLE_PRECISION)
+   string(CONCAT BWC_PRECISION_TYPE_BLOCK "typedef double                bwc_float;\n  "
+                                          "typedef uint64                bwc_raw;")
+   string(CONCAT BWC_PRECISION_MACRO_BLOCK "#define PREC_BIT              63\n  "
+                                           "#define MAXIMUM_NO_PASSES     (64 * 3) - 2")
 endif()
+
+configure_file(${PROJECT_SOURCE_DIR}/include/library/public/bwc.h.in
+               ${PROJECT_BINARY_DIR}/include/library/public/bwc.h
+               @ONLY)
 
 #----------------------------------------------------------#
 # Set the target compile definition for the profiling      #
@@ -104,9 +95,15 @@ set_target_properties(bwclib PROPERTIES VERSION "${BWC_VERSION}"
 #----------------------------------------------------------#
 # Setup up the include directory for the BigWhoop library. #
 #----------------------------------------------------------#
-target_include_directories(bwclib PRIVATE ${PROJECT_SOURCE_DIR}/include/library/private
+target_include_directories(bwclib PRIVATE ${PROJECT_BINARY_DIR}/include/library/private
+                                          ${PROJECT_SOURCE_DIR}/include/library/private
                                    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/library/public>
                                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+target_include_directories(bwclib PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 
 #----------------------------------------------------------#
 # Link the BigWhoop library to the math.h library.         #

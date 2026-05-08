@@ -49,7 +49,7 @@ add_library(h5z_bwc SHARED H5Zbwc.c)
 #----------------------------------------------------------#
 # Setup up the include directory for the BigWhoop library. #
 #----------------------------------------------------------#
-target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/library/public>
+target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/library/public>
                                    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
