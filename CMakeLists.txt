@@ -65,7 +65,7 @@ endif()
 #----------------------------------------------------------#
 set(BWC_VERSION_MAJOR 0)
 set(BWC_VERSION_MINOR 2)
-set(BWC_VERSION_PATCH 3)
+set(BWC_VERSION_PATCH 4)
 set(BWC_VERSION "${BWC_VERSION_MAJOR}.${BWC_VERSION_MINOR}.${BWC_VERSION_PATCH}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/library/private/macros.h.in
