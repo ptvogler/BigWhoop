@@ -75,7 +75,7 @@ set(H5Z_BWC_VERSION "${H5Z_BWC_VERSION_MAJOR}.${H5Z_BWC_VERSION_MINOR}.${H5Z_BWC
 
 set_target_properties(h5z_bwc PROPERTIES VERSION "${H5Z_BWC_VERSION}"
                                        SOVERSION "${H5Z_BWC_VERSION_MAJOR}"
-                                   PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Z_bwc.h"
+                                   PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Zbwc.h"
                                    OUTPUT_NAME   h5z_bwc)
 
 #----------------------------------------------------------#

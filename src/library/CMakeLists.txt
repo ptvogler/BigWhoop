@@ -90,7 +90,7 @@ endif()
 #----------------------------------------------------------#
 set_target_properties(bwclib PROPERTIES VERSION "${BWC_VERSION}"
                                       SOVERSION "${BWC_VERSION_MAJOR}"
-                                  PUBLIC_HEADER "${PROJECT_SOURCE_DIR}/include/library/public/bwc.h")
+                                  PUBLIC_HEADER "${PROJECT_BINARY_DIR}/include/library/public/bwc.h")
 
 #----------------------------------------------------------#
 # Setup up the include directory for the BigWhoop library. #
