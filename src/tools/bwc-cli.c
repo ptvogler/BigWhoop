@@ -14,7 +14,7 @@
 ||                                                                                                ||
 \*  --------------------------------------------------------------------------------------------  */
 /**                                                                                               
- *        @file bwccmdl.c
+ *        @file bwc-cli.c
  *
  *        This file defines a simple command line tool that uses the Big Whoop library to
  *        (de) compress a 2- to 4-dimensional IEEE 754 floating point array. For further
@@ -169,7 +169,7 @@ static char bwc_header_art[] = "================================================
  * @details Character strings containing the cli version and bug report e-mail address.
  */
 /*================================================================================================*/
-const char *argp_program_version      = "bwc 0.1.0";
+const char *argp_program_version      = "bwc-cli 0.1.0";
 const char *argp_program_bug_address  = "patrick.vogler@hlrs.de";
 
 /*================================================================================================*/
@@ -178,16 +178,16 @@ const char *argp_program_bug_address  = "patrick.vogler@hlrs.de";
  */
 /*================================================================================================*/
 static char doc[] = "\n"\
-                    "bwc is a simple command line tool that leverages the Big Whoop library to"
+                    "bwc-cli is a simple command line tool that leverages the Big Whoop library to"
                     " (de)compress a 2- to 4-dimensional IEEE 754 "
                     "floating point array.\n"\
                     "\n"\
                     "Available use cases:\n"\
                     "\n"\
-                    "  Compression:       bwc -C [INPUT] [OPTIONS]\n"\
-                    "  Decompression:     bwc -D [INPUT] [OPTIONS]\n"\
-                    "  Analysis:          bwc -A [INPUT] -R [REFERENCE]\n"\
-                    "  Information:       bwc -H [INPUT]\n"\
+                    "  Compression:       bwc-cli -C [INPUT] [OPTIONS]\n"\
+                    "  Decompression:     bwc-cli -D [INPUT] [OPTIONS]\n"\
+                    "  Analysis:          bwc-cli -A [INPUT] -R [REFERENCE]\n"\
+                    "  Information:       bwc-cli -H [INPUT]\n"\
                     "\n"\
                     "Valid Option Values:\n"\
                     "\n"

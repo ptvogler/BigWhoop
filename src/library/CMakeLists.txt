@@ -42,88 +42,127 @@
 #|                                                                                                |#
 #*================================================================================================*#
 #----------------------------------------------------------#
-# Configure the public header for the BigWhoop library     #
+# Define the BigWhoop object library.                      #
 #----------------------------------------------------------#
-add_library(bwclib bitstream.c
-                   libbwc.c
-                   codestream.c
-                   dwt.c
-                   mq.c
-                   tier1.c
-                   tier2.c
-                   tagtree.c)
+add_library(bwc_objects OBJECT bitstream.c
+                               libbwc.c
+                               codestream.c
+                               dwt.c
+                               mq.c
+                               tier1.c
+                               tier2.c
+                               tagtree.c)
 
 #----------------------------------------------------------#
-# Set the target compile definition for the encoder/decod- #
-# er bit precision.                                        #
+# Configure compression precision and compile time defin.  #
 #----------------------------------------------------------#
 if("${BIGWHOOP_PRECISION}" STREQUAL "Single")
-   target_compile_definitions(bwclib PRIVATE -DBWC_SINGLE_PRECISION)
-   string(CONCAT BWC_PRECISION_TYPE_BLOCK "typedef float                 bwc_float;\n  "
-                                          "typedef uint32                bwc_raw;")
-   string(CONCAT BWC_PRECISION_MACRO_BLOCK "#define PREC_BIT              31\n  "
-                                           "#define MAXIMUM_NO_PASSES     (32 * 3) - 2")
+ target_compile_definitions(bwc_objects PRIVATE -DBWC_SINGLE_PRECISION)
+ string(CONCAT BWC_PRECISION_TYPE_BLOCK  "typedef float                 bwc_float;\n  "
+                                         "typedef uint32                bwc_raw;")
+ string(CONCAT BWC_PRECISION_MACRO_BLOCK "#define PREC_BIT              31\n  "
+                                         "#define MAXIMUM_NO_PASSES     (32 * 3) - 2")
 else()
-   target_compile_definitions(bwclib PRIVATE -DBWC_DOUBLE_PRECISION)
-   string(CONCAT BWC_PRECISION_TYPE_BLOCK "typedef double                bwc_float;\n  "
-                                          "typedef uint64                bwc_raw;")
-   string(CONCAT BWC_PRECISION_MACRO_BLOCK "#define PREC_BIT              63\n  "
-                                           "#define MAXIMUM_NO_PASSES     (64 * 3) - 2")
+ target_compile_definitions(bwc_objects PRIVATE -DBWC_DOUBLE_PRECISION)
+ string(CONCAT BWC_PRECISION_TYPE_BLOCK  "typedef double                bwc_float;\n  "
+                                         "typedef uint64                bwc_raw;")
+ string(CONCAT BWC_PRECISION_MACRO_BLOCK "#define PREC_BIT              63\n  "
+                                         "#define MAXIMUM_NO_PASSES     (64 * 3) - 2")
 endif()
 
+if(BWC_WITH_PROF)
+  target_compile_definitions(bwc_objects PRIVATE BWC_PROFILE)
+  message(STATUS "Profiling enabled for library")
+endif()
+
+#----------------------------------------------------------#
+# Link the C OpenMP target.                                #
+#----------------------------------------------------------#
+if(BWC_WITH_OMP AND OpenMP_C_FOUND)
+  target_link_libraries(bwc_objects PRIVATE OpenMP::OpenMP_C)
+endif()
+
+#----------------------------------------------------------#
+# Configure BigWhoop header files.                         #
+#----------------------------------------------------------#
 configure_file(${PROJECT_SOURCE_DIR}/include/library/public/bwc.h.in
-               ${PROJECT_BINARY_DIR}/include/library/public/bwc.h
+               ${CMAKE_CURRENT_BINARY_DIR}/include/library/public/bwc.h
                @ONLY)
 
-#----------------------------------------------------------#
-# Set the target compile definition for the profiling      #
-# output.                                                  #
-#----------------------------------------------------------#
-if(${BIGWHOOP_WITH_PROFILING})
-  target_compile_definitions(bwclib PRIVATE -DBWC_PROFILE)
-  MESSAGE(STATUS "Profiling: ${PROF}")
-endif()
-
-#----------------------------------------------------------#
-# Set the Version and SOVersion and define the public API  # 
-# for the BigWhoop library.                                #
-#----------------------------------------------------------#
-set_target_properties(bwclib PROPERTIES VERSION "${BWC_VERSION}"
-                                      SOVERSION "${BWC_VERSION_MAJOR}"
-                                  PUBLIC_HEADER "${PROJECT_BINARY_DIR}/include/library/public/bwc.h")
+configure_file(${PROJECT_SOURCE_DIR}/include/library/private/macros.h.in
+               ${CMAKE_CURRENT_BINARY_DIR}/include/library/private/macros.h
+               @ONLY)
 
 #----------------------------------------------------------#
 # Setup up the include directory for the BigWhoop library. #
 #----------------------------------------------------------#
-target_include_directories(bwclib PRIVATE ${PROJECT_BINARY_DIR}/include/library/private
-                                          ${PROJECT_SOURCE_DIR}/include/library/private
-                                   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/library/public>
-                                          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-
-target_include_directories(bwclib PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
+target_include_directories(bwc_objects
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include/library/public>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/bwc>
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/include/library/private
+    ${CMAKE_CURRENT_BINARY_DIR}/include/library/private)
 
 #----------------------------------------------------------#
-# Link the BigWhoop library to the math.h library.         #
-# With MSVC Math functions are built into the C runtime,   #
-# no separate linking needed                               #
+# Create the shared library target.                        #
 #----------------------------------------------------------#
-if(NOT MSVC)
-  target_link_libraries(bwclib PRIVATE m)
+if(BWC_BUILD_SHARED OR BWC_BUILD_UTIL)
+  add_library(bwclib $<TARGET_OBJECTS:bwc_objects>)
+
+  set_target_properties(bwclib PROPERTIES
+      PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/include/library/public/bwc.h"
+      VERSION ${PROJECT_VERSION}
+      SOVERSION ${PROJECT_VERSION_MAJOR}
+      OUTPUT_NAME "bwc")
+
+  # Link the math library (only if not MSVC)
+  if(NOT MSVC)
+    target_link_libraries(bwclib PRIVATE m)
+  endif()
+
+  # Propagate properties from objects to the library
+  target_link_libraries(bwclib PUBLIC bwc_objects)
+
+  # Installation
+  install(TARGETS bwclib
+      EXPORT bwc-targets
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bwc)
 endif()
 
 #----------------------------------------------------------#
-# Setup the install directories and target exporting for   #
-# config-file packaging.                                   #
+# Create the static library target.                        #
 #----------------------------------------------------------#
-install(      TARGETS bwclib
-               EXPORT bwc-targets
-              LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(BWC_BUILD_STATIC OR (BWC_BUILD_HDF5 AND NOT BWC_BUILD_SHARED))
+  add_library(bwclib_static STATIC $<TARGET_OBJECTS:bwc_objects>)
+
+  set_target_properties(bwclib_static PROPERTIES
+      PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/include/library/public/bwc.h"
+      VERSION ${PROJECT_VERSION}
+      OUTPUT_NAME "bwc-static")
+
+  if(NOT MSVC)
+    target_link_libraries(bwclib_static PRIVATE m)
+  endif()
+
+  target_link_libraries(bwclib_static PUBLIC bwc_objects)
+
+  install(TARGETS bwclib_static
+      EXPORT bwc-targets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bwc)
+endif()
 
 #----------------------------------------------------------#
-# Define the output name for the BigWhoop library.         #
+# Export targets for packaging.                            #
 #----------------------------------------------------------#
-set_property(TARGET bwclib PROPERTY OUTPUT_NAME bwc)
+if(TARGET bwclib)
+  add_library(bwc::bwclib ALIAS bwclib)
+endif()
+
+if(TARGET bwclib_static)
+  add_library(bwc::bwclib_static ALIAS bwclib_static)
+endif()

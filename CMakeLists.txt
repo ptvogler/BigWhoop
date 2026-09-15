@@ -44,188 +44,133 @@
 #----------------------------------------------------------#
 # Check if the version requirement for cmake is met.       #
 #----------------------------------------------------------#
-cmake_minimum_required(VERSION 3.5.1...4.3.0)
-
-#----------------------------------------------------------#
-# Set the project name and description.                    #
-#----------------------------------------------------------#
-project(BWC LANGUAGES C CXX)
-set(PROJECT_DESCRIPTION "Compression algorithm for IEEE 754 datasets")
+cmake_minimum_required(VERSION 3.16...4.3.0)
 
 #----------------------------------------------------------#
 # Check that the current build is not a in-source build.   #
 #----------------------------------------------------------#
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
-   message(FATAL_ERROR "In-source builds are prohibited. Please create a separate build directory")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+  message(FATAL_ERROR "In-source builds are not allowed. "
+                      "Please create a separate build directory.\n"
+                      "Example:\n"
+                      "  mkdir build && cd build\n"
+                      "  cmake ..")
 endif()
 
 #----------------------------------------------------------#
-# Save the bwc.c file in a temporary variable and match    #
-# the current version number with a regular expression.    #
+# Set the project name and description.                    #
 #----------------------------------------------------------#
-set(BWC_VERSION_MAJOR 0)
-set(BWC_VERSION_MINOR 2)
-set(BWC_VERSION_PATCH 4)
-set(BWC_VERSION "${BWC_VERSION_MAJOR}.${BWC_VERSION_MINOR}.${BWC_VERSION_PATCH}")
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/library/private/macros.h.in
-               ${CMAKE_CURRENT_BINARY_DIR}/include/library/private/macros.h
-               @ONLY)
+project(BWC 
+        VERSION 0.2.4
+        LANGUAGES C CXX
+        DESCRIPTION "Compression algorithm for IEEE 754 datasets")
 
 #----------------------------------------------------------#
-# Setup a user-specified option used to control the sample #
-# precision during compression. The standard option is     #
-# set to double precision.                                 #
+# Set the project options.                                 #
 #----------------------------------------------------------#
-set(BIGWHOOP_PRECISION "Double" CACHE STRING "User-specified option used to control\
-                                              the precision during compression")
+set(BIGWHOOP_PRECISION "Double" CACHE STRING "Precision mode")
+set_property(CACHE BIGWHOOP_PRECISION PROPERTY STRINGS "Double" "Single")
+
+option(BWC_BUILD_SHARED "Build shared libraries" ON)
+option(BWC_BUILD_STATIC "Build static libraries" OFF)
+option(BWC_BUILD_UTIL   "Build command line utilities" OFF)
+option(BWC_BUILD_HDF5   "Build HDF5 plugin" OFF)
+option(BWC_BUILD_TESTS  "Build unit tests" ON)
+
+option(BWC_WITH_OMP  "Enable OpenMP parallelization" ON)
+option(BWC_WITH_PROF "Enable profiling" OFF)
+option(BWC_WITH_EAS3 "Enable EAS3 support" OFF)
 
 #----------------------------------------------------------#
-# Inlude the GNU standard installation directories module  #
-# to set up the output directories.                        #
+# Set standards.                                           #
 #----------------------------------------------------------#
-include(GNUInstallDirs)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #----------------------------------------------------------#
-# Set up the output directories for the Big Whoop library  #
-# and utility binaries.                                    #
+# Set global flags.                                        #
 #----------------------------------------------------------#
-list(INSERT CMAKE_MODULE_PATH 0 "${BWC_SOURCE_DIR}/cmake")
-if(${BUILD_UTILITIES})
-  if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BWC_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+add_compile_options(-Wall)
+
+if(NOT MSVC)
+  add_compile_options(-Wextra)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  if(MSVC)
+    add_compile_options(/WX)
+  else()
+    add_compile_options(-Werror)
   endif()
 endif()
-if(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BWC_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
-endif()
-if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BWC_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
-endif()
 
 #----------------------------------------------------------#
-# Set the target installation directory of the config-file #
-# packaging configuration files.                           #
+# Fetch system dependencies.                               #
 #----------------------------------------------------------#
-set(CMAKE_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/bwc
-    CACHE PATH "Installation directory for config-file package cmake files")
-
-#----------------------------------------------------------#
-# Suggest the C standard (C99) used by the compiler.       #
-#----------------------------------------------------------#
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 11)
-endif()
-
-message(STATUS "Compiling with C standard: ${CMAKE_C_STANDARD}")
-
-#----------------------------------------------------------#
-# Suggest the C++ standard (CXX98) used by the compiler.   #
-#----------------------------------------------------------#
-# Suggest C++98
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
-endif()
-
-message(STATUS "Compiling with C++ standard: ${CMAKE_CXX_STANDARD}")
-
-#----------------------------------------------------------#
-# Check if the OpenMP package is available for the current #
-# setup and set the appropriate C/C++ flags.               #
-#----------------------------------------------------------#
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${BIGWHOOP_WITH_OPENMP}")
-  message(STATUS "Enable OpenMP parallelization")
- find_package(OpenMP)
- if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
- endif()
-endif()
-
-#----------------------------------------------------------#
-# Add all necessary compiler warnings for debugging.       #
-#----------------------------------------------------------#
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(BWC_DEBUG_FLAGS "-Wall")
-  if(NOT MSVC)
-    set(BWC_DEBUG_FLAGS "${BWC_DEBUG_FLAGS} -Wextra")
+if(BWC_WITH_OMP AND CMAKE_BUILD_TYPE STREQUAL "Release")
+  find_package(OpenMP REQUIRED COMPONENTS C)
+  if(OpenMP_C_FOUND)
+    message(STATUS "OpenMP found: enabling parallelization")
+  else()
+    message(WARNING "OpenMP requested but not found. Disabling parallelization.")
   endif()
-  set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS} ${BWC_DEBUG_FLAGS}")
-  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${BWC_DEBUG_FLAGS}")
+endif()
+
+if(BWC_BUILD_HDF5)
+  find_package(HDF5 REQUIRED COMPONENTS C CXX)
 endif()
 
 #----------------------------------------------------------#
-# Include the CMake dependent option macro.                #
+# Fetch third party dependencies.                          #
 #----------------------------------------------------------#
-include(CMakeDependentOption)
-
-#----------------------------------------------------------#
-# Set PIC for shared libraries.                            #
-#----------------------------------------------------------#
-get_property(SHARED_LIBS_SUPPORTED GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
-cmake_dependent_option(BUILD_SHARED_LIBS
-  "Whether or not to build shared libraries" ON
-  "SHARED_LIBS_SUPPORTED" OFF)
-
-if(DEFINED BWC_ENABLE_PIC)
-  set(BWC_ENABLE_PIC_DEFAULT ${BWC_ENABLE_PIC})
-elseif(DEFINED CMAKE_POSITION_INDEPENDENT_CODE)
-  set(BWC_ENABLE_PIC_DEFAULT ${CMAKE_POSITION_INDEPENDENT_CODE})
-else()
-  set(BWC_ENABLE_PIC_DEFAULT ${SHARED_LIBS_SUPPORTED})
+if(BWC_BUILD_TESTS)
+  include(cmake/ThirdParty.cmake)
 endif()
-cmake_dependent_option(BWC_ENABLE_PIC
-  "Build with Position Independent Code" ${BWC_ENABLE_PIC_DEFAULT}
-  "NOT BUILD_SHARED_LIBS" OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ${BWC_ENABLE_PIC})
 
 #----------------------------------------------------------#
-# Add third party fetching and installation.               #
-#----------------------------------------------------------#
-include(cmake/ThirdParty.cmake)
-
-#----------------------------------------------------------#
-# Add the project source code.                             #
+# Process the compression library.                         #
 #----------------------------------------------------------#
 add_subdirectory(src/library)
 
+if(BWC_BUILD_UTIL)
+  add_subdirectory(src/tools)
+endif()
+
 #----------------------------------------------------------#
-# Add the H5Z_BWC source code if requested.                #
+# Process the HDF5 filter plugin.                          #
 #----------------------------------------------------------#
-if(${BUILD_H5Z_BWC})
-  find_package(HDF5 REQUIRED COMPONENTS C  CXX)
+if(BWC_BUILD_HDF5)
   add_subdirectory(src/interfaces/HDF5)
 endif()
 
 #----------------------------------------------------------#
-# Add the unit tests.                                      #
+# Add unit testing.                                        #
 #----------------------------------------------------------#
-enable_testing()
-add_subdirectory(tests)
-
-#----------------------------------------------------------#
-# Add the utilities source code if requested.              #
-#----------------------------------------------------------#
-if(${BUILD_UTILITIES})
-  add_subdirectory(src/tools)
-else()
-  set(ignoreMe "${BIGWHOOP_WITH_EAS3}${BIGWHOOP_WITH_NETCDF}")
+if(BWC_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
 
 #----------------------------------------------------------#
 # Config-file packaging                                    #
 #----------------------------------------------------------#
-export(TARGETS bwclib NAMESPACE bwc:: FILE "bwc-targets.cmake")
 configure_file(${PROJECT_SOURCE_DIR}/bwc-config.cmake.in
               "${PROJECT_BINARY_DIR}/bwc-config.cmake" @ONLY)
+
+message(THIS IS IA TEST::::: ${CMAKE_INSTALL_LIBDIR})
+
 configure_file(${PROJECT_SOURCE_DIR}/bwc-config-version.cmake.in
               "${PROJECT_BINARY_DIR}/bwc-config-version.cmake" @ONLY)
-  
+
 install(      FILES "${PROJECT_BINARY_DIR}/bwc-config.cmake"
                     "${PROJECT_BINARY_DIR}/bwc-config-version.cmake"
         DESTINATION ${CMAKE_INSTALL_CMAKEDIR})
 
 install(     EXPORT bwc-targets
+               FILE bwc-targets.cmake
           NAMESPACE bwc::
         DESTINATION ${CMAKE_INSTALL_CMAKEDIR})

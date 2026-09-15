@@ -45,41 +45,42 @@
 # Add the bwc command line utility and get hash tool to    #
 # the current project using the utility source files.      #
 #----------------------------------------------------------#
-add_executable(bwccmd  bwccmdl.c
-                       ../interfaces/reader/eas3.c)
-
-#----------------------------------------------------------#
-# Set the target compile definition for the requested file #
-# format support.                                          #
-#----------------------------------------------------------#
-if(${BIGWHOOP_WITH_EAS3})
-  target_compile_definitions(bwccmd PRIVATE -DBWC_EAS3)
-  MESSAGE(STATUS "EAS3 file format support: ${BIGWHOOP_WITH_EAS3}")
-endif()
-
-if(${BIGWHOOP_WITH_NETCDF})
-  target_compile_definitions(bwccmd PRIVATE -DBWC_NETCDF)
-  MESSAGE(STATUS "NetCDF file format support: ${BIGWHOOP_WITH_NETCDF}")
-endif()
+add_executable(bwc-cli  bwc-clil.c
+                        ../interfaces/reader/eas3.c)
 
 #----------------------------------------------------------#
 # Define the output name for the utility binaries.         #
 #----------------------------------------------------------#
-set_property(TARGET bwccmd  PROPERTY OUTPUT_NAME bwc)
+set_property(TARGET bwc-cli  PROPERTY OUTPUT_NAME bwc-cli)
 
 #----------------------------------------------------------#
 # Setup up the include directory for the bwc utilities.    #
 #----------------------------------------------------------#
-target_include_directories(bwccmd PRIVATE ${CMAKE_SOURCE_DIR}/include/tools)
-target_include_directories(bwccmd PRIVATE ${PROJECT_BINARY_DIR}/include/library/public)
-target_include_directories(bwccmd PRIVATE ${CMAKE_SOURCE_DIR}/include/interfaces/reader)
+target_include_directories(bwc-cli PRIVATE
+  ${CMAKE_SOURCE_DIR}/include/tools
+  ${CMAKE_SOURCE_DIR}/include/interfaces/reader)
+
+#----------------------------------------------------------#
+# Link the utility to the bwc library and dependencies.    #
+#----------------------------------------------------------#
+if(TARGET bwc::bwclib)
+  target_link_libraries(bwc-cli PRIVATE bwc::bwclib)
+elseif(TARGET bwc::bwclib_static)
+  target_link_libraries(bwc-cli PRIVATE bwc::bwclib_static)
+else()
+  message(FATAL_ERROR "bwc library target not found.")
+endif()
+
+if(NOT MSVC)
+  target_link_libraries(bwc-cli PRIVATE m)
+endif()
+
+if(BWC_WITH_EAS3)
+  target_compile_definitions(bwc-cli PRIVATE -DBWC_EAS3)
+  MESSAGE(STATUS "EAS3 file format support: ${BIGWHOOP_WITH_EAS3}")
+endif()
 
 #----------------------------------------------------------#
 # Setup the install directories.                           #
 #----------------------------------------------------------#
-install(TARGETS bwccmd DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-#----------------------------------------------------------#
-# Link the bwc utility to the bwc library.                 #
-#----------------------------------------------------------#
-target_link_libraries(bwccmd PRIVATE bwclib m)
+install(TARGETS bwc-cli DESTINATION ${CMAKE_INSTALL_BINDIR})

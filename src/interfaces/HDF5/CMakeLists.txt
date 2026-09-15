@@ -42,48 +42,58 @@
 #|                                                                                                |#
 #*================================================================================================*#
 #----------------------------------------------------------#
-# Define the library target                                #
+# Define the HDF5 plugin.                                  #
 #----------------------------------------------------------#
 add_library(h5z_bwc SHARED H5Zbwc.c)
 
 #----------------------------------------------------------#
-# Setup up the include directory for the BigWhoop library. #
+# Setup up the include directory for the HDF5 plugin.      #
 #----------------------------------------------------------#
-target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/library/public>
-                                   PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                                           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                                           ${HDF5_INCLUDE_DIRS})
+target_include_directories(h5z_bwc
+  PRIVATE
+    ${HDF5_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/include/interfaces/HDF5    
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/interfaces/HDF5>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/bwc>)
 
 #----------------------------------------------------------#
-# Link the BigWhoop library to the math.h library.         #
+# Link the plugin to the BigWhoop and HDF5 library.        #
 #----------------------------------------------------------#
-target_link_libraries(h5z_bwc PRIVATE bwclib ${HDF5_LIBRARIES})
+if(TARGET bwc_objects)
+  target_link_libraries(h5z_bwc PRIVATE bwc_objects HDF5::HDF5)
+  message(STATUS "Building HDF5 plugin inside bwc source tree (using bwc_objects).")
+
+elseif(TARGET bwc::bwclib_static)
+  target_link_libraries(h5z_bwc PRIVATE bwc::bwclib_static HDF5::HDF5)
+  message(STATUS "Building HDF5 plugin against installed static bwc library.")
+
+else()
+  message(FATAL_ERROR "Cannot build HDF5 plugin: "
+            "Target 'bwc_objects' (internal) or 'bwc::bwclib_static' (installed) not found. "
+            "The plugin requires a static link to the bwc library.")
+endif()
 
 #----------------------------------------------------------#
-# Set the Version and SOVersion and define the public API  # 
-# for the HDF5 plugin.                                     #
+# Set the properties of the HDF5 plugin.                   #
 #----------------------------------------------------------#
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/H5Zbwc.c _H5Zbwc_c_contents)
-string(REGEX REPLACE ".*#define[ \t]+H5Z_BWC_VERSION_MAJOR[ \t]+([0-9]+).*"
-     "\\1" H5Z_BWC_VERSION_MAJOR ${_H5Zbwc_c_contents})
-string(REGEX REPLACE ".*#define[ \t]+H5Z_BWC_VERSION_MINOR[ \t]+([0-9]+).*"
-     "\\1" H5Z_BWC_VERSION_MINOR ${_H5Zbwc_c_contents})
-string(REGEX REPLACE ".*#define[ \t]+H5Z_BWC_VERSION_PATCH[ \t]+([0-9]+).*"
-     "\\1" H5Z_BWC_VERSION_PATCH ${_H5Zbwc_c_contents})
-set(H5Z_BWC_VERSION "${H5Z_BWC_VERSION_MAJOR}.${H5Z_BWC_VERSION_MINOR}.${H5Z_BWC_VERSION_PATCH}")
-
-set_target_properties(h5z_bwc PROPERTIES VERSION "${H5Z_BWC_VERSION}"
-                                       SOVERSION "${H5Z_BWC_VERSION_MAJOR}"
-                                   PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Zbwc.h"
-                                   OUTPUT_NAME   h5z_bwc)
+set_target_properties(h5z_bwc PROPERTIES 
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  OUTPUT_NAME "h5z_bwc"
+  PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Zbwc.h")
 
 #----------------------------------------------------------#
 # Setup the install directories and target exporting for   #
 # config-file packaging.                                   #
 #----------------------------------------------------------#
-install(TARGETS                   h5z_bwc
-        LIBRARY DESTINATION       ${CMAKE_INSTALL_LIBDIR}/plugin
-        ARCHIVE DESTINATION       ${CMAKE_INSTALL_LIBDIR}/plugin
-        RUNTIME DESTINATION       ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(TARGETS h5z_bwc
+  EXPORT bwc-targets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/plugin
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bwc)
+
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  message(WARNING 
+    "HDF5 plugin installed to ${CMAKE_INSTALL_LIBDIR}/plugin.\n"
+    "Set HDF5_PLUGIN_PATH to this directory to use it.")
+endif()
