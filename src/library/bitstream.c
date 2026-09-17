@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,15 +12,16 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This file describes a set of functions that can be used to create, manipulate           ||
-||        and terminate a bitstream. These functions facilitate the creation or reading           ||
-||        of a compressed bwc codestream and can emit/extract information on a per bit,           ||
-||        symbol (64-bit) or string basis.                                                        ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**
+ *        @file   bitstream.c
+ *
+ *        This file describes a set of functions that can be used to create, manipulate
+ *        and terminate a bitstream. These functions facilitate the creation or reading
+ *        of a compressed bwc codestream and can emit/extract information on a per bit,
+ *        symbol (64-bit) or string basis.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -43,108 +44,72 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
-/************************************************************************************************************\
-||                                      _ _  _ ____ _    _  _ ___  ____                                     ||
-||                                      | |\ | |    |    |  | |  \ |___                                     ||
-||                                      | | \| |___ |___ |__| |__/ |___                                     ||
-||                                                                                                          ||
-\************************************************************************************************************/
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||                                _ _  _ ____ _    _  _ ___  ____                                 ||
+||                                | |\ | |    |    |  | |  \ |___                                 ||
+||                                | | \| |___ |___ |__| |__/ |___                                 ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+// clang-format off
+#include <assert.h>                                       //!< Diagnostic assertions
+#include <stdio.h>                                        //!< Standard I/O
+#include <stdlib.h>                                       //!< Standard C library
+#include <string.h>                                       //!< String manipulation
 
-#include "libbwc.h"
+#include "libbwc.h"                                       //!< BWC private header
+// clang-format on
 
-/************************************************************************************************************\
-||                  ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____                  ||
-||                  |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__                   ||
-||                  |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]                  ||
-||                                                                                                          ||
-\************************************************************************************************************/
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: uint32 bytes_used(bitstream *const stream)                                                !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to evaluate the number of bytes that have already been                !
-!                written to the allocated bitstream memory block.                                            !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure that                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                unsigned int(32 bit)      - Number of bites that have been written to the                   !
-!                                            bitstream.                                                      !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                13.05.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uint64 
-bytes_used(bitstream const *const stream)
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
+||             ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____             ||
+||             |__] |  | |__] |    | |       |___ |  | |\ | |     |  | |  | |\ | [__              ||
+||             |    |__| |__] |___ | |___    |    |__| | \| |___  |  | |__| | \| ___]             ||
+||                                                                                                ||
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
+/*================================================================================================*/
+/**
+ * @details This function is used to evaluate the number of bytes that have already been written
+ *          to the allocated bitstream memory block.
+ *
+ * @param[in] stream  Helper structure used to assemble/read bitstream.
+ *
+ * @return  Number of bytes  written to the bitstream.
+ */
+/*================================================================================================*/
+uint64
+bytes_used (bitstream const *const stream)
 {
-  if(stream->T == 0xFF)
-  {
-    return stream->L + 1;
-  }
+  if (stream->T == 0xFF)
+    {
+      return stream->L + 1;
+    }
   else
-  {
-    return stream->L;
-  }
+    {
+      return stream->L;
+    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to initialize a bwc bitstream. For encoding, a null pointer           !
-!                is passed as a memory handle and the function will allocate a memory block with the         !
-!                specified stream size. For decoding, a valid memory handle, passed by the function          !
-!                caller, will be stored in the bitstream structure. The byte buffer counter t,               !
-!                stream size Lmax and size increment are initialized with their appropriate values.          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                size                        unsigned int(32 bit)  - Initial size of the bwc stream.         !
-!                                                                                                            !
-!                memory                      unsigned char         - Memory handle for the bwc stream memory !
-!                                                                    block.                                  !
-!                                                                                                            !
-!                instr                       char                  - Constant used to instruct the field     !
-!                                                                    initialization.                         !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                bitstream*                - Memory handle for the initialized bwc stream.                   !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                19.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-bitstream* 
-init_bitstream(uchar* memory, uint32 size, char instr)
+/*================================================================================================*/
+/**
+ *  @details Initializes a BWC bitstream for encoding or decoding. Stores the provided memory
+ *           handle for stream assembly or reading and initializes the byte buffer counter,
+ *           maximum stream size, and size increment according to the supplied flag.
+ *
+ * @param[in] memory  Memory handle used to store the bitstream.
+ * @param[in] size    Initial size of the bitstream.
+ * @param[in] instr   Flag indicating encoding ('c') or decoding ('d') mode.
+ *
+ * @return Memory handle for the initialized BWC stream.
+ */
+/*================================================================================================*/
+bitstream *
+init_bitstream (uchar *memory, uint32 size, char instr)
 {
+  /*-----------------------*\
+  ! DEFINE INT VARIABLES:   !
+  \*-----------------------*/
+  uint64 tmp;
+
   /*-----------------------*\
   ! DEFINE STRUCTS:         !
   \*-----------------------*/
@@ -153,109 +118,77 @@ init_bitstream(uchar* memory, uint32 size, char instr)
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(memory);
-  assert(instr == 'c' || instr == 'd');
+  assert (memory);
+  assert (instr == 'c' || instr == 'd');
 
-  /*--------------------------------------------------------*\
-  ! Allocate the bwc stream structure.                       !
-  \*--------------------------------------------------------*/
-  stream = calloc(1, sizeof(bitstream));
-  if(!stream)
-  {
-    // memory allocation error
-    fprintf(stderr, MEMERROR);
-    return NULL;
-  }
+  stream = calloc (1, sizeof (bitstream));
+  if (!stream)
+    {
+      // memory allocation error
+      fprintf (stderr, MEMERROR);
+      return NULL;
+    }
 
-  /*--------------------------------------------------------*\
-  ! Initialize the byte buffer counter, stream size and size !
-  ! increment for the current stream.                        !
-  \*--------------------------------------------------------*/
   stream->memory    = memory;
   stream->t         = (instr == 'c') ? 8 : 0;
   stream->Lmax      = size;
-  stream->size_incr = (uint64)(size / 2);
+  tmp               = size / 2;
+  stream->size_incr = (uint64)(tmp ? tmp : 1);
 
-  /*--------------------------------------------------------*\
-  ! Return the stream memory handle.                         !
-  \*--------------------------------------------------------*/
   return stream;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_emit_chunck(bitstream *const stream, const uchar* string, const uint64 length)   !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to write an additional chunck of size length to a bwc bitstream.      !
-!                                                                                        !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                chunck                      unsigned char*        - Memory handle for a data block that is  !
-!                                                                    to be written to the bwc bitstream.     !
-!                                                                                                            !
-!                size                        unsigned int(64 bit)  - Size of the data block.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Writes a chunk of data of size to a bwc bitstream. If the bitstream cannot accomodate
+ *          the additional information an error flag is set, the stream is invalidated (length = 0)
+ *          and the function returns to the caller. In case an error flag is already set the
+ *          function returns without processing.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ * @param[in]     chunck  Memory handle for the data block to write.
+ * @param[in]     size    Size of the data block.
+ */
+/*================================================================================================*/
 void
-emit_chunck(bitstream *const stream, const uchar* chunck, const uint64 size)
+pass_chunk (bitstream *const stream, uchar const *chunck, uint64 const size)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
-  assert(chunck);
+  assert (stream);
+  assert (chunck);
 
   /*--------------------------------------------------------*\
   ! Check if an error was encountered in a previous writing  !
   ! operation                                                !
   \*--------------------------------------------------------*/
-  if(!stream->error)
-  {
-    /*--------------------------------------------------------*\
-    ! Check if the enough memory has been allocated for the    !
-    ! stream to store the additional symbol.                   !
-    \*--------------------------------------------------------*/
-    if((bytes_used(stream) + size) > stream->Lmax)
+  if (!stream->error)
     {
-      // memory allocation error
-      stream->error |= 1;
-      stream->Lmax   = 0;
+      /*--------------------------------------------------------*\
+      ! Check if the enough memory has been allocated for the    !
+      ! stream to store the additional symbol.                   !
+      \*--------------------------------------------------------*/
+      if ((bytes_used (stream) + size) > stream->Lmax)
+        {
+          // memory allocation error
+          stream->error |= 1;
+          stream->Lmax   = 0;
+          return;
+        }
+    }
+  else
+    {
+      /*--------------------------------------------------------*\
+      ! Exit to function caller if error flag has been set.      !
+      \*--------------------------------------------------------*/
       return;
     }
-  }
-  else
-  {
-    /*--------------------------------------------------------*\
-    ! Exit to function caller if error flag has been set.      !
-    \*--------------------------------------------------------*/
-    return;
-  }
 
   /*--------------------------------------------------------*\
   ! Copy the additional data to the stream memory block.     !
   \*--------------------------------------------------------*/
-  memcpy(stream->memory + stream->L, chunck, size);
+  memcpy (stream->memory + stream->L, chunck, size);
 
   /*--------------------------------------------------------*\
   ! Increment the number of bytes written to the stream with !
@@ -264,133 +197,98 @@ emit_chunck(bitstream *const stream, const uchar* chunck, const uint64 size)
   stream->L += size;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                symbol                      unsigned int(64 bit)  - Symbol that is to be written to the bwc !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                size                        unsigned int(8 bit)   - Number of significant bytes in the      !
-!                                                                    symbol.                                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Writes a symbole of a specified size to a bwc bitstream. If the bitstream cannot
+ *          accomodate the additional information an error flag is set, the stream is invalidated
+ *          (length = 0) and the function returns to the caller. In case an error flag is already
+ *          set the function returns without processing.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ * @param[in]     symbol  Integer containing symbol to write.
+ * @param[in]     size    Number of significant bytes in the symbol.
+ */
+/*================================================================================================*/
 void
-emit_symbol(bitstream *const stream, const uint64 symbol, const uint8 size)
+pass_symbol (bitstream *const stream, uint64 const symbol, uint8 const size)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  uint8              byte;
-  int8               i;
+  uint8 byte;
+  int8  i;
 
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
-  
+  assert (stream);
+
   /*--------------------------------------------------------*\
   ! Check if an error was encountered in a previous writing  !
   ! operation                                                !
   \*--------------------------------------------------------*/
-  if(!stream->error)
-  {
-    /*--------------------------------------------------------*\
-    ! Check if the enough memory has been allocated for the    !
-    ! stream to store the additional symbol.                   !
-    \*--------------------------------------------------------*/
-    if((bytes_used(stream) + size) > stream->Lmax)
+  if (!stream->error)
     {
-      // memory allocation error
-      stream->error |= 1;
-      stream->Lmax   = 0;
+      /*--------------------------------------------------------*\
+      ! Check if the enough memory has been allocated for the    !
+      ! stream to store the additional symbol.                   !
+      \*--------------------------------------------------------*/
+      if ((bytes_used (stream) + size) > stream->Lmax)
+        {
+          // memory allocation error
+          stream->error |= 1;
+          stream->Lmax   = 0;
+          return;
+        }
+    }
+  else
+    {
+      /*--------------------------------------------------------*\
+      ! Exit to function caller if error flag has been set.      !
+      \*--------------------------------------------------------*/
       return;
     }
-  }
-  else
-  {
-    /*--------------------------------------------------------*\
-    ! Exit to function caller if error flag has been set.      !
-    \*--------------------------------------------------------*/
-    return;
-  }
 
   /*--------------------------------------------------------*\
   ! Copy the additional symbol to the stream memory block    !
   ! one byte at a time and Increment the number of bytes     !
   ! written to the stream.                                   !
   \*--------------------------------------------------------*/
-  for(i = size; i --> 0;)
-  {
-    byte = (uint8)((symbol >> (8 * i)) & 0xFF);
-    stream->memory[stream->L++] = (uchar)byte;
-  }
+  for (i = size; i-- > 0;)
+    {
+      byte                        = (uint8)((symbol >> (8 * i)) & 0xFF);
+      stream->memory[stream->L++] = (uchar)byte;
+    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void bwc_emit_bit(bitstream *const stream, const uint64 bit)                              !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                bit                         unsigned int(64 bit)  - Bit that is to be written to the bwc    !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-void 
-emit_bit(bitstream *const stream, const uint64 bit)
+/*================================================================================================*/
+/**
+ * @details Writes a single bit to the BWC bitstream buffer. If the buffer becomes full, its
+ *          contents are flushed to the stream memory chunk and the buffer is reset. If the
+ *          stream cannot accommodate the data, an error flag is set, the stream is invalidated
+ *          (length = 0), and the function returns. If an error flag is already set, the function
+ *          returns immediately without processing.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ * @param[in]     bit     Integer containing bit to write.
+ */
+/*================================================================================================*/
+void
+emit_bit (bitstream *const stream, uint64 const bit)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
-  
+  assert (stream);
+
+  /*--------------------------------------------------------*\
+  ! Exit if stream has been flagged with an error.           !
+  \*--------------------------------------------------------*/
+  if (stream->error)
+    {
+      return;
+    }
+
   /*--------------------------------------------------------*\
   ! Decrement the bit buffer counter.                        !
   \*--------------------------------------------------------*/
@@ -400,463 +298,378 @@ emit_bit(bitstream *const stream, const uint64 bit)
   ! If the bit is significant, store the information at the  !
   ! appropriate position in the bit buffer.                  !
   \*--------------------------------------------------------*/
-  if(bit)
-  {
-    stream->T |= (1 << stream->t);
-  }
+  if (bit)
+    {
+      stream->T |= (1 << stream->t);
+    }
 
   /*--------------------------------------------------------*\
   ! Check the bit buffer counter to see if the bit buffer is !
   ! full.                                                    !
   \*--------------------------------------------------------*/
-  if(!stream->t)
-  {
-    /*--------------------------------------------------------*\
-    ! Check if the enough memory has been allocated for the    !
-    ! stream to store the additional byte.                     !
-    \*--------------------------------------------------------*/
-    if(bytes_used(stream) + 1 > stream->Lmax)
+  if (!stream->t)
     {
       /*--------------------------------------------------------*\
-      ! If the stream is not large enough, check if this is due  !
-      ! to an error encountered in a previous writing operation  !
+      ! Check if the enough memory has been allocated for the    !
+      ! stream to store the additional byte.                     !
       \*--------------------------------------------------------*/
-      if(!stream->error)
-      {
-        /*--------------------------------------------------------*\
-        ! If the error flag is not set, increment the stream size  !
-        ! to store the additional byte.                            !
-        \*--------------------------------------------------------*/
-        stream->Lmax      += stream->size_incr;
-        stream->size_incr  = (uint64)(stream->Lmax / 2);
-
-        /*--------------------------------------------------------*\
-        ! Reallocate the stream data block.                        !
-        \*--------------------------------------------------------*/
-        stream->memory     = realloc(stream->memory, stream->Lmax);
-        if(!stream->memory)
+      if (bytes_used (stream) + 1 > stream->Lmax)
         {
-          // memory allocation error
-          stream->error |= 1;
-          stream->Lmax   = 0;
-          return;
+          /*--------------------------------------------------------*\
+          ! Increment the stream size to store the additional byte.  !
+          \*--------------------------------------------------------*/
+          stream->Lmax      += stream->size_incr;
+          stream->size_incr  = (uint64)(stream->Lmax / 2);
+
+          /*--------------------------------------------------------*\
+          ! Reallocate the stream data block.                        !
+          \*--------------------------------------------------------*/
+          stream->memory = realloc (stream->memory, stream->Lmax);
+          if (!stream->memory)
+            {
+              // memory allocation error
+              stream->error |= 1;
+              stream->Lmax   = 0;
+              return;
+            }
         }
-      }
+
+      /*--------------------------------------------------------*\
+      ! Copy the additional byte to the stream memory block and  !
+      ! increment the number of bytes written to the stream.     !
+      \*--------------------------------------------------------*/
+      stream->memory[stream->L++] = (uchar)stream->T;
+
+      /*--------------------------------------------------------*\
+      ! Reset the byte buffer counter. If the current buffer has !
+      ! a value of 255, limit the counter to 7 bits to ensure    !
+      ! that the range FFFF to FF80 is reserved for the code-    !
+      ! stream markers.                                          !
+      \*--------------------------------------------------------*/
+      if (stream->T == 0xFF)
+        {
+          stream->t = 7;
+        }
       else
-      {
-        /*--------------------------------------------------------*\
-        ! Exit to function caller if error flag has been set.      !
-        \*--------------------------------------------------------*/
-        return;
-      }
-    }
+        {
+          stream->t = 8;
+        }
 
-    /*--------------------------------------------------------*\
-    ! Copy the additional byte to the stream memory block and  !
-    ! increment the number of bytes written to the stream.     !
-    \*--------------------------------------------------------*/
-    stream->memory[stream->L++] = (uchar)stream->T;
-
-    /*--------------------------------------------------------*\
-    ! Reset the byte buffer counter. If the current buffer has !
-    ! a value of 255, limit the counter to 7 bits to ensure    !
-    ! that the range FFFF to FF80 is reserved for the code-    !
-    ! stream markers.                                          !
-    \*--------------------------------------------------------*/
-    if(stream->T == 0xFF)
-    {
-      stream->t = 7;
+      /*--------------------------------------------------------*\
+      ! Reset the byte buffer.                                   !
+      \*--------------------------------------------------------*/
+      stream->T = 0;
     }
-    else
-    {
-      stream->t = 8;
-    }
-
-    /*--------------------------------------------------------*\
-    ! Reset the byte buffer.                                   !
-    \*--------------------------------------------------------*/
-    stream->T = 0;
-  }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                size                        unsigned int(64 bit)  - Size of the data block.                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar*                    - Data chunck requested by the function caller.                   !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar*
-get_chunck(bitstream *const stream, const uint64 size)
+/*================================================================================================*/
+/**
+ * @details Reads a data chunk of the specified size from a BWC bitstream. If the bitstream cannot
+ *          accommodate the requested data, an error flag is set. If an error flag is already set,
+ *          the function returns immediately without processing. In either error case, a NULL
+ *          pointer is returned.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ * @param[in]     size    Size of the data block to read.
+ *
+ * @return  Memory handle for the data block, or NULL on error.
+ */
+/*================================================================================================*/
+uchar *
+get_chunck (bitstream *const stream, uint64 const size)
 {
   /*-----------------------*\
   ! DEFINE CHAR VARIABLES:  !
   \*-----------------------*/
-  uchar             *tmp;
+  uchar *tmp;
 
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
+  assert (stream);
 
   /*--------------------------------------------------------*\
   ! Check if the number of bytes to be read from the stream  !
   ! does not exceed the number of bytes still present in its !
   ! memory block.                                            !
   \*--------------------------------------------------------*/
-  if(bytes_used(stream) + size <= stream->Lmax)
-  {
-    /*--------------------------------------------------------*\
-    ! Allocate a temporary array used to store the bytes that  !
-    ! are extracted from the stream.                           !
-    \*--------------------------------------------------------*/
-    tmp = calloc(size, sizeof(uchar));
-    if(!tmp)
+  if (bytes_used (stream) + size <= stream->Lmax)
     {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
+      /*--------------------------------------------------------*\
+      ! Allocate a temporary array used to store the bytes that  !
+      ! are extracted from the stream.                           !
+      \*--------------------------------------------------------*/
+      tmp = calloc (size, sizeof (uchar));
+      if (!tmp)
+        {
+          // memory allocation error
+          fprintf (stderr, MEMERROR);
+          return NULL;
+        }
+
+      /*--------------------------------------------------------*\
+      ! Copy the bytes requested from the function caller from   !
+      ! the stream to the temporary data block.                  !
+      \*--------------------------------------------------------*/
+      memcpy (tmp, stream->memory + stream->L, size);
+
+      /*--------------------------------------------------------*\
+      ! Increment the number of bytes read from the bitstream.   !
+      \*--------------------------------------------------------*/
+      stream->L += size;
+
+      /*--------------------------------------------------------*\
+      ! Return the temporary data block to the function caller.  !
+      \*--------------------------------------------------------*/
+      return tmp;
+    }
+  else
+    {
+      /*--------------------------------------------------------*\
+      ! If the requested block size exceeds the information left !
+      ! in the bitstream, set the bitstream error flag and       !
+      ! return a NULL pointer.                                   !
+      \*--------------------------------------------------------*/
+      stream->error |= 1;
       return NULL;
     }
-
-    /*--------------------------------------------------------*\
-    ! Copy the bytes requested from the function caller from   !
-    ! the stream to the temporary data block.                  !
-    \*--------------------------------------------------------*/
-    memcpy(tmp, stream->memory + stream->L, size);
-
-    /*--------------------------------------------------------*\
-    ! Increment the number of bytes read from the bitstream.   !
-    \*--------------------------------------------------------*/
-    stream->L += size;
-
-    /*--------------------------------------------------------*\
-    ! Return the temporary data block to the function caller.  !
-    \*--------------------------------------------------------*/
-    return tmp;
-  }
-  else
-  {
-    /*--------------------------------------------------------*\
-    ! If the requested block size exceeds the information left !
-    ! in the bitstream, set the bitstream error flag and       !
-    ! return a NULL pointer.                                   !
-    \*--------------------------------------------------------*/
-    stream->error |= 1;
-    return NULL;
-  }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bitstream*            - Structure used to assemble a bwc bit-   !
-!                                                                    bitstream.                              !
-!                                                                                                            !
-!                size                        unsigned int(8 bit)   - Number of significant bytes in the      !
-!                                                                    symbol.                                 !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                uchar*                    - Symbol requested by the function caller.                        !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Reads a symbol of the specified size from a BWC bitstream. If the bitstream cannot
+ *          accommodate the requested data, an error flag is set. If an error flag is already set,
+ *          the function returns immediately without processing. In either error case, a zero is
+ *          returned.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ * @param[in]     size    Size of the symbol to read.
+ *
+ * @return  Symbol, or zero on error.
+ */
+/*================================================================================================*/
 uint64
-get_symbol(bitstream *const stream, const uint8 size)
+get_symbol (bitstream *const stream, uint8 const size)
 {
   /*-----------------------*\
   ! DEFINE INT VARIABLES:   !
   \*-----------------------*/
-  uint64             symbol;
-  uint8              byte;
-  int8               i;
+  uint64 symbol;
+  uint8  byte;
+  int8   i;
 
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
-  
+  assert (stream);
+
+  /*--------------------------------------------------------*\
+  ! The return value of type uint64 is limited to 8 bytes.   !
+  ! Information is lost if size exceeds that threshold.      !
+  \*--------------------------------------------------------*/
+  if (size > 8)
+    {
+      stream->error |= 2;
+      return 0;
+    }
+
   /*--------------------------------------------------------*\
   ! Check if the number of bytes to be read from the stream  !
   ! does not exceed the number of bytes still present in its !
   ! memory block.                                            !
   \*--------------------------------------------------------*/
-  if(bytes_used(stream) + size <= stream->Lmax)
-  {
-    /*--------------------------------------------------------*\
-    ! Extract the requested information from the bitstream one !
-    ! byte at a time. Adjust the number of bytes read from the !
-    ! stream accordingly.                                      !
-    \*--------------------------------------------------------*/
-    for(i = size, symbol = 0; i --> 0;)
+  if (bytes_used (stream) + size <= stream->Lmax)
     {
-      byte    = (uint8)stream->memory[stream->L++];
-      symbol |= ((uint64)byte << (i * 8));
-    }
+      /*--------------------------------------------------------*\
+      ! Extract the requested information from the bitstream one !
+      ! byte at a time. Adjust the number of bytes read from the !
+      ! stream accordingly.                                      !
+      \*--------------------------------------------------------*/
+      for (i = size, symbol = 0; i-- > 0;)
+        {
+          byte    = (uint8)stream->memory[stream->L++];
+          symbol |= ((uint64)byte << (i * 8));
+        }
 
-    /*--------------------------------------------------------*\
-    ! Return the symbol to the function caller.                !
-    \*--------------------------------------------------------*/
-    return symbol;
-  }
+      /*--------------------------------------------------------*\
+      ! Return the symbol to the function caller.                !
+      \*--------------------------------------------------------*/
+      return symbol;
+    }
   else
-  {
-    /*--------------------------------------------------------*\
-    ! If the requested block size exceeds the information left !
-    ! in the bitstream, set the bitstream error flag and       !
-    ! return zero.                                             !
-    \*--------------------------------------------------------*/
-    stream->error |= 1;
-    return 0;
-  }
+    {
+      /*--------------------------------------------------------*\
+      ! If the requested block size exceeds the information left !
+      ! in the bitstream, set the bitstream error flag and       !
+      ! return zero.                                             !
+      \*--------------------------------------------------------*/
+      stream->error |= 1;
+      return 0;
+    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-uchar 
-get_bit(bitstream *const stream)
+/*================================================================================================*/
+/**
+ * @details Reads a single bit from the BWC bitstream. Refills the byte buffer from the stream if
+ *          it is empty. If the read index reaches the end of the stream, returns 1. Otherwise,
+ *          extracts the bit from the buffer and decrements its counter.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ *
+ * @return  The extracted bit (0 or 1), or 1 if end of stream is reached.
+ */
+/*================================================================================================*/
+uchar
+get_bit (bitstream *const stream)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
+  assert (stream);
 
-  if(!stream->t)
-  {
-    if(stream->L == stream->Lmax)
+  if (!stream->t)
     {
-      return 1;
+      if (stream->L == stream->Lmax)
+        {
+          return 1;
+        }
+      if (stream->T == 0xFF)
+        {
+          stream->t = 7;
+        }
+      else
+        {
+          stream->t = 8;
+        }
+      stream->T = (uint16)stream->memory[stream->L++];
     }
-    if(stream->T == 0xFF)
-    {
-      stream->t = 7;
-    }
-    else
-    {
-      stream->t = 8;
-    }
-    stream->T = (uint16)stream->memory[stream->L++];
-  }
   stream->t--;
   return ((stream->T & (1 << stream->t)) >> stream->t);
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void *test(void)                                                                          !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                DESCRIPTION NEEDED                                                                          !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                -                           -                       -                                       !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                -           Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
-void 
-flush_stream(bitstream *const stream)
+/*================================================================================================*/
+/**
+ * @details Flushes remaining data from the byte buffer to the BWC bitstream. If the bitstream
+ *          cannot accomodate the additional information an error flag is set, the stream is
+ *          invalidated (length = 0) and the function returns to the caller. In case an error
+ *          flag is already set the function returns without processing.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ */
+/*================================================================================================*/
+void
+flush_stream (bitstream *const stream)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
+  assert (stream);
+
+  /*--------------------------------------------------------*\
+  ! Exit if stream has been flagged with an error.           !
+  \*--------------------------------------------------------*/
+  if (stream->error)
+    {
+      return;
+    }
 
   /*--------------------------------------------------------*\
   ! Check the if the bit buffer contains information.        !
   \*--------------------------------------------------------*/
-  if(stream->t != 8)
-  {
-    /*--------------------------------------------------------*\
-    ! Check if the enough memory has been allocated for the    !
-    ! stream to store the additional byte.                     !
-    \*--------------------------------------------------------*/
-    if((bytes_used(stream) + 1) > stream->Lmax)
+  if (stream->t != 8)
     {
       /*--------------------------------------------------------*\
-      ! If the stream is not large enough, check if this is due  !
-      ! to an error encountered in a previous writing operation  !
+      ! Check if the enough memory has been allocated for the    !
+      ! stream to store the additional byte.                     !
       \*--------------------------------------------------------*/
-      if(!stream->error)
-      {
-        /*--------------------------------------------------------*\
-        ! If the error flag is not set, increment the stream size  !
-        ! to store the additional byte.                            !
-        \*--------------------------------------------------------*/
-        stream->Lmax      += stream->size_incr;
-        stream->size_incr  = (uint64)(stream->Lmax / 2);
-
-        /*--------------------------------------------------------*\
-        ! Reallocate the stream data block.                        !
-        \*--------------------------------------------------------*/
-        stream->memory     = realloc(stream->memory, stream->Lmax);
-        if(!stream->memory)
+      if ((bytes_used (stream) + 1) > stream->Lmax)
         {
-          // memory allocation error
-          stream->error |= 1;
-          stream->Lmax   = 0;
-          return;
-        }
-      }
-      else
-      {
-        /*--------------------------------------------------------*\
-        ! Exit to function caller if error flag has been set.      !
-        \*--------------------------------------------------------*/
-        return;
-      }
-    }
+          /*--------------------------------------------------------*\
+          ! Increment the stream size to store the additional byte.  !
+          \*--------------------------------------------------------*/
+          stream->Lmax      += stream->size_incr;
+          stream->size_incr  = (uint64)(stream->Lmax / 2);
 
-    /*--------------------------------------------------------*\
-    ! Copy the additional byte to the stream memory block and  !
-    ! increment the number of bytes written to the stream.     !
-    \*--------------------------------------------------------*/
-    stream->memory[stream->L++] = (uchar)stream->T;
-  }
+          /*--------------------------------------------------------*\
+          ! Reallocate the stream data block.                        !
+          \*--------------------------------------------------------*/
+          stream->memory = realloc (stream->memory, stream->Lmax);
+          if (!stream->memory)
+            {
+              // memory allocation error
+              stream->error |= 1;
+              stream->Lmax   = 0;
+              return;
+            }
+        }
+
+      /*--------------------------------------------------------*\
+      ! Copy the additional byte to the stream memory block and  !
+      ! increment the number of bytes written to the stream.     !
+      \*--------------------------------------------------------*/
+      stream->memory[stream->L++] = (uchar)stream->T;
+    }
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                Shrinks the bitstream memory to the actually filled range.                                  !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Returns 0 if successfull and 1 if memory could not be resized.                              !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Shrinks the bitstream memory to the actually filled range.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ *
+ * @return  Returns 0 if successfull and 1 if memory could not be resized.
+ */
+/*================================================================================================*/
 uchar
-shrink_to_fit(bitstream *const stream)
+shrink_to_fit (bitstream *const stream)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
+  assert (stream);
 
-  if(stream->error)
-  {
-    return 1;
-  }
-  else if(stream->L > stream->Lmax)
-  {
-    stream->Lmax   = stream->L;
-    stream->memory = realloc(stream->memory, stream->Lmax);
-    if(!stream->memory)
+  if (stream->error)
     {
-      // memory allocation error
-      fprintf(stderr, MEMERROR);
-      stream->Lmax = 0;
       return 1;
     }
-  }
+  else if (stream->L > stream->Lmax)
+    {
+      stream->Lmax   = stream->L;
+      stream->memory = realloc (stream->memory, stream->Lmax);
+      if (!stream->memory)
+        {
+          // memory allocation error
+          fprintf (stderr, MEMERROR);
+          stream->Lmax = 0;
+          return 1;
+        }
+    }
   return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                Swap memory pointer and size to span. Invalidates stream pointers.                          !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Returns 0 if successfull and 1 if stream had previous memory error.                         !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Swap memory pointer and size to span. Invalidates stream pointers.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ * @param[in,out] span    Memory handle for the BWC span structure.
+ *
+ * @return  Returns 0 if successfull and 1 if stream had previous memory error.
+ */
+/*================================================================================================*/
 uchar
-transfer_to_span(bitstream *const stream, bwc_span *const span)
+transfer_to_span (bitstream *const stream, bwc_span *const span)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
-  assert(span);
+  assert (stream);
+  assert (span);
 
-  if(stream->error)
-  {
-    return 1;
-  }
+  if (stream->error)
+    {
+      return 1;
+    }
 
   span->memory   = stream->memory;
   span->access   = stream->memory;
@@ -864,58 +677,30 @@ transfer_to_span(bitstream *const stream, bwc_span *const span)
   span->position = 0;
 
   stream->memory = NULL;
-  stream->L = 0;
+  stream->L      = 0;
 
   return 0;
 }
 
-/*----------------------------------------------------------------------------------------------------------*\
-!   FUNCTION NAME: void release_packed_stream(bwc_span *stream)                                            !
-!   --------------                                                                                           !
-!                                                                                                            !
-!   DESCRIPTION:                                                                                             !
-!   ------------                                                                                             !
-!                This function is used to release all the information stored in a packed bitstream           !
-!                and reset the parameters for another (de)compression run.                                   !
-!                                                                                                            !
-!   PARAMETERS:                                                                                              !
-!   -----------                                                                                              !
-!                Variable                    Type                    Description                             !
-!                --------                    ----                    -----------                             !
-!                stream                      bwc_span            - Packed bitstream used to store parts of !
-!                                                                    the bwc codestream.                     !
-!                                                                                                            !
-!   RETURN VALUE:                                                                                            !
-!   -------------                                                                                            !
-!                Type                        Description                                                     !
-!                ----                        -----------                                                     !
-!                -                           -                                                               !
-!                                                                                                            !
-!   DEVELOPMENT HISTORY:                                                                                     !
-!   --------------------                                                                                     !
-!                                                                                                            !
-!                Date        Author             Change Id   Release     Description Of Change                !
-!                ----        ------             ---------   -------     ---------------------                !
-!                22.06.2019  Patrick Vogler     B87D120     V 0.1.0     function created                     !
-!                                                                                                            !
-\*----------------------------------------------------------------------------------------------------------*/
+/*================================================================================================*/
+/**
+ * @details Releases all the information stored in a packed bitstream and reset the parameters for
+ *          another (de)compression run.
+ *
+ * @param[in,out] stream  Memory handle for the BWC bitstream structure.
+ */
+/*================================================================================================*/
 void
-release_packed_stream(bwc_span *stream)
+release_packed_stream (bwc_span *stream)
 {
   /*-----------------------*\
   ! DEFINE ASSERTIONS:      !
   \*-----------------------*/
-  assert(stream);
+  assert (stream);
 
-  /*--------------------------------------------------------*\
-  ! Free the data block of the packed bitstream.             !
-  \*--------------------------------------------------------*/
-  free(stream->memory);
+  free (stream->memory);
 
-  /*--------------------------------------------------------*\
-  ! Reset all the packed stream parameters.                  !
-  \*--------------------------------------------------------*/
-  stream->access    = NULL;
-  stream->position  = 0;
-  stream->size      = 0;
+  stream->access   = NULL;
+  stream->position = 0;
+  stream->size     = 0;
 }

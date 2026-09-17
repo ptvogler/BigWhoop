@@ -2724,7 +2724,7 @@ bwc_set_tiles(bwc_codec *const codec, uint64 tilesX, uint64 tilesY, uint64 tiles
       ! Check if the number of tiles exceeds its maximum allowa- !
       ! ble value.                                               !
       \*--------------------------------------------------------*/
-      if(((double)num_tiles_X * num_tiles_Y * num_tiles_Z * num_tiles_TS) > 0xFFFFFFFFFFFFFFFF)
+      if(((double)num_tiles_X * num_tiles_Y * num_tiles_Z * num_tiles_TS) > (double) 0xFFFFFFFFFFFFFFFF)
       {
          fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
                         "   WARNING: Invalid Tile Dimensions                           \n"\
@@ -2753,7 +2753,7 @@ bwc_set_tiles(bwc_codec *const codec, uint64 tilesX, uint64 tilesY, uint64 tiles
       ! Check if the number of tiles exceeds its maximum allowa- !
       ! ble value.                                               !
       \*--------------------------------------------------------*/
-      if(((double)tilesX * tilesY * tilesZ * tilesTS) > 0xFFFFFFFFFFFFFFFF)
+      if(((double)tilesX * tilesY * tilesZ * tilesTS) > (double) 0xFFFFFFFFFFFFFFFF)
       {
          fprintf(stderr,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
                         "   WARNING: Invalid Number Of Tiles                           \n"\

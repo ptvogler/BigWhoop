@@ -116,7 +116,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-include/library/public
 lib/
 lib64/
 out/

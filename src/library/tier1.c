@@ -2186,7 +2186,7 @@ compute_convex_hull(bwc_encoded_cblk *const encoded_codeblock, double *const mse
 
    h           = hull;
    hlast       = 0;
-   lambda [0]  = 0xFFFFFFFFFFFFFFFF;
+   lambda [0]  = (double) 0xFFFFFFFFFFFFFFFF;
 
    for(i = 0; i < encoded_codeblock->Z; ++i)
    {
@@ -2228,7 +2228,7 @@ compute_convex_hull(bwc_encoded_cblk *const encoded_codeblock, double *const mse
             }
             else
             {
-               lambda[hlast] = 0xFFFFFFFFFFFFFFFF;
+               lambda[hlast] = (double) 0xFFFFFFFFFFFFFFFF;
             }
          }
          else

@@ -1,12 +1,21 @@
 <p align="center">
-  <a href="https://code.hlrs.de/TOPIO/BigWhoop">
-    <img alt="BigWhoop" src="https://code.hlrs.de/TOPIO/BigWhoop/raw/branch/main/docs/img/Logo.svg"/>
+  <a href="https://github.com/ptvogler/BigWhoop">
+    <picture>
+      <source 
+        media="(prefers-color-scheme: dark)" 
+        srcset="https://raw.githubusercontent.com/ptvogler/BigWhoop/main/docs/img/Logo-dark.svg"
+      />
+      <img 
+        alt="BigWhoop" 
+        src="https://raw.githubusercontent.com/ptvogler/BigWhoop/main/docs/img/Logo-light.svg" 
+      />
+    </picture>
   </a>
 </p>
-<h1 align="center">Compression library for numerical datasets</h1>
+<h1 align="center">Compression Library for Numerical Datasets</h1>
 
 
-BigWhoop is a compression library for numerical datasets that has been developed as part of the EU Projects ExaFLOW and EXCELLERAT. It aims to give scientists and egineers a tool to drastically reduce the size of their simulation data while minimizing the distortion introduced by a lossy compression scheme.
+BigWhoop is a compression library for numerical datasets that was developed as part of the EU projects ExaFLOW and EXCELLERAT, as well as the BMFTR Project TopIO. It aims to give scientists and egineers a tool to drastically reduce the size of their simulation data while minimizing the distortion introduced by a lossy compression scheme.
 
 
 <h1 align="center">Building BigWhoop</h1>
@@ -19,9 +28,9 @@ BigWhoop is a compression library for numerical datasets that has been developed
 
 ### Building
 
-clone the sources from HLRS' gitea instance (note: default branch is `main`):
+clone the sources from the github repository (note: default branch is `main`):
 ```
-git clone https://code.hlrs.de/TOPIO/BigWhoop.git
+git clone https://github.com/ptvogler/BigWhoop.git
 ```
 
 Now change into the source directory and run the following commands.
@@ -51,4 +60,6 @@ This builds the library and places the associated files in the `build/lib` or `b
 This project exists thanks to all the people who contribute.
 
 - Patrick Vogler patrick.vogler@hlrs.de (principal author)
-- Gregor Weiss gregor.weiss@hlrs.de 
+- Gregor Weiss gregor.weiss@hlrs.de
+- Dennis Grieger
+- Martin Aumüller 

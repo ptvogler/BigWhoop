@@ -2,6 +2,7 @@ Language: Cpp # Yes, should also be used for C.
 UseTab: Never
 BreakBeforeBraces: Custom
 BraceWrapping:
+  AfterCaseLabel: true
   AfterControlStatement: Always
   AfterEnum: true
   AfterExternBlock: true

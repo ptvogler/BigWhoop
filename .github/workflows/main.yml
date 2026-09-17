@@ -1,0 +1,143 @@
+#*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*#
+#|                                                                                                |#
+#|       /$$$$$$$  /$$                  /$$      /$$ /$$                                          |#
+#|      | $$__  $$|__/                 | $$  /$ | $$| $$                                          |#
+#|      | $$  \ $$ /$$  /$$$$$$        | $$ /$$$| $$| $$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$       |#
+#|      | $$$$$$$ | $$ /$$__  $$       | $$/$$ $$ $$| $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$      |#
+#|      | $$__  $$| $$| $$  \ $$       | $$$$_  $$$$| $$  \ $$| $$  \ $$| $$  \ $$| $$  \ $$      |#
+#|      | $$  \ $$| $$| $$  | $$       | $$$/ \  $$$| $$  | $$| $$  | $$| $$  | $$| $$  | $$      |#
+#|      | $$$$$$$/| $$|  $$$$$$$       | $$/   \  $$| $$  | $$|  $$$$$$/|  $$$$$$/| $$$$$$$/      |#
+#|      |_______/ |__/ \____  $$       |__/     \__/|__/  |__/ \______/  \______/ | $$____/       |#
+#|                     /$$  \ $$                                                  | $$            |#
+#|                    |  $$$$$$/                                                  | $$            |#
+#|                     \______/                                                   |__/            |#
+#|                                                                                                |#
+#*  --------------------------------------------------------------------------------------------  *#
+#>                                                                                               
+#!        @file   main.yaml
+#!
+#!        This document defines the main workflow for push and pull requests to the main
+#!        branch.
+#!
+#*  --------------------------------------------------------------------------------------------  *#
+#|  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               |#
+#|                                                                                                |#
+#|  Redistribution and use in source and binary forms, with or without modification, are          |#
+#|  permitted provided that the following conditions are met:                                     |#
+#|                                                                                                |#
+#|     (1)   Redistributions of source code must retain the above copyright notice, this list of  |#
+#|           conditions and the following disclaimer.                                             |#
+#|                                                                                                |#
+#|     (2)   Redistributions in binary form must reproduce the above copyright notice, this list  |#
+#|           of conditions and the following disclaimer in the documentation and/or other         |#
+#|           materials provided with the distribution.                                            |#
+#|                                                                                                |#
+#|  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS   |#
+#|  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF               |#
+#|  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE    |#
+#|  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,     |#
+#|  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF            |#
+#|  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)        |#
+#|  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR      |#
+#|  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  |#
+#|  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            |#
+#|                                                                                                |#
+#*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*#
+name: CMake on multiple platforms
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os: [ubuntu-latest]
+        c_compiler: [gcc, clang]
+        build_type: [Release]
+        shared: [ON, OFF]
+        omp: [ON]
+        precision: ["Double"]
+        utilities: [ON]
+        hdf5: [ON, OFF]
+        eas3: [ON]
+        profiling: [ON]
+
+        include:
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        
+        exclude:
+          - hdf5: ON
+            shared: ON
+          - c_compiler: cl
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Cache CMake Build Artifacts
+      id: cache-build
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/build
+          ~/.ccache
+        # The key uniquely identifies the build configuration.
+        # It includes: OS, Compiler, Build Type, HDF5 status, Shared status, 
+        # AND the specific eas3/profiling flags.
+        key: ${{ runner.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.hdf5 }}-${{ matrix.shared }}-eas3-${{ matrix.eas3 }}-prof-${{ matrix.profiling }}-${{ hashFiles('**/CMakeLists.txt', 'CMake/*.cmake') }}
+        
+        # Fallback keys: If an exact match isn't found, try to restore a cache 
+        # with the same compiler and OS but different flags (less ideal but faster than full rebuild)
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Install Dependencies
+      if: matrix.hdf5 == 'ON' || matrix.c_compiler == 'clang'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libhdf5-dev \
+          libomp-dev
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+        -DBIGWHOOP_WITH_OPENMP=${{ matrix.omp }}
+        -DBIGWHOOP_PRECISION:STRING=${{ matrix.precision }}
+        -DBUILD_UTILITIES=${{ matrix.utilities }}
+        -DBUILD_H5Z_BWC=${{ matrix.hdf5 }}
+        -DBIGWHOOP_WITH_EAS3=${{ matrix.eas3 }}
+        -DBIGWHOOP_WITH_PROFILING=${{ matrix.profiling }}
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --parallel $(nproc)
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}

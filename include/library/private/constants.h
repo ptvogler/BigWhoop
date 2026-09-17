@@ -1,4 +1,4 @@
-/*================================================================================================*\
+/*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
 ||                                                                                                ||
 ||       /$$$$$$$  /$$                  /$$      /$$ /$$                                          ||
 ||      | $$__  $$|__/                 | $$  /$ | $$| $$                                          ||
@@ -12,12 +12,13 @@
 ||                    |  $$$$$$/                                                  | $$            ||
 ||                     \______/                                                   |__/            ||
 ||                                                                                                ||
-||  DESCRIPTION:                                                                                  ||
-||  ------------                                                                                  ||
-||                                                                                                ||
-||        This file defines simple constants that are used to make the code more readable.        ||
-||                                                                                                ||
-||  --------------------------------------------------------------------------------------------  ||
+\*  --------------------------------------------------------------------------------------------  */
+/**                                                                                               
+ *        @file constants.h
+ *
+ *        This file defines simple constants that are used to make the code more readable.
+ *                                                                                                */
+/*  --------------------------------------------------------------------------------------------  *\
 ||  Copyright (c) 2023, High Performance Computing Center - University of Stuttgart               ||
 ||                                                                                                ||
 ||  Redistribution and use in source and binary forms, with or without modification, are          ||
@@ -40,88 +41,79 @@
 ||  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  ||
 ||  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                                            ||
 ||                                                                                                ||
-\*================================================================================================*/
+\*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These constants are used to signal spatial or temporal the wavelet filter.             !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+
+  /*==============================================================================================*/
+  /**
+   * @details 1-dimensional wavelet kernels supported by the BWC library.
+   */
+  /*=====================================================|========================================*/
   typedef enum
   {
-    bwc_dwt_9_7,                                          // Cohen Daubechies Feauveau 9/7 Wavelet
-    bwc_dwt_5_3,                                          // LeGall 5/3 Wavelet
-    bwc_dwt_haar                                          // Haar Wavelet
+    bwc_dwt_9_7,                                          //!< Cohen Daubechies Feauveau 9/7
+    bwc_dwt_5_3,                                          //!< LeGall 5/3
+    bwc_dwt_haar                                          //!< Haar
   } bwc_dwt_filter;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These constants are used to signal the packing order of the codestream.                !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details BWC codestream packing order:   Resolution: (RES)   Layer:  (LYR)
+   *                                          Parameter:  (PRM)   Packet: (PKT)
+   */
+  /*=====================================================|========================================*/
   typedef enum
   {
-    bwc_prog_LRCP,                                        // Layer / Resolution / Parameter / Packet
-    bwc_prog_RLCP,                                        // Resolution / Layer / Parameter / Packet
-    bwc_prog_RPCL,                                        // Resolution / Packet / Parameter / Layer
-    bwc_prog_PCRL,                                        // Packet / Parameter / Resolution / Layer
-    bwc_prog_CPRL                                         // Parameter / Packet / Resolution / Layer
+    bwc_prog_LRCP,                                        //!< (LYR) > (RES) > (RRM) > (PKT)
+    bwc_prog_RLCP,                                        //!< (RES) > (LYR) > (RRM) > (PKT)
+    bwc_prog_RPCL,                                        //!< (RES) > (PKT) > (RRM) > (LYR)
+    bwc_prog_PCRL,                                        //!< (PKT) > (RRM) > (RES) > (LYR)
+    bwc_prog_CPRL                                         //!< (RRM) > (PKT) > (RES) > (LYR)
   } bwc_prog_ord;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These constants are used to signal the quantisation style during                       !
-  !         (de)coompression.                                                                      !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Pre/Post entropy stage quantization during (de)/compression.
+   */
+  /*=====================================================|========================================*/
   typedef enum
   {
-    bwc_qt_none,                                          // No quantization
-    bwc_qt_derived,                                       // Derrived according to Taubman/Marcellin
+    bwc_qt_none,                                          //!< None
+    bwc_qt_derived,                                       //!< Derrived
   } bwc_quant_st;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These constants are used to signal dataset tiling by the function caller.              !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Tile definition style used to instruct codec structure.
+   */
+  /*=====================================================|========================================*/
   typedef enum
   {
-    bwc_tile_sizeof,                                      // Tiling defined by size of one tile
-    bwc_tile_numbof,                                      // Tiling defined by the number of tiles
+    bwc_tile_sizeof,                                      //!< By tile size
+    bwc_tile_numbof,                                      //!< By number of tiles
   } bwc_tile_instr;
 
-  /*----------------------------------------------------------------------------------------------*\
-  !                                                                                                !
-  !   DESCRIPTION:                                                                                 !
-  !   ------------                                                                                 !
-  !                                                                                                !
-  !         These constants are used to signal the dataset sample precision.                       !
-  !                                                                                                !
-  \*----------------------------------------------------------------------------------------------*/
+  /*==============================================================================================*/
+  /**
+   * @details Data set sample precision.
+   */
+  /*=====================================================|========================================*/
   typedef enum
   {
-    bwc_precision_half = 2,
-    bwc_precision_single = 4,
-    bwc_precision_double = 8,
+    bwc_precision_half = 2,                               //!< Half precision
+    bwc_precision_single = 4,                             //!< Single Precision
+    bwc_precision_double = 8,                             //!< Double Precision
   } bwc_precision;
 
+  /*==============================================================================================*/
+  /**
+   * @details BWC library coding mode.
+   */
+  /*=====================================================|========================================*/
   typedef enum
   {
-    comp,
-    decomp,
+    comp,                                                 //!< Compression
+    decomp,                                               //!< Decompression
   } bwc_mode;
 #endif

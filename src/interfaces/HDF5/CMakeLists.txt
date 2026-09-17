@@ -49,7 +49,7 @@ add_library(h5z_bwc SHARED H5Zbwc.c)
 #----------------------------------------------------------#
 # Setup up the include directory for the BigWhoop library. #
 #----------------------------------------------------------#
-target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/library/public>
+target_include_directories(h5z_bwc PRIVATE $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/library/public>
                                    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                                            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -75,7 +75,7 @@ set(H5Z_BWC_VERSION "${H5Z_BWC_VERSION_MAJOR}.${H5Z_BWC_VERSION_MINOR}.${H5Z_BWC
 
 set_target_properties(h5z_bwc PROPERTIES VERSION "${H5Z_BWC_VERSION}"
                                        SOVERSION "${H5Z_BWC_VERSION_MAJOR}"
-                                   PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Z_bwc.h"
+                                   PUBLIC_HEADER "${CMAKE_SOURCE_DIR}/include/interfaces/HDF5/H5Zbwc.h"
                                    OUTPUT_NAME   h5z_bwc)
 
 #----------------------------------------------------------#
@@ -87,28 +87,3 @@ install(TARGETS                   h5z_bwc
         ARCHIVE DESTINATION       ${CMAKE_INSTALL_LIBDIR}/plugin
         RUNTIME DESTINATION       ${CMAKE_INSTALL_BINDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-#----------------------------------------------------------#
-# Add the HDF5 test utility to the current project.        #
-#----------------------------------------------------------#
-add_executable(test_hdf5  test_hdf5.c)
-
-#----------------------------------------------------------#
-# Define the output name for the utility binaries.         #
-#----------------------------------------------------------#
-set_property(TARGET test_hdf5 PROPERTY OUTPUT_NAME test_hdf5)
-
-#----------------------------------------------------------#
-# Setup up the include directory for the bwc utilities.    #
-#----------------------------------------------------------#
-target_include_directories(test_hdf5 PRIVATE ${CMAKE_SOURCE_DIR}/include/interfaces/HDF5)
-
-#----------------------------------------------------------#
-# Link the bwc utility to the bwc library.                 #
-#----------------------------------------------------------#
-target_link_libraries(test_hdf5 PRIVATE bwclib m ${HDF5_LIBRARIES})
-
-#----------------------------------------------------------#
-# Add the utility to the test regiment.                    #
-#----------------------------------------------------------#
-add_test(NAME test_hdf5 COMMAND test_hdf5)
