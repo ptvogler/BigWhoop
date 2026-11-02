@@ -1583,7 +1583,7 @@ parse_packet(bwc_codec *const codec, bwc_tile   *const tile,
       ! check if the next symbol corresponds to the end of pack- !
       ! header (EOH) marker...                                   !
       \*--------------------------------------------------------*/
-      if(packet->body.memory[0] != 0xFF ||
+      if(packet->body.memory[0] != 0xFF &&
          packet->body.memory[1] != 0x92)
       {
          /*--------------------------------------------------------*\

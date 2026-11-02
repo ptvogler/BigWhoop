@@ -87,7 +87,7 @@
    * @details Macro used to access the current read/write position in a bitstream.
    */
   /*==============================================================================================*/
-  #define get_access(stream) (uchar*)stream->memory + stream->L
+  #define get_access(stream) ((uchar*)stream->memory + stream->L)
 
   /*<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*\
   ||            ___  _  _ ___  _    _ ____    ____ _  _ _  _ ____ ___ _ ____ _  _ ____            ||

@@ -2064,7 +2064,7 @@ bwc_set_error_resilience(bwc_codec *const codec)
    ! Record the setting of the error resilience marker in the !
    ! CSsgc variable.                                          !
    \*--------------------------------------------------------*/
-   control->CSsgc ^= (0x01 << 0);
+   control->CSsgc |= (0x01 << 0);
 }
 
 /*================================================================================================*/
@@ -2678,6 +2678,17 @@ bwc_set_tiles(bwc_codec *const codec, uint64 tilesX, uint64 tilesY, uint64 tiles
    if(instr == bwc_tile_sizeof)
    {
       /*--------------------------------------------------------*\
+      ! Check if the tile dimensions are specified for a valid   !
+      ! spatial or temporal dimension. All invalid and unspeci-  !
+      ! fied (NULL) values are set to the maximum allowable tile !
+      ! size.                                                    !
+      \*--------------------------------------------------------*/
+      control->tileSizeX  = (info->nX  >> 1) ? (tilesX  ? tilesX  : info->nX)  : info->nX;
+      control->tileSizeY  = (info->nY  >> 1) ? (tilesY  ? tilesY  : info->nY)  : info->nY;
+      control->tileSizeZ  = (info->nZ  >> 1) ? (tilesZ  ? tilesZ  : info->nZ)  : info->nZ;
+      control->tileSizeTS = (info->nTS >> 1) ? (tilesTS ? tilesTS : info->nTS) : info->nTS;
+
+      /*--------------------------------------------------------*\
       ! Check if the tile sizes have valid values.               !
       \*--------------------------------------------------------*/
       if((control->tileSizeX  < 16 && control->tileSizeX  > info->nX)|| 
@@ -2695,20 +2706,17 @@ bwc_set_tiles(bwc_codec *const codec, uint64 tilesX, uint64 tilesY, uint64 tiles
                         "                                                              \n"\
                         "                 16 ≤ Tile_Size_Xi ≤ Grid_Points_Xi           \n"\
                         ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+  
+         /*--------------------------------------------------------*\
+         ! Reset the tile sizes to their standard values.           !
+         \*--------------------------------------------------------*/
+         control->tileSizeX  = info->nX;
+         control->tileSizeY  = info->nY;
+         control->tileSizeZ  = info->nZ;
+         control->tileSizeTS = info->nTS;
 
          return;
       }
-
-      /*--------------------------------------------------------*\
-      ! Check if the tile dimensions are specified for a valid   !
-      ! spatial or temporal dimension. All invalid and unspeci-  !
-      ! fied (NULL) values are set to the maximum allowable tile !
-      ! size.                                                    !
-      \*--------------------------------------------------------*/
-      control->tileSizeX  = (info->nX  >> 1) ? (tilesX  ? tilesX  : info->nX)  : info->nX;
-      control->tileSizeY  = (info->nY  >> 1) ? (tilesY  ? tilesY  : info->nY)  : info->nY;
-      control->tileSizeZ  = (info->nZ  >> 1) ? (tilesZ  ? tilesZ  : info->nZ)  : info->nZ;
-      control->tileSizeTS = (info->nTS >> 1) ? (tilesTS ? tilesTS : info->nTS) : info->nTS;
 
       /*--------------------------------------------------------*\
       ! Calculate the number of tiles in all spatial and tempo-  !

@@ -115,5 +115,5 @@
    * @details Maximum number of possible encoding passes during the entropy encoding stage. 
    */
   /*=====================================================|========================================*/
-  #define MAXIMUM_NO_PASSES     (64 * 3) - 2              //!< Maxmimum fractional bit-planes
+  #define MAXIMUM_NO_PASSES     ((64 * 3) - 2)            //!< Maxmimum fractional bit-planes
 #endif
