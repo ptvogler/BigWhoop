@@ -2379,7 +2379,18 @@ bwc_set_decomp(bwc_codec *const codec, uint8 decompX, uint8 decompY, uint8 decom
    \*--------------------------------------------------------*/
    if(initialize_gain_lut()) 
    {
-      bwc_free_codec(codec);
+      fprintf(stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n"\
+                      "   Error:   Unable to initialize Gain Lookup Table.           \n"\
+                      ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+
+      /*--------------------------------------------------------*\
+      ! Reset the decomposition levels to their standard values. !
+      \*--------------------------------------------------------*/
+      control->decompX  = (info->nX  >> 1) ? 4 : 0;
+      control->decompY  = (info->nY  >> 1) ? 4 : 0;
+      control->decompZ  = (info->nZ  >> 1) ? 4 : 0;
+      control->decompTS = (info->nTS >> 1) ? 4 : 0;
+
       return;
    }
 
@@ -2755,7 +2766,7 @@ bwc_set_tiles(bwc_codec *const codec, uint64 tilesX, uint64 tilesY, uint64 tiles
          return;
       }
    }
-   else if(bwc_tile_numbof)
+   else if(instr == bwc_tile_numbof)
    {
       /*--------------------------------------------------------*\
       ! Check if the number of tiles exceeds its maximum allowa- !
